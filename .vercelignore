@@ -1,0 +1,15 @@
+.git/
+.env*
+.data/
+.private/
+.seed-people.json
+node_modules/
+test-results/
+docs/
+tests/
+tools/
+dist/
+*.ttf
+*.otf
+*.woff
+*.woff2
