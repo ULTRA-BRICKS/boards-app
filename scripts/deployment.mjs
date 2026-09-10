@@ -11,7 +11,7 @@ export function runCommand(command,args,{env=process.env,cwd,spawn=spawnSync,inp
 /** The font deployment must not inherit the board's project ID or application secrets. */
 export function staticDeploymentEnvironment(env=process.env) {
  const keys=['PATH','HOME','USER','SHELL','TMPDIR','TEMP','TMP','XDG_CONFIG_HOME','APPDATA','SystemRoot',
-  'VERCEL_TOKEN','CI','NO_COLOR','HTTP_PROXY','HTTPS_PROXY','NO_PROXY','SSL_CERT_FILE','NODE_EXTRA_CA_CERTS'];
+  'VERCEL_TOKEN','NEON_API_KEY','CI','NO_COLOR','HTTP_PROXY','HTTPS_PROXY','NO_PROXY','SSL_CERT_FILE','NODE_EXTRA_CA_CERTS'];
  return Object.fromEntries(keys.filter(key=>env[key]!==undefined).map(key=>[key,env[key]]));
 }
 export function typeProject(env=process.env) {

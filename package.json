@@ -14,7 +14,9 @@
     "verify": "npm test && npm run build && npm run build:type",
     "setup": "node scripts/setup.mjs",
     "deploy": "node scripts/deploy.mjs",
-    "deploy:type": "node scripts/deploy-type.mjs"
+    "deploy:type": "node scripts/deploy-type.mjs",
+    "build:type:neon": "node scripts/build-neon-type.mjs",
+    "deploy:type:neon": "node scripts/deploy-neon-type.mjs"
   },
   "dependencies": {"@neondatabase/serverless": "1.0.0"},
   "devDependencies": {"nx": "^21.5.2", "playwright": "^1.55.0"}
