@@ -40,7 +40,8 @@ with sync_playwright() as p:
  page.get_by_role('button',name='Notebook settings and profile').click();page.get_by_role('button',name='Sign out',exact=True).click();page.get_by_role('heading',name='Come on in.').wait_for()
  page.keyboard.press('Control+k');check('sign-out clears the private workspace and command palette',page.get_by_role('dialog').count()==0 and page.locator('.task').count()==0)
  # Exercise the actual draft-review module on a separate page, without pretending a model ran.
- draft_page=browser.new_page();draft_page.on('pageerror',lambda e:errors.append(str(e)));draft_page.set_content('<main id="draft"></main>')
+ draft_page=browser.new_page(viewport={'width':1280,'height':1320});draft_page.on('pageerror',lambda e:errors.append(str(e)));draft_page.set_content('<style>'+(ROOT/'apps/board/style.css').read_text()+(ROOT/'apps/board/refinements.css').read_text()+'</style><div class="backdrop"><section class="dialog wide"><h2>Check your new page.</h2><main id="draft"></main></section></div>')
+ draft_page.evaluate('async url => {await (await import(url)).installFont()}',base.module_url(str(ROOT/'packages/font/font.mjs')))
  module=base.module_url(str(ROOT/'apps/board/photo-review.mjs'))
  draft={'board':{'title':'From photo','columns':[{'id':'col','title':'Launch','items':[{'id':'a','text':'Ship','tag':'D','assignees':[]},{'id':'b','text':'Unclear','tag':'','assignees':[]}]}]},'warnings':['Check the second line']}
  draft_page.evaluate('''async ({url,draft})=>{ const {reviewPhoto}=await import(url);window.__draft=draft;reviewPhoto(document.querySelector('#draft'),draft,{onConfirm:async value=>window.__accepted=value,onError:e=>{throw e}}); }''',{'url':module,'draft':draft})
@@ -48,6 +49,8 @@ with sync_playwright() as p:
  draft_page.get_by_label('Thought',exact=True).first.fill('Ship the reviewed app')
  draft_page.get_by_role('checkbox',name='Include this thought').last.uncheck()
  draft_page.get_by_role('checkbox',name='I checked the transcription.',exact=False).check()
+ draft_page.locator('.dialog').evaluate('(element)=>element.scrollTop=0')
+ draft_page.screenshot(path=str(ROOT/'docs/screenshots/photo-review.png'))
  draft_page.get_by_role('button',name='Confirm and add page').click()
  value=draft_page.evaluate('window.__accepted')
  check('photo draft can be reviewed without editing JSON',value['title']=='Reviewed launch' and value['columns'][0]['items'][0]['text']=='Ship the reviewed app' and len(value['columns'][0]['items'])==1)

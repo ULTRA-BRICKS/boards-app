@@ -11,7 +11,7 @@ set -euo pipefail
 }
 [[ $GITHUB_SHA =~ ^[0-9a-f]{40}$ ]] || exit 1
 [[ $GITHUB_RUN_ID =~ ^[0-9]+$ ]] || exit 1
-for name in board-desktop.png board-mobile-viewport.png type-site.png; do
+for name in board-desktop.png board-mobile-viewport.png type-site.png photo-review.png; do
   path="$EVIDENCE_DIR/docs/screenshots/$name"
   [[ -f "$path" && ! -L "$path" ]] || { echo "Missing screenshot $name" >&2; exit 1; }
 done
@@ -19,7 +19,7 @@ done
 node scripts/bundle-type.mjs
 source_dir=$(mktemp -d)
 trap 'rm -rf "$source_dir"' EXIT
-for name in board-desktop.png board-mobile-viewport.png type-site.png; do
+for name in board-desktop.png board-mobile-viewport.png type-site.png photo-review.png; do
   cp "$EVIDENCE_DIR/docs/screenshots/$name" "$source_dir/$name"
 done
 cp "$EVIDENCE_DIR/docs/browser-verification.json" "$source_dir/browser-verification.json"
