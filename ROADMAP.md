@@ -1,59 +1,49 @@
 # Boards delivery roadmap
 
-Updated: 2026-09-10. This file is the execution ledger, not a promise that an adapter or screenshot is a deployed product. Each stage is complete only when its acceptance checks have evidence.
+Updated: 2026-09-10. This is the execution ledger, not a claim that tested adapters are a deployed product. [Tracking issue #1](https://github.com/alex-mextner/boards-app/issues/1) · [Review and evidence](docs/REVIEW-2026-09-10.md).
 
-Tracking issue: [#1](https://github.com/alex-mextner/boards-app/issues/1).
+## Delivery order and acceptance gates
 
-## Delivery order
+| Stage | Priority | Scope and acceptance gate | Current status |
+|---|---|---|---|
+| R0 — Recover and verify | P0 | Reachable source commits; fresh checkout builds both sites; logs tied to exact SHAs | Done: recovered the orphan tree, fixed startup and established native CI |
+| R1 — Paper interface | P0 | No app masthead/logo; approved ink/paper hierarchy; image avatars on right; dashed assign control; discoverable mobile/keyboard navigation; independent font site | Approved direction retained. Chromium and WebKit touch checks pass; physical iOS and real-profile review remain |
+| R2 — Cloud and sign-in | P0 | Configured cloud opens automatically; otherwise setup first. Real sign-in plus deployed save/reload across sessions | Readiness and cloud/test isolation verified. Real deployment/OAuth/email configuration remains blocked |
+| R3 — People and confirmations | P1 | @ creation/assignment; provisional avatars visible to uploader, canonical only after owner approval; explicit provider proof; cross-board task view | Stale/competing-avatar and repeated-request bugs fixed; unresolved hints preserved. Live provider proof and complete recovery remain |
+| R4 — Workspace search | P1 | Real lexical + semantic retrieval; context boosts; duplicate suggestions; indexed illustration metadata; evaluated EN/RU queries | Actual E5 evaluation: 13/15 Recall@3 vs lexical 6/15. Opposite-action duplicate guard added. Hosted embeddings and broader evaluation remain |
+| R5 — Tickets and accounts | P1 | GitHub issue/PR and Linear recognition/preview; authorized Slack directory; explicit idempotent backlink comments | Fixture contracts verified; live token/scopes and actual provider runs remain separate |
+| R6 — Visual content and sharing | P1 | Semantic library reuse then bounded generation; reviewed photo-to-new-board; current deterministic previews for all share scopes | Editable photo review and multiline focus rendering verified. Live generation/vision and broader preview cases remain |
+| R7 — Ship and maintain | Release gate | Two independent hosted sites, README screenshots, reproducible dependencies, backups/recovery, rollback and live smoke tests | README evidence and no-Git deployment targets available; not released |
 
-| Stage | Priority | Scope | Acceptance gate | Status |
-|---|---|---|---|---|
-| R0 — Recover and verify | P0 | Recover previously uploaded Git objects into a reachable commit; preserve main; run source/build/tests in CI; remove unverified claims | Fresh checkout contains the application, both apps build, tests have real logs tied to a SHA | Done: source recovery + native CI |
-| R1 — Paper interface | P0 | No app header/logo; faithful paper/ink hierarchy; image avatars on the right; dashed assign control; useful page-edge navigation; mobile layout | Actual desktop/mobile screenshots, keyboard and touch tests, no clipping; type site separate | Working implementation + native desktop/mobile checks; visual/Safari review remains |
-| R2 — Cloud and sign-in | P0 | Configured cloud opens automatically; otherwise setup first. Durable Neon records; Google/GitHub/Slack or email login; no silent local persistence | Deployed save/reload across sessions, successful real login, correct setup/error states, no public credentials | In progress: readiness and test/cloud isolation verified; live deployment blocked |
-| R3 — People and confirmations | P1 | @ selection/create; own avatar; proposed avatar visible immediately only to uploader; approval; explicit provider linking; cross-board person tasks | Ownership/CSRF/replay tests, third party cannot steal account or replace approved photo, browser confirmation tests | Fixture/backend tests and basic browser flows pass; live proof/approval edge cases remain |
-| R4 — Workspace search | P1 | Lexical + true semantic retrieval; current-column/board priority; duplicate dropdown; illustration metadata/vector reuse; multilingual provider adapters | Labeled RU/EN queries and duplicate examples, measured ranking and latency, model-aware cache, no synthetic meaning fallback | Pending verification and live embeddings |
-| R5 — Tickets and accounts | P1 | GitHub issue/PR and Linear recognition; preview; explicit idempotent backlink; Slack directory and profile linking | Correct issue/PR detection; no automatic comments; live integrations tested only with authorized credentials | Adapters may be tested with fixtures; live gate separate |
-| R6 — Visual content and sharing | P1 | Reuse existing drawings by meaning, bounded optional generation; photo-to-new-board reviewed draft; deterministic current-state share previews for all scopes | Quota/failure handling; photo text never executed; complete readable focus text; revocable least-privilege links; no LLM for previews | Pending verification and provider keys |
-| R7 — Ship and maintain | P0 release gate | Two sites deploy independently; README screenshots; pinned reproducible toolchain; backup/recovery; status and health | Green CI + deployed smoke tests + documented rollback + mobile/Safari checks | Not released |
+## Invariants
 
-## Required design invariants
+The board is a handwritten sheet, not a dashboard with decorative lettering. Retain the approved screenshots' warm paper, blue ink, large headings and quiet rules. Do not hide required actions behind hover-only or undiscoverable gestures. Missing avatars are image silhouettes, not fabricated real portraits. The font specimen has a separate build/deployment, not a board tab.
 
-The board is a handwritten sheet, not a dashboard with decorative lettering. Keep generous margins, warm paper, blue ink, large headings and quiet rules. Navigation must be discoverable without relying on hover or hidden gestures. Missing avatars are actual image placeholders, never fabricated real people. The font specimen lives in a separate Nx application/build/deployment, not a board tab.
+Atomic commits, verified refs, no force pushes. Preserve the real Neon workspace. Do not publish secrets, personal contact exports, real profile photos, databases or generated font binaries. An uploaded tree is not a push until a reachable commit and branch reference exist.
 
-## Engineering invariants
+Account linking requires proof of control, not matching email. Proposed photos cannot overwrite newer canonical photos. Semantic results require real vectors, not hash vectors. OAuth/mail/model fixtures do not close live-integration gates. Whole-workspace CAS is not CRDT collaboration. Nx remains the task runner; runtime claims must match tested Node APIs.
 
-- Atomic commits and verified branch updates; no force push. Re-read the branch before advancing it.
-- Preserve the existing cloud workspace. Never publish personal contacts, avatars, credentials or local databases in Git.
-- Do not mark OAuth, email, LLM generation or cloud round-trip verified from mocked tests.
-- Explicit account linking requires proof of control, not just matching email. Avatar proposals do not silently overwrite canonical photos.
-- Distinguish lexical retrieval, real embeddings and unavailable provider states.
-- Prefer existing Nx targets; add Bun support where compatible, not a fabricated Bun-only claim for Node-specific code.
-- A file uploaded as a Git blob/tree is not pushed until a commit and branch ref make it reachable.
+## GitHub retry protocol
 
-## GitHub failure protocol
+Check the official status API and the failing component, but distinguish cached status, connector errors, authorization and local network/DNS restrictions. Retry transient failures with bounded backoff (roughly 2, 5, 15, 30 seconds), doing useful local work between rounds. After ambiguous writes, read before retrying to avoid duplicate effects. Confirm final ref/file contents and CI against the exact SHA. This describes work during the active session, not unattended monitoring.
 
-1. Check the official GitHub Status API and the specific failed component.
-2. Separate platform incidents from connector errors, authorization failures and sandbox network/DNS failures.
-3. Retry transient reads with bounded backoff (about 2, 5, 15, 30 seconds), not tight loops. Do useful local work between retry rounds.
-4. After an ambiguous write, read the target first; do not duplicate a comment, commit or file blindly.
-5. Confirm the final branch SHA and fresh file contents after a write. Never report a push from an attempted request alone.
-6. Continue during this working session; no unattended monitoring or future notifications are implied.
+## Completed checkpoints
 
-## Initial factual checkpoint (before recovery)
+1. `95648aa` — roadmap committed before recovery. Initial main had only README; application objects existed in orphan tree `29f479efbdd15865ddd2415c5f9ec843f6218050`.
+2. `bf97e7` — recovered source, removed unverified claims, added actual CI. Native browser testing exposed a parse error despite passing backend tests.
+3. `6ee1c44` — fixed startup and added guarded bootstrap, browser-module syntax checks, caret/draft preservation and mobile column tabs. [Run 34488301726](https://github.com/alex-mextner/boards-app/actions/runs/34488301726): 65 Node tests and 27 native browser checks.
+4. `a74b4a9` — refused mixed test/cloud configuration; validated readiness and shared bootstrap. [Run 34489588055](https://github.com/alex-mextner/boards-app/actions/runs/34489588055): 71 Node tests and both jobs passed.
+5. `ef5166f` — automated sample screenshot publication with a source/run manifest and in-memory font validation. README images are actual Chromium output.
+6. `963ce23` — self-contained original-source type specimen, suitable for independent static hosting; not a font binary.
+7. `fe8405d`, `d721c9b` — avatar approval races, repeat linking, UTF-8 chunk decoding, disposed queue writes, active-draft loss, stale UI responses and lost assignee hints fixed. Photo review is now a form instead of a JSON editor.
+8. `0094449`, `c65206f` — actual multilingual model evaluation and conservative opposite-action/stopword fixes. [Measured run 34500828958](https://github.com/alex-mextner/boards-app/actions/runs/34500828958): 15 public tasks and 15 queries; not a production-quality benchmark.
+9. `fb36de0`, `11be9ee` — isolated no-Git static Vercel deployment and alternative Neon Node 24 function target; code/build/HTTP checks, not a completed authenticated deployment.
+10. `29922cc` — [run 34501918744](https://github.com/alex-mextner/boards-app/actions/runs/34501918744): **92 Node tests; 27 main Chromium + 9 review Chromium + 7 WebKit touch checks; eight font instances; both builds passed**. WebKit uses a simulated viewport, not a physical iPhone.
 
-The repository is accessible through the GitHub connector with push permission. `main` was confirmed at `b13fae0b66bd1a8deaaa2f47096eea12925230e4`, containing only the initialization README. A previous application tree was uploaded under `29f479efbdd15865ddd2415c5f9ec843f6218050` but never attached to main. Its contents and old verification claims must be checked rather than assumed. The local shell currently cannot resolve github.com; that is not evidence of a GitHub outage.
+## Current blocker and next work
 
-## Execution log and next checkpoint
+R2 still needs a real hosted project, sign-in configuration and two-user cloud smoke test. Vercel's zero-argument deploy action is rejected for required arguments absent from its exposed schema. Its alternate static-import action also rejects the GitHub HTML source URL. Neon Functions was investigated and its deployment action rejected a mounted ZIP path; no function was created. CLI targets can publish without GitHub, but need an authenticated executable deployment environment. See the review for the exact attempts.
 
-1. `95648aa` — roadmap committed before implementation recovery.
-2. `bf97e7` — attached the previously orphaned source tree to main, preserved the roadmap, removed unverified success claims and enabled real CI. Native browser testing exposed a client parse error despite 60 passing backend tests.
-3. `6ee1c44` — fixed startup, added guarded boot and browser-module syntax checks; fixed caret/text loss during editing; added mobile column tabs. [Native run 34488301726](https://github.com/alex-mextner/boards-app/actions/runs/34488301726) passed 65 Node tests, both builds and 27 native Chromium checks.
-4. `a74b4a9` — explicit test mode now refuses a cloud database, validates configuration without exposing secrets, and gives shared views the same guarded bootstrap/mobile styles. [Run 34489588055](https://github.com/alex-mextner/boards-app/actions/runs/34489588055) passed both jobs. Local and CI source include 71 Node tests.
-5. Evidence publication: CI validates the font in memory and publishes only allowlisted sample screenshots to `visual-evidence` after both test jobs succeed. The branch manifest records the source SHA and workflow run; it is not a production deployment.
+The Neon workspace was read again without modification: document version 1, one board, three people, fifteen items. A connector SQL read is not a deployed application-to-database round-trip.
 
-**Next critical gate: R2.** Finish the real Vercel project, OAuth/email application settings and cloud smoke checks. Vercel was retried in this session: the exposed zero-argument deploy command is rejected by its backend for missing `name`, `target`, `files`. A read of the connected team's projects lists no `boards-app` project. Continue independent R1/R3/R4 checks rather than calling this blocker a GitHub outage.
-
-Neon was read again: database `scriptboard`, document version 1, one board, three people, fifteen items. The workspace was not modified. SQL read access is not proof of a deployed application-to-database round-trip.
-
-Open refinements include unresolved assignee-hint preservation, real-avatar fetch/approval cases, evaluated RU/EN semantic retrieval, configurable generation quotas and better photo-draft editing. Source adapters and mock provider tests must not close those live-product gates.
+Remaining refinements: live approved profile images and provider identities, real email delivery, bounded image/vision configuration, larger semantic evaluation and indexing, account recovery/retention, dependency lockfiles and hosted release checks. Keep these gates open rather than marking them complete from mocked tests.

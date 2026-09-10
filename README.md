@@ -4,7 +4,7 @@ A notebook-like collaborative task board. No application header or logo. The Con
 
 ## Roadmap and verified UI
 
-[Delivery roadmap](ROADMAP.md) · [Tracking issue #1](https://github.com/alex-mextner/boards-app/issues/1) · [CI](https://github.com/alex-mextner/boards-app/actions)
+[Delivery roadmap](ROADMAP.md) · [Review and measured results](docs/REVIEW-2026-09-10.md) · [Tracking issue #1](https://github.com/alex-mextner/boards-app/issues/1) · [CI](https://github.com/alex-mextner/boards-app/actions)
 
 The screenshots below are rendered by the real browser tests from public sample data. They are not image-model mockups and do not prove a live cloud deployment. The [evidence manifest](https://github.com/alex-mextner/boards-app/blob/visual-evidence/evidence.json) records their exact source commit and CI run. Missing real profile pictures are shown as image silhouettes.
 
@@ -15,6 +15,14 @@ The screenshots below are rendered by the real browser tests from public sample 
 <img alt="Mobile board" width="393" src="https://raw.githubusercontent.com/alex-mextner/boards-app/visual-evidence/screenshots/board-mobile-viewport.png">
 
 ![Independent Conloca specimen](https://raw.githubusercontent.com/alex-mextner/boards-app/visual-evidence/screenshots/type-site.png)
+
+</details>
+
+<details><summary>Reviewed photo-to-board draft</summary>
+
+![Editable transcription review](https://raw.githubusercontent.com/alex-mextner/boards-app/visual-evidence/screenshots/photo-review.png)
+
+This screenshot renders the real review UI using a test transcription, not a live vision-model result. Page, column and item text can be corrected without editing JSON; creation requires confirmation.
 
 </details>
 
@@ -51,13 +59,24 @@ Equivalent Nx targets: `npx nx dev board`, `npx nx dev type-site`, `npx nx build
 
 The type site runs on port 5174. Its static deployment contains **no board API, workspace data or credentials**. It contains the editable glyph source and the browser TTF compiler, with real `wght` 300–800 and `wdth` 85–125 axes. Font binaries are generated on your own device, not committed here. This is an experimental original typeface, not a finished commercial font or a renamed third-party family.
 
-## Deployment
+## Publishing without GitHub
+
+Neither CLI publishing path needs a Git repository. The font site is isolated from the board's credentials and Vercel project settings:
+
+```sh
+npm run deploy:type        # Independent Vercel static site (boards-type)
+npm run deploy:type:neon   # Alternative: Neon Node 24 function (conlocatype)
+```
+
+Both require your own authenticated CLI account. No public deployment is claimed merely because the build/tests pass. See the [review](docs/REVIEW-2026-09-10.md#publishing-without-git) for the connector attempts and remaining blockers.
+
+## Board deployment
 
 ```sh
 npm run deploy
 ```
 
-The script links this directory to the Vercel project `boards-app`, supplies configured production variables from `.env.local` through stdin, then requests a production deployment. GitHub/Vercel CLI login remains on your computer. Set `APP_ORIGIN` to the final HTTPS URL **before** configuring OAuth callbacks. `npm run deploy:type` independently deploys only `dist/type-site` as static files.
+The script links this directory to the Vercel project `boards-app`, supplies configured production variables from `.env.local` through stdin, then requests a production deployment. CLI login remains on your computer. Set `APP_ORIGIN` to the final HTTPS URL **before** configuring OAuth callbacks. `npm run deploy:type` independently stages and deploys only `dist/type-site` as static files.
 
 A push is not proof of a working cloud deployment. Verify `/api/status`, one real sign-in, a save/reload from another session, image generation, email delivery and a shared PNG in the deployed environment. Provider credentials and a working public deployment are not bundled in the repository.
 
@@ -66,14 +85,14 @@ See [setup and provider instructions](docs/SETUP.md), [architecture](docs/ARCHIT
 ## Included
 
 - Editable boards, columns, headings, notes and tasks; ordering, completion, undo/redo and JSON backup.
-- Right-aligned photo avatars; dotted add-person circle on hover and visible touch controls. `@` selection and creation of invited people.
+- Right-aligned photo avatars; dotted add-person circle on hover and visible touch controls. `@` selection and creation of invited people. Unresolved assignee hints are preserved until explicitly resolved.
 - Google, GitHub and Slack login adapters; Resend email sign-in. Identity linking is explicit, not automatic on matching email.
-- Proposed avatars: immediate for the uploader, visible to everyone only after the depicted account owner confirms. Others cannot replace an existing photo.
+- Proposed avatars: immediate for the uploader, visible to everyone only after the depicted account owner confirms. Older proposals cannot replace a newer photo; competing suggestions are superseded.
 - A person view across boards; profile/account links; independently configured Slack directory import.
 - GitHub issue/PR and Linear references, hover details and explicit, idempotent backlink comments.
-- Workspace BM25/typo search plus optional semantic vectors, RRF ranking and bounded current-board/current-column boosts; duplicate suggestions while typing.
+- Workspace BM25/typo search plus optional semantic vectors, RRF ranking and bounded current-board/current-column boosts; duplicate suggestions with conservative opposite-action filtering.
 - Reusable illustration metadata and cached vectors; Cloudflare FLUX generation after checking the library; app-side generation ceiling and concurrency guard.
-- Photo-to-board vision draft with a mandatory editable review step. No automatic execution of text found in photographs.
+- Photo-to-board vision draft with an editable review form and explicit confirmation. No automatic execution of text found in photographs.
 - Revocable capability links for a workspace, board, column, item or selection. Current-state 1200×630 PNG previews rendered deterministically, without LLM calls or Chromium.
 
 ## Deliberate limits
@@ -90,13 +109,15 @@ npm run build
 npm run build:type
 ```
 
-Browser tests require Python Playwright plus Chromium and running board/type test servers:
+Browser tests require Python Playwright, installed Chromium/WebKit engines, and running board/type test servers:
 
 ```sh
 LOCAL_TEST_MODE=1 npm run dev
 # second terminal: npm run dev:type
 # third terminal:
 uv run --with playwright python tests/browser.py
+uv run --with playwright python tests/browser-review.py
+uv run --with playwright python tests/mobile.py
 ```
 
-Set `CHROMIUM_PATH` to a system Chromium executable when needed. `--harness` is only for restricted runners: it renders the actual modules and bridges requests to the local HTTP server, but **does not test native browser cookie/OAuth redirect behavior**. Unit provider transports are fixtures, never paid calls or real comments.
+Set `CHROMIUM_PATH` to a system Chromium executable when needed. `--harness` is only for restricted runners: it renders the actual modules and bridges requests to the local HTTP server, but **does not test native browser cookie/OAuth redirect behavior**. Unit provider transports are fixtures, never paid calls or real comments. The independent semantic-quality workflow uses actual public model weights; its measured results and limitations are documented in the review.
