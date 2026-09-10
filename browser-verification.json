@@ -1,0 +1,33 @@
+{
+  "mode": "native browser navigation",
+  "checks": [
+    "15 seed tasks",
+    "No app header or brand",
+    "Avatars are images",
+    "Desktop canvas fits viewport",
+    "Assignee circle appears on hover",
+    "Avatar is right of text",
+    "Completion toggles",
+    "Clicking an active editor preserves the caret",
+    "Inline text editing saves",
+    "Toggling completion commits the active text first",
+    "Duplicate dropdown appears while typing",
+    "Mention popup filters people",
+    "Confirmed mention becomes right-side image",
+    "Assignee can be removed without changing text",
+    "Workspace search finds billing",
+    "Person tasks show page and column",
+    "Share URL is a short capability",
+    "Share revocation",
+    "Native session cookie reopens the saved workspace",
+    "Saved task survives a full browser reload",
+    "No page overflow at 393px",
+    "Mobile column tabs are available without a hidden gesture",
+    "No page overflow at 700px",
+    "No page overflow at 768px",
+    "No page overflow at 1100px",
+    "Separate font site axes work",
+    "No uncaught client exceptions"
+  ],
+  "errors": []
+}
