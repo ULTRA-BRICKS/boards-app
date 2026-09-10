@@ -24,8 +24,11 @@ jobs:
         run: |
           bunx --bun oxfmt@0.67.0 --write apps packages server scripts tests/*.test.mjs
           bun .delivery/apply.ts
-          bun add --dev --exact nx
-          bun run format
+          bun add --dev --exact nx@23.2.1
+          for attempt in 1 2 3; do
+            bun run format
+            if bun run format:check; then break; fi
+          done
           bun run verify
       - name: Commit only source and lockfile to the working branch
         env:
