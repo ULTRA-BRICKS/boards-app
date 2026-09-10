@@ -1,0 +1,164 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Conloca Sans — a living alphabet</title><style>*{box-sizing:border-box}:root{--weight:650;--width:100}body{margin:0;background:#f8f6f0;color:#283f60;font-family:'Conloca Sans',cursive;font-weight:450;font-size:23px}header,footer{display:flex;justify-content:space-between;gap:30px;max-width:1400px;margin:auto;padding:30px 45px;font-size:15px;letter-spacing:.15em}main{max-width:1380px;margin:0 auto 20px;border:1px solid #c4c9ce;border-radius:21px;padding:50px}.kicker{letter-spacing:.14em;text-transform:uppercase;font-size:17px}h1{font-size:clamp(60px,10vw,136px);font-weight:800;line-height:1.05;margin:27px 0}.lead{font-size:29px}.controls{display:flex;gap:35px;align-items:center;flex-wrap:wrap;margin:45px 0;padding:25px 0;border-block:1px solid #b4becb;font-size:21px}label{display:grid;grid-template-columns:1fr auto;gap:12px;width:220px}input[type=range]{grid-column:1/-1;width:100%;accent-color:#283f60}button{font:inherit;padding:13px 23px;border:1px solid #283f60;border-radius:8px 12px 9px 13px;background:transparent;color:inherit;cursor:pointer;margin-left:auto}button:hover{background:#e4e9ee}.section-title{font-size:15px;letter-spacing:.2em;border-bottom:1px solid #aab5c4;padding-bottom:16px;margin:34px 0 22px}.editable{font-size:clamp(48px,7vw,88px);line-height:1.35;font-variation-settings:'wght' var(--weight),'wdth' var(--width);outline:none;overflow-wrap:anywhere}.editable:focus{background:#fefbf4;box-shadow:inset 0 -1px 0 #9facbc}.alphabet p{font-size:clamp(25px,3.8vw,48px);letter-spacing:.02em;line-height:1.7;overflow-wrap:anywhere;margin:14px 0;font-variation-settings:'wght' var(--weight),'wdth' var(--width)}.instances p{font-size:clamp(32px,4.8vw,66px);line-height:1.45;margin:27px 0}aside{margin-top:55px;border-top:1px solid #b4becb;padding-top:20px;max-width:810px;line-height:1.6}h2{font-size:33px;font-weight:700}footer{font-size:16px;margin-bottom:10px}button:focus-visible,input:focus-visible{outline:2px dashed #7285a0;outline-offset:5px}@media(max-width:700px){header,footer{padding:24px;font-size:12px}header span:last-child{display:none}main{margin:0 12px;padding:25px 21px}h1{font-size:67px}.lead{font-size:24px}.controls{gap:20px}label{width:100%}button{margin:0;width:100%}.alphabet p{font-size:29px}aside{font-size:20px}h2{font-size:28px}.instances p{font-size:35px}}
+</style></head><body><header><span>CONLOCA / TYPE STUDY 04</span><span>DRAWN, NOT PERFECT.</span></header><main><section class="intro"><p class="kicker">A little ink. A lot of character.</p><h1>Conloca Sans</h1><p class="lead">A handwritten alphabet for things worth making.</p></section><section class="controls"><label>Weight <output id="weight-value">650</output><input id="weight" type="range" min="300" max="800" value="650" step="1"></label><label>Width <output id="width-value">100</output><input id="width" type="range" min="85" max="125" value="100" step="1"></label><button id="build">Build variable TTF ↗</button></section><section class="sample"><div class="section-title">TRY A THOUGHT</div><div class="editable" contenteditable="plaintext-only" role="textbox" aria-label="Editable font sample">Small steps.<br>Big progress.</div></section><section class="alphabet"><div class="section-title">A — Z / a — z</div><p>ABCDEFGHIJKLMNOPQRSTUVWXYZ</p><p>abcdefghijklmnopqrstuvwxyz</p><p>0123456789 &amp; @ # % + — ? !</p></section><section class="alphabet cyrillic"><div class="section-title">КИРИЛЛИЦА</div><p>АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ</p><p>абвгдеёжзийклмнопрстуфхцчшщъыьэюя</p><p>Живые буквы. Хорошие идеи.</p></section><section class="instances"><div class="section-title">ONE ALPHABET, MANY VOICES</div><p style="font-variation-settings:'wght' 300,'wdth' 90">A quiet note in the margin.</p><p style="font-variation-settings:'wght' 450,'wdth' 100">Build useful things.</p><p style="font-variation-settings:'wght' 800,'wdth' 115">Tell the story.</p></section><aside><h2>Original outlines. Real variation.</h2><p>This is an experimental original typeface, not a renamed commercial font. It has two continuous axes: weight 300–800 and width 85–125, Latin and Cyrillic. The source drawings and compiler are included in this repository. The button constructs a TrueType font on your device, without sending text or drawings to a service.</p><p>The specimen is a separate application, build and deployment from Boards. It does not load workspace data or require sign-in.</p><p id="result" role="status"></p></aside></main><footer>Same handwritten spirit. A clearer tomorrow.</footer><script type="module">/** Conloca Sans: original editable stroke drawings. No existing font is used.
+ * Coordinates are 1000 units/em; x-height 510, capitals 710. */
+const glyphs=new Map();
+function path(s){const t=s.match(/[MLCZ]|-?\d+(?:\.\d+)?/g)||[],r=[];for(let i=0;i<t.length;){const op=t[i++],n={M:2,L:2,C:6,Z:0}[op];if(n===undefined)throw Error('Bad drawing');r.push([op,...t.slice(i,i+n).map(Number)]);i+=n;}return r;}
+const add=(c,w,...p)=>glyphs.set(c,{width:w,paths:p.map(v=>typeof v==='string'?path(v):v)});
+const copy=(c,from,sx=1,sy=1,dx=0,dy=0)=>{const g=glyphs.get(from);add(c,Math.round(g.width*sx),...g.paths.map(p=>p.map(q=>[q[0],...q.slice(1).map((v,i)=>i%2?v*sy+dy:v*sx+dx)])));};
+const bowl=(l=95,r=495,b=25,t=505)=>path(`M ${r-5} ${(t+b)/2} C ${r+6} ${t-75} ${r-52} ${t+9} ${(l+r)/2+8} ${t} C ${l+48} ${t-2} ${l-9} ${t-94} ${l} ${(t+b)/2} C ${l-8} ${b+70} ${l+60} ${b-5} ${(l+r)/2-8} ${b} C ${r-57} ${b-12} ${r+8} ${b+95} ${r-5} ${(t+b)/2} Z`);
+const dot=(x,y)=>path(`M ${x-1} ${y} L ${x+1} ${y}`);
+add(' ',300);
+add('a',600,bowl(100,460),'M467 488 C449 325 455 123 501 30');
+add('b',600,'M103 718 C107 467 104 185 109 32',bowl(107,505));
+add('c',560,'M474 446 C375 544 194 523 115 371 C34 200 119 25 271 24 C342 17 423 42 474 81');
+add('d',610,bowl(100,490),'M495 720 C490 481 484 214 505 32');
+add('e',575,'M111 257 C222 252 361 259 475 281 C491 417 411 514 298 510 C155 516 92 394 94 260 C91 107 177 21 295 25 C375 23 430 48 477 88');
+add('f',435,'M186 25 C187 197 169 393 180 566 C179 691 246 757 338 704','M81 454 C180 458 254 456 335 463');
+add('g',600,bowl(95,481,29,504),'M482 488 C481 259 503 78 477 -78 C461 -193 317 -227 207 -151');
+add('h',605,'M109 715 C102 503 107 235 106 29','M108 302 C155 459 248 528 344 500 C490 473 491 206 504 31');
+add('i',270,'M132 485 C122 326 128 152 137 31',dot(131,678));
+add('j',310,'M183 488 C186 286 197 90 183 -66 C172 -190 93 -214 30 -150',dot(180,678));
+add('k',575,'M108 718 C106 482 110 226 107 31','M459 485 C351 402 243 316 115 240','M280 351 C339 257 416 134 494 34');
+add('l',300,'M128 719 C124 491 120 214 140 87 C145 48 170 27 194 32');
+add('m',850,'M105 485 C110 317 107 165 109 29','M108 322 C132 442 217 520 304 501 C401 483 398 224 403 32','M402 315 C426 446 512 522 606 497 C742 469 734 227 754 32');
+add('n',610,'M107 488 C113 331 112 158 107 31','M111 302 C150 443 238 527 342 499 C482 469 490 204 503 33');
+add('o',600,bowl());add('p',605,'M110 486 C114 259 106 8 105 -188',bowl(111,505));
+add('q',605,bowl(95,487),'M492 482 C482 271 484 11 507 -183');
+add('r',455,'M108 486 C112 335 109 159 110 32','M112 304 C168 462 247 537 356 485');
+add('s',515,'M425 448 C341 526 168 530 115 422 C52 293 253 289 335 240 C488 150 408 22 256 21 C177 15 112 49 81 79');
+add('t',440,'M209 651 C188 457 183 238 204 105 C215 28 281 7 346 53','M79 457 C174 449 266 463 355 470');
+add('u',615,'M108 481 C112 333 84 131 181 48 C286 -43 448 85 491 250','M497 485 C490 321 486 145 507 31');
+add('v',550,'M94 484 C145 337 204 157 265 34 C285 91 399 366 457 489');
+add('w',810,'M91 486 C127 335 177 149 213 40 C257 122 333 330 384 423 C432 326 492 137 539 34 C603 168 672 355 712 486');
+add('x',565,'M104 484 C205 365 355 151 472 35','M452 486 C351 353 218 169 95 35');
+add('y',565,'M97 484 C135 336 207 180 286 76','M469 485 C387 275 310 64 238 -68 C201 -132 158 -175 111 -193');
+add('z',550,'M103 473 C203 492 351 482 453 482 C348 367 198 165 96 41 C219 25 359 28 467 41');
+add('A',710,'M92 31 C161 239 237 487 328 698 C344 718 351 699 357 684 C454 459 530 219 621 31','M184 260 C327 265 441 267 538 272');
+add('B',655,'M118 30 C119 245 118 499 120 691','M123 692 C264 749 510 725 512 548 C511 405 319 370 129 373 C355 392 555 376 552 200 C554 18 307 -6 128 31');
+add('C',700,'M603 644 C464 759 252 738 145 563 C27 361 105 71 295 29 C402 6 511 37 609 86');
+add('D',720,'M120 31 C116 242 116 480 122 692','M124 692 C425 794 627 657 624 382 C623 109 401 -18 129 31');
+add('E',595,'M496 699 C364 693 245 695 119 694 L117 34 C236 22 363 26 506 40','M124 373 L446 384');
+add('F',590,'M124 30 L121 697 C243 708 379 703 507 703','M127 391 L443 395');
+add('G',745,'M620 636 C474 762 250 733 144 556 C34 366 109 63 308 27 C439 9 546 66 627 144 L621 349 L421 354');
+add('H',735,'M120 704 L122 29','M607 701 C601 493 604 256 610 30','M126 359 L602 377');
+add('I',320,'M156 702 C158 485 153 267 159 31');
+add('J',545,'M430 703 C431 484 437 242 425 145 C405 -10 193 21 102 119');
+add('K',685,'M119 704 L122 29','M582 695 L137 312','M323 470 C414 325 490 164 595 31');
+add('L',570,'M121 700 C115 485 119 251 127 35 C248 24 362 26 487 42');
+add('M',905,'M116 32 L128 654 C127 697 140 701 164 663 C252 531 357 371 446 250 C549 388 645 536 724 659 C748 700 760 696 762 652 L791 30');
+add('N',750,'M121 30 L120 650 C120 697 134 697 162 657 C289 479 446 257 583 83 C613 42 625 44 624 90 L619 702');
+add('O',750,bowl(109,638,21,709));
+add('P',650,'M120 30 L120 694','M123 691 C285 751 545 723 550 526 C556 333 303 315 124 357');
+add('Q',765,bowl(109,638,21,709),'M449 189 C534 115 615 15 684 -48');
+add('R',688,'M118 30 L123 692','M124 694 C295 749 550 719 550 532 C554 354 311 317 128 356','M354 347 C427 232 505 116 596 28');
+add('S',645,'M549 635 C440 745 216 756 134 613 C16 418 280 411 417 324 C642 181 480 -11 281 21 C194 28 127 67 88 117');
+add('T',660,'M76 695 C240 707 415 704 584 706','M331 696 C320 476 324 245 329 30');
+add('U',735,'M117 701 C117 514 100 243 135 142 C197 -35 518 -5 583 147 C625 249 607 497 616 702');
+add('V',705,'M87 701 C158 488 254 220 339 31 C423 220 533 493 615 704');
+add('W',1010,'M88 704 C141 479 215 203 272 39 L499 589 C569 412 642 168 704 34 C786 228 855 486 922 702');
+add('X',695,'M101 701 L594 31','M584 702 L98 32');add('Y',675,'M84 703 C161 580 250 462 330 341 L330 28','M585 700 L330 341');
+add('Z',655,'M110 695 C249 708 410 701 553 702 C420 496 248 238 98 33 C242 26 419 25 566 39');
+add('0',620,bowl(108,511,27,706));add('1',420,'M90 565 L218 698 C232 711 239 691 239 674 L247 30');
+add('2',610,'M112 572 C134 753 440 780 498 603 C564 419 271 219 104 43 L511 42');
+add('3',595,'M112 641 C241 749 486 737 476 558 C469 437 313 382 233 371 C362 390 515 327 510 187 C506 6 258 -18 111 85');
+add('4',625,'M347 704 C257 562 174 394 91 258 L533 267','M477 697 L477 29');
+add('5',605,'M498 702 L166 698 L135 404 C322 505 513 402 510 213 C510 18 279 -37 110 71');
+add('6',610,'M484 703 C231 596 117 384 110 225 C97 -47 510 -37 511 203 C516 422 246 468 119 267');
+add('7',580,'M93 693 L494 703 C349 485 259 269 205 31');
+add('8',605,'M296 385 C57 470 89 718 304 709 C542 723 531 466 296 385 C31 290 47 21 306 23 C554 16 575 286 296 385 Z');
+add('9',610,'M133 28 C345 138 490 363 494 499 C502 772 96 776 98 521 C100 312 354 265 486 443');
+add('.',265,dot(131,38));add(',',265,'M151 42 C144 -11 115 -56 80 -87');
+add(':',265,dot(131,376),dot(131,39));add(';',265,dot(131,376),'M151 42 C144 -11 115 -56 80 -87');
+add('!',275,'M138 701 L129 235',dot(134,36));add('?',570,'M100 588 C131 764 441 772 464 579 C481 426 284 403 278 226',dot(277,35));
+add('-',435,'M101 277 L336 287');copy('−','-');add('–',630,'M94 277 L539 286');add('—',910,'M96 277 L814 286');
+add('_',590,'M69 -81 L526 -81');add('+',605,'M104 308 L499 313','M303 105 L303 520');add('=',605,'M104 409 L501 412','M104 215 L501 218');
+add('/',445,'M83 -26 L365 716');add('\\',445,'M81 716 L365 -26');
+add('(',355,'M262 734 C58 533 46 164 264 -67');add(')',355,'M97 734 C301 533 313 164 95 -67');
+add('[',355,'M264 734 L122 734 L122 -67 L264 -67');add(']',355,'M92 734 L234 734 L234 -67 L92 -67');
+add('{',420,'M320 735 C68 760 273 431 87 341 C273 248 68 -87 320 -67');add('}',420,'M95 735 C347 760 142 431 328 341 C142 248 347 -87 95 -67');
+add("'",260,'M153 714 L122 568');add('"',400,'M125 714 L103 565','M289 714 L267 565');for(const c of '‘’')copy(c,"'");for(const c of '“”')copy(c,'"');
+add('&',730,'M616 28 C484 148 187 434 164 559 C120 784 453 781 452 595 C454 439 136 390 110 207 C53 -41 458 -66 600 328');
+add('@',920,'M593 544 C390 651 260 463 281 309 C305 132 532 129 593 359 L607 534 L581 260 C615 117 813 226 818 424 C823 781 365 836 171 631 C-68 381 156 -54 531 1 C601 12 650 29 682 49');
+add('#',715,'M269 721 L147 24','M566 721 L439 24','M110 476 L643 476','M72 264 L605 265');
+add('%',815,bowl(100,302,410,708),bowl(492,696,26,323),'M165 10 L646 725');add('*',510,'M254 718 L250 369','M101 621 L408 462','M91 470 L408 628');
+add('·',265,dot(130,300));add('•',300,'M141 308 L157 308');add('<',530,'M431 579 L106 332 L431 87');add('>',530,'M99 579 L424 332 L99 87');
+add('…',750,dot(120,38),dot(375,38),dot(630,38));add('→',860,'M96 340 L754 340','M516 575 L754 340 L516 103');add('←',860,'M104 340 L756 340','M341 575 L104 340 L341 103');add('✓',640,'M91 264 L258 50 L545 554');
+for(const[ru,en]of Object.entries({'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X','а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x','к':'k'}))copy(ru,en);
+add('Б',675,'M556 700 L124 698 L126 31 C316 -3 560 23 557 229 C552 416 312 435 131 389');
+add('Г',580,'M122 30 L121 698 L502 704');add('Д',780,'M82 -101 L82 38 L693 38 L693 -101','M158 43 C240 217 238 488 247 696 L586 698 L587 43');
+add('Ж',975,'M487 705 L487 29','M102 702 L428 380 L92 30','M871 702 L547 380 L882 30','M419 380 L557 380');
+add('З',650,'M118 647 C291 768 557 722 544 550 C536 416 342 381 269 376 C409 392 569 328 558 180 C543 -2 280 -24 114 85');
+add('И',750,'M122 702 L123 31 L622 701 L620 31');add('Л',750,'M82 31 C194 77 229 373 235 697 L610 699 L624 30');add('П',735,'M122 29 L121 696 L608 698 L608 31');
+add('У',690,'M91 702 L333 271','M589 706 C426 342 346 108 182 27');
+add('Ф',900,bowl(104,796,180,607),'M451 748 L451 -21');
+add('Ц',750,'M121 701 L122 34 L609 36 L609 700','M609 39 L672 39 L672 -105');
+add('Ч',715,'M109 701 L110 462 C117 264 440 315 599 406','M599 701 L599 30');
+add('Ш',975,'M120 701 L120 33 L855 33 L855 703','M488 700 L488 34');add('Щ',1035,...glyphs.get('Ш').paths,'M856 38 L948 38 L948 -105');
+add('Ь',665,'M120 701 L120 31 C311 -11 558 21 558 226 C560 432 305 439 125 390');
+add('Ъ',750,'M72 700 L234 700 L234 31 C412 -11 656 21 656 226 C658 432 410 439 239 390');
+add('Ы',865,...glyphs.get('Ь').paths,'M747 701 L747 31');
+add('Э',705,'M95 637 C234 754 455 738 563 563 C681 361 603 71 413 29 C306 6 197 37 99 86','M286 369 L610 369');
+add('Ю',1070,'M120 702 L120 31',bowl(431,964,22,709),'M124 364 L436 364');
+add('Я',700,'M583 29 L584 691 C400 754 142 721 147 533 C140 343 401 316 579 357','M344 343 L113 28');
+for(const c of 'вгджзилмнптцчшщъыьэюя')copy(c,c.toUpperCase(),.83,.70,0,6);
+add('б',600,bowl(98,498,22,495),'M102 267 C90 501 214 641 365 687 C416 702 445 723 478 749');add('ф',795,bowl(96,697,25,507),'M398 717 L398 -183');
+const accent=(to,from,...a)=>add(to,glyphs.get(from).width,...glyphs.get(from).paths,...a);
+accent('Й','И','M263 821 C327 744 430 744 493 821');accent('й','и','M225 644 C275 575 363 575 413 644');accent('Ё','Е',dot(234,841),dot(431,841));accent('ё','е',dot(204,652),dot(397,652));copy('І','I');copy('і','i');copy('Ј','J');copy('ј','j');
+for(const ch of 'áàâäãåéèêëíìîïóòôöõúùûüýÿÁÀÂÄÃÅÉÈÊËÍÌÎÏÓÒÔÖÕÚÙÛÜÝčćšžČĆŠŽ'){
+ const [base,mark]=ch.normalize('NFD'),g=glyphs.get(base);if(!g)continue;const x=g.width/2,y=base===base.toUpperCase()?832:653;let a=[];
+ if(mark==='\u0301')a=[`M${x-54} ${y-24} L${x+74} ${y+62}`];if(mark==='\u0300')a=[`M${x-69} ${y+58} L${x+58} ${y-22}`];
+ if(mark==='\u0302')a=[`M${x-97} ${y-14} L${x} ${y+68} L${x+97} ${y-14}`];if(mark==='\u0308')a=[dot(x-88,y),dot(x+88,y)];
+ if(mark==='\u0303')a=[`M${x-119} ${y-3} C${x-54} ${y+80} ${x+46} ${y-68} ${x+118} ${y+12}`];if(mark==='\u030a')a=[bowl(x-58,x+58,y-29,y+88)];
+ if(mark==='\u030c')a=[`M${x-95} ${y+61} L${x} ${y-15} L${x+95} ${y+61}`];if(base==='i')add(ch,g.width,g.paths[0],...a);else accent(ch,base,...a);
+}
+add('$',645,...glyphs.get('S').paths,'M327 793 L317 -65');add('₽',665,...glyphs.get('P').paths,'M86 216 L410 216');
+copy('€','C',.9);add('€',660,...glyphs.get('€').paths,'M70 431 L382 431','M70 286 L347 286');copy('\u00a0',' ');
+// A restrained optical correction to the source skeleton, shared by every master.
+// Consistent per letter (not per rendering): slightly leaning stems and living baselines.
+for (const [character, glyph] of glyphs) {
+ if (!/[A-Za-zА-Яа-яЁё]/.test(character)) continue;
+ const code = character.codePointAt(0);
+ const lean = ((code * 7) % 11 - 5) * .0038;
+ const rise = ((code * 3) % 7 - 3) * 3;
+ glyph.paths = glyph.paths.map(p => p.map(op => [op[0], ...op.slice(1).map((v, i, a) =>
+   i % 2 ? v + rise : v + lean * a[i + 1] + Math.sin(a[i + 1] / 150 + code) * 2.1
+ )]));
+}
+const GLYPHS=glyphs;
+const AXES=[{tag:'wght',name:'Weight',min:300,default:400,max:800},{tag:'wdth',name:'Width',min:85,default:100,max:125}];
+
+/** Original browser-side TrueType variable compiler. The repository stores drawings,
+ * not a font binary. All sfnt bytes are produced on the user's device. */
+
+class W{constructor(){this.a=[]}u8(n){this.a.push(n&255);return this}u16(n){return this.u8(n>>8).u8(n)}i16(n){return this.u16(n<0?n+65536:n)}u32(n){return this.u16(n>>>16).u16(n)}i32(n){return this.u32(n>>>0)}fixed(n){return this.i32(Math.round(n*65536))}tag(s){for(const c of s)this.u8(c.charCodeAt(0));return this}bytes(a){for(let i=0;i<a.length;i++)this.a.push(a[i]);return this}zero(n){for(let i=0;i<n;i++)this.u8(0);return this}get length(){return this.a.length}out(){return new Uint8Array(this.a)}}
+const r=n=>Math.round(n),len=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+function sample(path){let p=[],cur=[0,0],closed=false;for(const s of path){if(s[0]==='M'){cur=s.slice(1);p.push(cur)}else if(s[0]==='L'){cur=s.slice(1);p.push(cur)}else if(s[0]==='C'){const a=cur,b=s.slice(1,3),c=s.slice(3,5),d=s.slice(5,7);for(let i=1;i<=14;i++){const t=i/14,u=1-t;p.push([u**3*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t**3*d[0],u**3*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t**3*d[1]])}cur=d}else if(s[0]==='Z')closed=true;}p=p.filter((v,i)=>!i||len(v,p[i-1])>.01);if(closed&&len(p[0],p.at(-1))<.1)p.pop();return{p,closed};}
+function stroke(path,rad,wdth){const{p:points,closed}=sample(path),p=points.map(([x,y])=>[x*wdth/100,y]),n=p.length;if(n<2)return[];const left=[],right=[];for(let i=0;i<n;i++){const prev=p[closed?(i+n-1)%n:Math.max(0,i-1)],next=p[closed?(i+1)%n:Math.min(n-1,i+1)],dx=next[0]-prev[0],dy=next[1]-prev[1],d=Math.hypot(dx,dy)||1;left.push([p[i][0]-dy/d*rad,p[i][1]+dx/d*rad]);right.push([p[i][0]+dy/d*rad,p[i][1]-dx/d*rad]);}if(closed)return[left,right.reverse()];const cap=(center,angle)=>Array.from({length:9},(_,i)=>[center[0]+Math.cos(angle-Math.PI*(i+1)/10)*rad,center[1]+Math.sin(angle-Math.PI*(i+1)/10)*rad]);const start=Math.atan2(left[0][1]-p[0][1],left[0][0]-p[0][0]),end=Math.atan2(left.at(-1)[1]-p.at(-1)[1],left.at(-1)[0]-p.at(-1)[0]);return[[...left,...cap(p.at(-1),end),...right.reverse(),...cap(p[0],start+Math.PI)]];}
+function outline(glyph,weight=400,width=100){const rad=weight<=400?18+(weight-300)*.08:26+(weight-400)*.1;const contours=glyph.paths.flatMap(p=>stroke(p,rad,width)).map(p=>p.map(q=>q.map(r)));return{contours,advance:r(glyph.width*width/100+Math.max(0,rad-26)*.1)};}
+const bounds=ps=>ps.length?[Math.min(...ps.map(p=>p[0])),Math.min(...ps.map(p=>p[1])),Math.max(...ps.map(p=>p[0])),Math.max(...ps.map(p=>p[1]))]:[0,0,0,0];
+function glyf(out){const w=new W(),ps=out.contours.flat(),box=bounds(ps);if(!ps.length)return new Uint8Array();w.i16(out.contours.length);for(const n of box)w.i16(n);let end=-1;for(const c of out.contours){end+=c.length;w.u16(end)}w.u16(0);for(let i=0;i<ps.length;i++)w.u8(1);for(let axis=0;axis<2;axis++){let last=0;for(const p of ps){w.i16(p[axis]-last);last=p[axis]}}if(w.length%2)w.u8(0);return w.out();}
+function deltas(values){const w=new W();for(let i=0;i<values.length;i+=64){const part=values.slice(i,i+64);w.u8(0x40|part.length-1);for(const v of part)w.i16(v)}return w.out();}
+function glyphVariation(g){if(!g.paths.length)return new Uint8Array();const def=outline(g),base=[...def.contours.flat(),[0,0],[def.advance,0],[0,0],[0,0]],sets=[];for(const[weight,width]of[[300,100],[800,100],[400,85],[400,125]]){const o=outline(g,weight,width),pts=[...o.contours.flat(),[0,0],[o.advance,0],[0,0],[0,0]],dx=pts.map((p,i)=>p[0]-base[i][0]),dy=pts.map((p,i)=>p[1]-base[i][1]),block=new W().u8(0).bytes(deltas(dx)).bytes(deltas(dy)).out();sets.push(block)}const w=new W().u16(4).u16(20);sets.forEach((s,i)=>w.u16(s.length).u16(0x2000|i));for(const s of sets)w.bytes(s);if(w.length%2)w.u8(0);return w.out();}
+function checksum(bytes){let total=0;for(let i=0;i<bytes.length;i+=4)total=(total+(((bytes[i]||0)*0x1000000)+((bytes[i+1]||0)<<16)+((bytes[i+2]||0)<<8)+(bytes[i+3]||0)))>>>0;return total;}
+function buildFont(){const missing={width:650,paths:[[['M',100,0],['L',100,700],['L',550,700],['L',550,0],['L',100,0],['Z']]]},entries=[['',missing],...GLYPHS.entries()],N=entries.length,outs=entries.map(([,g])=>outline(g)),tables=new Map(),set=(tag,w)=>tables.set(tag,w instanceof W?w.out():w);const gc=new W(),lc=new W();for(const o of outs){lc.u32(gc.length);gc.bytes(glyf(o))}lc.u32(gc.length);set('glyf',gc);set('loca',lc);
+ const all=outs.flatMap(o=>o.contours.flat()),bb=bounds(all),head=new W().fixed(1).fixed(.1).u32(0).u32(0x5f0f3cf5).u16(3).u16(1000).u32(0).u32(3871929600).u32(0).u32(3871929600);for(const v of bb)head.i16(v);head.u16(0).u16(8).i16(2).i16(1).i16(0);set('head',head);
+ const maxAdvance=Math.max(...outs.map(o=>o.advance)),hh=new W().fixed(1).i16(1000).i16(-270).i16(0).u16(maxAdvance).i16(0).i16(0).i16(maxAdvance).i16(1).i16(0).i16(0).zero(8).i16(0).u16(N);set('hhea',hh);const hm=new W();outs.forEach(o=>hm.u16(o.advance).i16(bounds(o.contours.flat())[0]));set('hmtx',hm);
+ const maxp=new W().fixed(1).u16(N).u16(Math.max(...outs.map(o=>o.contours.flat().length))).u16(Math.max(...outs.map(o=>o.contours.length))).u16(0).u16(0).u16(1).zero(16);set('maxp',maxp);
+ const mapping=entries.slice(1).map(([c],i)=>[c.codePointAt(0),i+1]).sort((a,b)=>a[0]-b[0]);mapping.push([65535,0]);const seg=mapping.length,pow=2**Math.floor(Math.log2(seg)),cm=new W().u16(4).u16(16+8*seg).u16(0).u16(seg*2).u16(pow*2).u16(Math.log2(pow)).u16(seg*2-pow*2);mapping.forEach(([c])=>cm.u16(c));cm.u16(0);mapping.forEach(([c])=>cm.u16(c));mapping.forEach(([c,g])=>cm.u16((g-c)&65535));mapping.forEach(()=>cm.u16(0));set('cmap',new W().u16(0).u16(1).u16(3).u16(1).u32(12).bytes(cm.out()));
+ const names=[[0,'Original Conloca Sans drawings, 2026.'],[1,'Conloca Sans'],[2,'Regular'],[3,'ConlocaSans-0.1-original'],[4,'Conloca Sans'],[5,'Version 0.100'],[6,'ConlocaSans-Regular'],[8,'Conloca Studio'],[9,'Original outline study'],[13,'Original source distributed with Conloca Studio.'],[16,'Conloca Sans'],[17,'Regular'],[256,'Weight'],[257,'Width'],[258,'Light'],[259,'Regular'],[260,'Bold'],[261,'Wide Bold']];const strings=new W(),nt=new W().u16(0).u16(names.length).u16(6+12*names.length);for(const[id,s]of names){const b=new W();for(const c of s)b.u16(c.charCodeAt(0));nt.u16(3).u16(1).u16(0x409).u16(id).u16(b.length).u16(strings.length);strings.bytes(b.out())}nt.bytes(strings.out());set('name',nt);
+ const os=new W().u16(4).i16(575).u16(400).u16(5).u16(0).i16(650).i16(600).i16(0).i16(75).i16(650).i16(600).i16(0).i16(350).i16(45).i16(260).i16(0).bytes([2,15,5,5,2,2,4,2,2,4]).u32(0x207).u32(0).u32(0).u32(0).tag('CNLC').u16(0xC0).u16(32).u16(0x25ff).i16(1000).i16(-270).i16(0).u16(1020).u16(280).u32(5).u32(0).i16(510).i16(710).u16(0).u16(32).u16(3);set('OS/2',os);
+ set('post',new W().fixed(3).fixed(0).i16(-100).i16(40).u32(0).zero(16));set('gasp',new W().u16(1).u16(1).u16(65535).u16(15));
+ const fv=new W().u16(1).u16(0).u16(16).u16(2).u16(2).u16(20).u16(4).u16(12);AXES.forEach((a,i)=>fv.tag(a.tag).fixed(a.min).fixed(a.default).fixed(a.max).u16(0).u16(256+i));[[300,100],[400,100],[800,100],[800,125]].forEach(([w,d],i)=>fv.u16(258+i).u16(0).fixed(w).fixed(d));set('fvar',fv);
+ const vars=entries.map(([,g])=>glyphVariation(g)),vdata=new W(),offsets=new W();for(const v of vars){offsets.u32(vdata.length);vdata.bytes(v)}offsets.u32(vdata.length);const sharedOffset=20+4*(N+1),gvar=new W().u16(1).u16(0).u16(2).u16(4).u32(sharedOffset).u16(N).u16(1).u32(sharedOffset+16).bytes(offsets.out());for(const[a,b]of[[-1,0],[1,0],[0,-1],[0,1]])gvar.i16(a*16384).i16(b*16384);gvar.bytes(vdata.out());set('gvar',gvar);
+ set('STAT',new W().u16(1).u16(1).u16(8).u16(2).u32(20).u16(0).u32(0).u16(2).tag('wght').u16(256).u16(0).tag('wdth').u16(257).u16(1));
+ const ids=new Map(entries.map(([c],i)=>[c,i])),pairs=[];for(const [pair,value]of Object.entries({AV:-47,AW:-37,AY:-45,AT:-33,FA:-20,LT:-20,LY:-28,PA:-31,Ta:-34,Te:-30,To:-36,Ty:-23,Va:-34,Vo:-37,Wa:-20,Wo:-23,Ya:-36,Yo:-40,fo:-14,rt:-8,ry:-12,Po:-14,VA:-37,'ГА':-35,'ТА':-30,'То':-30}))if(ids.has(pair[0])&&ids.has(pair[1]))pairs.push([ids.get(pair[0]),ids.get(pair[1]),value]);pairs.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const kp=2**Math.floor(Math.log2(pairs.length)),kw=new W().u16(0).u16(1).u16(0).u16(14+pairs.length*6).u16(1).u16(pairs.length).u16(kp*6).u16(Math.log2(kp)).u16(pairs.length*6-kp*6);pairs.forEach(([a,b,v])=>kw.u16(a).u16(b).i16(v));set('kern',kw);
+ const tags=[...tables.keys()].sort(),count=tags.length,p=2**Math.floor(Math.log2(count)),dir=new W().u32(0x10000).u16(count).u16(p*16).u16(Math.log2(p)).u16(count*16-p*16),body=new W();let off=12+count*16,headOffset=0;for(const tag of tags){const data=tables.get(tag);dir.tag(tag).u32(checksum(data)).u32(off).u32(data.length);if(tag==='head')headOffset=off;body.bytes(data);while(body.length%4)body.u8(0);off=12+count*16+body.length}const bytes=new W().bytes(dir.out()).bytes(body.out()).out(),view=new DataView(bytes.buffer);view.setUint32(headOffset+8,(0xb1b0afba-checksum(bytes))>>>0);return bytes;
+}
+async function installFont(){const bytes=buildFont(),face=new FontFace('Conloca Sans',bytes,{weight:'300 800',stretch:'85% 125%',style:'normal'});await face.load();document.fonts.add(face);return bytes;}
+const GLYPH_COUNT=GLYPHS.size+1;
+
+
+await installFont();
+for(const id of ['weight','width']){const input=document.getElementById(id);input.addEventListener('input',()=>{document.documentElement.style.setProperty('--'+id,input.value);document.getElementById(id+'-value').textContent=input.value})}
+document.getElementById('build').onclick=()=>{const bytes=buildFont(),url=URL.createObjectURL(new Blob([bytes],{type:'font/ttf'})),a=document.createElement('a');a.href=url;a.download='ConlocaSans-Variable.ttf';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);document.getElementById('result').textContent=`Built on your device: ${GLYPH_COUNT} glyphs · wght 300–800 · wdth 85–125.`};
+</script></body></html>
