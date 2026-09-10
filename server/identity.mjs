@@ -81,7 +81,36 @@ export async function sendMail(env,to,subject,text){if(!env.RESEND_API_KEY||!env
 export async function magicLink(store,req,input,env){const email=String(input.email||'').trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||email.length>200)throw fail('Enter a valid email.');await limit(store,'email:'+email,3,3600000);await limit(store,'email-total',80,86400000);const p=await invitedPerson(store,email,env);if(!p)return {sent:true};const raw=token();await update(store,d=>{d.tokens[hash(raw)]={kind:'email',email,personId:p.id,expires:Date.now()+15*60000}});await sendMail(env,email,'Your sign-in link',`Sign in to your private board:\n${origin(env)}/?verify=${raw}\n\nThis one-time link expires in 15 minutes. Ignore this message if you did not request it.`);return {sent:true}}
 export async function verifyMagic(store,res,raw,env){const userId=await update(store,d=>{const t=d.tokens[hash(raw)];if(!t||t.kind!=='email'||t.expires<=Date.now())throw fail('Link expired or already used.',403);delete d.tokens[hash(raw)];d.users[t.personId]||={id:t.personId,name:t.email.split('@')[0],email:t.email,owner:t.email===env.OWNER_EMAIL?.toLowerCase(),profiles:[],avatarAsset:''};const key='email:'+t.email;if(d.accounts[key]&&d.accounts[key]!==t.personId)throw fail('Email is already connected.',409);d.accounts[key]=t.personId;return t.personId});await openSession(store,res,userId,env)}
 export async function testLogin(store,res,env){if(env.LOCAL_TEST_MODE!=='1'||env.VERCEL)throw fail('Not found',404);const ws=(await workspace(store)).value;await mutate(store,'workspace','main',w=>{if(!w.people.some(p=>p.id==='owner'))w.people.push({id:'owner',name:'Local tester',email:'test@example.test',avatar:'',slackUserId:'',slackUrl:''})},ws);await update(store,d=>{d.users.owner||={id:'owner',name:'Local tester',email:'test@example.test',owner:true,profiles:[],avatarAsset:''}});await openSession(store,res,'owner',env)}
-export async function propose(store,user,input){const ws=(await workspace(store)).value;if(!ws.people.some(p=>p.id===input.target))throw fail('Person not found',404);if(!['avatar','link'].includes(input.type)||input.type==='link'&&!Object.hasOwn(providers,input.provider))throw fail('Invalid proposal');const id=token().slice(0,24);await update(store,d=>{d.proposals[id]={id,type:input.type,target:input.target,by:user.id,asset:input.asset||'',provider:input.provider||'',status:'pending',created:Date.now(),expires:Date.now()+7*86400000}});return id}
-export async function approveAvatar(store,user,id,accept){return update(store,d=>{const p=d.proposals[id];if(!p||p.target!==user.id||p.type!=='avatar'||p.status!=='pending'||p.expires<Date.now())throw fail('Only the avatar owner can confirm this request.',403);p.status=accept?'approved':'rejected';if(accept)d.users[user.id].avatarAsset=p.asset;return p})}
-export async function ownAvatar(store,user,asset){await update(store,d=>{d.users[user.id].avatarAsset=asset})}
+/** Pending profile changes are independent from canonical identity data. */
+export async function propose(store,user,input){
+ const ws=(await workspace(store)).value;
+ if(!ws.people.some(p=>p.id===input.target))throw fail('Person not found',404);
+ if(!['avatar','link'].includes(input.type)||input.type==='link'&&!Object.hasOwn(providers,input.provider))throw fail('Invalid proposal');
+ const id=token().slice(0,24);
+ return update(store,d=>{
+  if(input.type==='avatar'&&input.target!==user.id&&d.users[input.target]?.avatarAsset)
+   throw fail('This person already has a photo. Only they can replace it.',409);
+  const existing=Object.values(d.proposals).find(p=>p.type===input.type&&p.target===input.target&&p.by===user.id&&p.status==='pending'&&p.expires>Date.now()&&(input.type==='avatar'||p.provider===input.provider));
+  if(existing&&input.type==='link')return existing.id;
+  if(existing){existing.status='superseded';existing.resolved=Date.now()}
+  d.proposals[id]={id,type:input.type,target:input.target,by:user.id,asset:input.asset||'',provider:input.provider||'',status:'pending',baseAvatarRevision:d.users[input.target]?.avatarRevision||0,created:Date.now(),expires:Date.now()+7*86400000};
+  return id;
+ });
+}
+function replaceAvatar(d,userId,asset,acceptedId=null){
+ const user=d.users[userId];if(!user)throw fail('Sign in first.',401);
+ user.avatarAsset=asset;user.avatarRevision=(user.avatarRevision||0)+1;
+ for(const p of Object.values(d.proposals))if(p.type==='avatar'&&p.target===userId&&p.status==='pending'&&p.id!==acceptedId){p.status='superseded';p.resolved=Date.now()}
+}
+export async function approveAvatar(store,user,id,accept){
+ return update(store,d=>{
+  const p=d.proposals[id];
+  if(!p||p.target!==user.id||p.status!=='pending'||p.expires<=Date.now())throw fail('Only the owner can respond to a current request.',403);
+  if(!accept){p.status='rejected';p.resolved=Date.now();return p}
+  if(p.type!=='avatar')throw fail('Prove ownership through the provider sign-in to link this account.',403);
+  if((p.baseAvatarRevision||0)!==(d.users[user.id]?.avatarRevision||0))throw fail('Your photo changed after this suggestion. Keep your newer photo or upload a new one.',409);
+  replaceAvatar(d,user.id,p.asset,id);p.status='approved';p.resolved=Date.now();return p;
+ });
+}
+export async function ownAvatar(store,user,asset){await update(store,d=>replaceAvatar(d,user.id,asset))}
 export async function profileRequests(store,user){const d=await identity(store);return Object.values(d.proposals).filter(p=>(p.target===user.id||p.by===user.id)&&p.status==='pending'&&p.expires>Date.now())}
