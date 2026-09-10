@@ -1,1 +1,1 @@
-{"schema":1,"source":"f5a9afe8baa73472c9457aae93b3f212c3b4b3bd","checkpoint":"bun-shell-2026-09-11","attempt":3,"notice":"Bounded retry on the explicit Ubuntu 22.04 runner pool after the previous job remained unassigned. All source checks stay required."}
+{"schema":1,"source":"f5a9afe8baa73472c9457aae93b3f212c3b4b3bd","checkpoint":"bun-shell-2026-09-11","attempt":4,"notice":"Include immediate in-memory lexical results while semantic refinement remains asynchronous. No private browser persistence added."}
