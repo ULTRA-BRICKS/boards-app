@@ -2,6 +2,22 @@
 
 A notebook-like collaborative task board. No application header or logo. The Conloca type specimen is a **separate application** in the same Nx repository.
 
+## Roadmap and verified UI
+
+[Delivery roadmap](ROADMAP.md) · [Tracking issue #1](https://github.com/alex-mextner/boards-app/issues/1) · [CI](https://github.com/alex-mextner/boards-app/actions)
+
+The screenshots below are rendered by the real browser tests from public sample data. They are not image-model mockups and do not prove a live cloud deployment. The [evidence manifest](https://github.com/alex-mextner/boards-app/blob/visual-evidence/evidence.json) records their exact source commit and CI run. Missing real profile pictures are shown as image silhouettes.
+
+![Desktop board](https://raw.githubusercontent.com/alex-mextner/boards-app/visual-evidence/screenshots/board-desktop.png)
+
+<details><summary>Mobile board and separate font site</summary>
+
+<img alt="Mobile board" width="393" src="https://raw.githubusercontent.com/alex-mextner/boards-app/visual-evidence/screenshots/board-mobile-viewport.png">
+
+![Independent Conloca specimen](https://raw.githubusercontent.com/alex-mextner/boards-app/visual-evidence/screenshots/type-site.png)
+
+</details>
+
 ## Start
 
 Node.js **22.16+**. No Docker or containers are required.
@@ -22,7 +38,7 @@ For an explicit development-only preview without cloud accounts:
 LOCAL_TEST_MODE=1 npm run dev
 ```
 
-This mode uses isolated SQLite and a visibly labeled test login. It is disabled on Vercel. Never use it as production authentication. The public seed contains names and tasks, **not private emails or avatar URLs**. The existing Neon workspace is retained unchanged.
+This mode uses isolated SQLite and a visibly labeled test login. It refuses to start if a cloud `DATABASE_URL` is also present, so it cannot create test identities in the real workspace. It is disabled on Vercel. Never use it as production authentication. The public seed contains names and tasks, **not private emails or avatar URLs**. The existing Neon workspace is retained unchanged.
 
 ## Two applications
 

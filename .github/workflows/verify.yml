@@ -24,6 +24,11 @@ jobs:
           set -o pipefail
           npm test 2>&1 | tee test-results/node-tests.log
       - run: npm run build && npm run build:type
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install fonttools==4.63.0
+      - run: python tests/font.py
       - name: Source snapshot for reproducible review
         if: always()
         run: git archive --format=tar HEAD > test-results/source.tar
@@ -65,3 +70,20 @@ jobs:
             docs/browser-verification.json
             test-results/
           retention-days: 14
+  publish-evidence:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [core, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: browser-evidence
+          path: ${{ runner.temp }}/browser-evidence
+      - name: Publish fixture screenshots without changing main
+        env:
+          EVIDENCE_DIR: ${{ runner.temp }}/browser-evidence
+        run: bash scripts/publish-evidence.sh
