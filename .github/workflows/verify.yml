@@ -1,4 +1,4 @@
-name: Verify
+name: Quality
 on:
   push:
     branches: [main, 'work/**']
@@ -6,86 +6,135 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: verify-${{ github.ref }}
+  group: quality-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  core:
+  source:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - id: check
+        run: |
+          if test -d .delivery; then
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'Source transfer staging only. The materialized commit must pass this workflow before merging.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          fi
+  checks:
+    needs: source
+    if: needs.source.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Oxfmt formatting
+            key: format
+            command: bun run format:check
+          - name: Oxc syntax and lint
+            key: oxc
+            command: bun run check:syntax && bun run lint
+          - name: TypeScript and Nx graph
+            key: types
+            command: bun run typecheck && NX_DAEMON=false bun --bun x nx show projects
+          - name: Unit integration and coverage
+            key: coverage
+            command: bun run test:coverage
+          - name: Build and transfer budgets
+            key: bundle
+            command: bun run build && bun run build:type && bun run check:bundle
+          - name: CSS parse and boundaries
+            key: styles
+            command: bun run check:styles
+          - name: Static security boundaries
+            key: security
+            command: bun run build && bun run build:type && bun run check:security
+          - name: Variable font geometry
+            key: font
+            command: bun run check:font
+          - name: Dependency vulnerability audit
+            key: dependencies
+            command: bun audit --audit-level=high
+    name: ${{ matrix.name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: '22.16.0'
-      - name: Test committed source
+          bun-version: '1.4.2'
+      - run: bun install --frozen-lockfile
+      - name: Execute quality gate
+        env:
+          CHECK_COMMAND: ${{ matrix.command }}
         shell: bash
         run: |
           mkdir -p test-results
           set -o pipefail
-          npm test 2>&1 | tee test-results/node-tests.log
-      - run: npm run build && npm run build:type
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install fonttools==4.63.0
-      - run: python tests/font.py
-      - name: Source snapshot for reproducible review
-        if: always()
+          bash -e -o pipefail -c "$CHECK_COMMAND" 2>&1 | tee test-results/check.log
+      - name: Reproducible source snapshot
+        if: always() && matrix.key == 'coverage'
         run: git archive --format=tar HEAD > test-results/source.tar
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: source-and-test-results
-          path: test-results/
+          name: quality-${{ matrix.key }}
+          path: |
+            test-results/
+            coverage/unit/lcov.info
           retention-days: 14
   browser:
+    needs: source
+    if: needs.source.outputs.ready == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    name: Browser ${{ matrix.browser }} accessibility and interactions
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: '22.16.0'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install playwright==1.55.0
-      - run: python -m playwright install --with-deps chromium webkit
-      - name: Native browser against actual HTTP servers
-        shell: bash
-        run: |
-          mkdir -p test-results
-          LOCAL_TEST_MODE=1 node scripts/dev.mjs >test-results/board-server.log 2>&1 &
-          node scripts/type-server.mjs >test-results/type-server.log 2>&1 &
-          trap 'kill $(jobs -p) 2>/dev/null || true' EXIT
-          for n in {1..30}; do curl -fsS http://127.0.0.1:5173/api/status >/dev/null && break; sleep 1; done
-          set -o pipefail
-          python tests/browser.py 2>&1 | tee test-results/browser.log
-          python tests/browser-review.py 2>&1 | tee test-results/browser-review.log
-          python tests/mobile.py 2>&1 | tee test-results/mobile-webkit.log
+          bun-version: '1.4.2'
+      - run: bun install --frozen-lockfile
+      - name: Install browser engine
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: bun --bun x playwright install --with-deps "$BROWSER"
+      - name: Real HTTP session and UI tests
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: bun run test:browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: browser-evidence
+          name: browser-${{ matrix.browser }}
           path: |
             docs/screenshots/
-            docs/browser-verification.json
             test-results/
+            playwright-report/
           retention-days: 14
   publish-evidence:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [core, browser]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.source.outputs.ready == 'true'
+    needs: [source, checks, browser]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
       - uses: actions/download-artifact@v4
         with:
-          name: browser-evidence
+          name: browser-chromium
           path: ${{ runner.temp }}/browser-evidence
-      - name: Publish fixture screenshots without changing main
+      - name: Publish screenshots without modifying main
         env:
           EVIDENCE_DIR: ${{ runner.temp }}/browser-evidence
         run: bash scripts/publish-evidence.sh

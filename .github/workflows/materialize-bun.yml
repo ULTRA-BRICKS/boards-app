@@ -1,0 +1,52 @@
+name: Materialize reviewed Bun checkpoint
+on:
+  push:
+    branches: [work/bun-shell-quality]
+    paths: ['.delivery/ready.json']
+permissions:
+  contents: write
+concurrency:
+  group: materialize-bun
+  cancel-in-progress: false
+jobs:
+  materialize:
+    if: github.repository == 'ultrabricks/boards-app'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - name: Verify and apply the transferred source checkpoint
+        run: |
+          bunx --bun oxfmt@0.67.0 --write apps packages server scripts tests/*.test.mjs
+          bun .delivery/apply.ts
+          bun add --dev --exact nx
+          bun run format
+          bun run verify
+      - name: Commit only source and lockfile to the working branch
+        env:
+          TARGET_BRANCH: work/bun-shell-quality
+        run: |
+          git fetch origin "$TARGET_BRANCH"
+          test "$(git rev-parse FETCH_HEAD)" = "$GITHUB_SHA"
+          rm -rf .delivery
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A apps packages server scripts tests api .delivery
+          git add package.json bun.lock bunfig.toml tsconfig.json playwright.config.ts vercel.json .gitignore .oxlintrc.json
+          git diff --cached --check
+          git commit -m 'feat: materialize reviewed Bun/Oxc shell and inline page creation'
+          git push origin HEAD:"refs/heads/$TARGET_BRANCH"
+      - name: Save verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkpoint-materialization
+          path: |
+            test-results/
+            coverage/unit/lcov.info
+          retention-days: 14

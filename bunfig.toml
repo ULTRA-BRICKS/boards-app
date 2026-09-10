@@ -1,0 +1,6 @@
+[test]
+coverageSkipTestFiles = true
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage/unit"
+coveragePathIgnorePatterns = ["node_modules/**", "tests/**", "scripts/**", "apps/**", "dist/**", "packages/font/**"]
+# Explicit backend/core coverage scope; browser UI is exercised separately.
