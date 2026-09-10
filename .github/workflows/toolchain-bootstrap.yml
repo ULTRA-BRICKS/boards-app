@@ -1,0 +1,32 @@
+name: Toolchain bootstrap
+on:
+  push:
+    branches: [work/bun-shell-quality]
+    paths: [.github/workflows/toolchain-bootstrap.yml]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Resolve and capture development tools (no credentials)
+        run: |
+          mkdir -p /tmp/boards-toolchain
+          cd /tmp/boards-toolchain
+          printf '{"name":"boards-toolchain","private":true,"type":"module"}\n' > package.json
+          bun add --exact typescript @types/bun oxlint oxfmt oxc-parser oxc-transform @playwright/test @axe-core/playwright fontkit @neondatabase/serverless happy-dom fast-check
+          mkdir bin
+          cp "$(command -v bun)" bin/bun
+          bun --version > bun-version.txt
+          bun pm ls > packages.txt
+          tar -czf /tmp/boards-toolchain.tar.gz package.json bun.lock node_modules bin bun-version.txt packages.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: boards-toolchain
+          path: /tmp/boards-toolchain.tar.gz
+          retention-days: 3
