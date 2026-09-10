@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env*
+!.env.example
+.vercel/
+.data/
+.private/
+.seed-people.json
+test-results/
+playwright-report/
+__pycache__/
+.venv/
+*.ttf
+*.otf
+*.woff
+*.woff2
