@@ -21,7 +21,7 @@ def module_url(path):
     source = path.read_text()
     def sub(m):
         rel = m[1]
-        target = ROOT / rel[1:] if rel.startswith('/') else path.parent / rel
+        target = (ROOT / rel[1:] if rel.startswith('/packages/') else ROOT / 'apps/board' / rel[1:]) if rel.startswith('/') else path.parent / rel
         return 'from ' + json.dumps(module_url(str(target)))
     source = re.sub(r"from\s+['\"]([^'\"]+)['\"]", sub, source)
     return 'data:text/javascript;base64,' + base64.b64encode(source.encode()).decode()

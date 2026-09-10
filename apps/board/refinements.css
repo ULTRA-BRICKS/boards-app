@@ -16,3 +16,8 @@
  .add-person::after{content:'+';position:static;inset:auto}
  .task-more{width:24px;min-height:28px}
 }
+
+.review-column{border:1px dashed #adb6c0;border-radius:12px;padding:17px;display:grid;gap:16px;min-width:0}
+.review-column legend{padding:0 7px;font-size:17px}.review-row{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;align-items:start}
+.review-row>input{width:20px;margin-top:35px}.review-row>label:last-child{grid-column:2}.review-row label{font-size:16px}.review-row textarea{min-height:74px;font-size:22px}
+.review-consent{display:flex;gap:12px;align-items:flex-start;font-size:18px;line-height:1.5}.review-consent input{width:20px;flex:none;margin-top:7px}
