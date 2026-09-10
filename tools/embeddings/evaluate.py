@@ -38,6 +38,11 @@ for mode in ['lexical','hybrid']:
  metrics[mode]={'recallAt3':sum(r['expected'] in r[mode][:3] for r in retrieval)/len(retrieval),'MRRAt10':sum(rr)/len(rr)}
 pv=encode([text for a,b,_ in pairs for text in [a,b]],'query: ')
 duplicates=[{'left':a,'right':b,'duplicateLabel':label,'cosine':float(np.dot(pv[i*2],pv[i*2+1])),'suggestedAt088':float(np.dot(pv[i*2],pv[i*2+1]))>=.88} for i,(a,b,label) in enumerate(pairs)]
+guard_input=[{'left':r['left'],'right':r['right'],'similarity':r['cosine']} for r in duplicates]
+guard_js="""import {opposedActions} from './packages/core/intent.mjs';let raw='';for await(const c of process.stdin)raw+=c;console.log(JSON.stringify(JSON.parse(raw).map(p=>({opposed:opposedActions(p.left,p.right),suggested:p.similarity>=.88&&!opposedActions(p.left,p.right)}))));"""
+grun=subprocess.run(['node','--input-type=module','-e',guard_js],input=json.dumps(guard_input),capture_output=True,text=True,cwd=ROOT,check=True)
+for record,guard in zip(duplicates,json.loads(grun.stdout)):
+ record['opposedActionGuard']=guard['opposed'];record['suggestedWithGuard']=guard['suggested']
 report={'model':MODEL,'revision':revision,'dimension':int(dv.shape[1]),'mode':'real downloaded weights; local CPU inference; public sample tasks only','documents':len(docs),'queries':len(queries),'encodingSeconds':elapsed,'metrics':metrics,'results':retrieval,'duplicateExamples':duplicates,'caveats':['Small hand-written smoke corpus, not a statistically representative benchmark.','Cosine is similarity, not probability of duplicate intent. Opposite actions can remain similar.','No provider credentials, private workspace or hosted app were tested.']}
 (ROOT/'test-results').mkdir(exist_ok=True)
 (ROOT/'test-results/semantic-quality.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
