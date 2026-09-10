@@ -48,7 +48,10 @@ def mount(page, type_site=False):
     page.expose_binding('__transport', bridge)
     source = (ROOT / 'apps' / ('type-site' if type_site else 'board') / 'index.html').read_text()
     css = (ROOT / 'apps' / ('type-site' if type_site else 'board') / 'style.css').read_text()
-    source = re.sub(r'<link rel="stylesheet"[^>]*>', '<style>'+css+'</style>', source)
+    if not type_site:
+        css += (ROOT / 'apps/board/refinements.css').read_text()
+    source = re.sub(r'<link rel="stylesheet"[^>]*>', '', source)
+    source = source.replace('</head>', '<style>'+css+'</style></head>')
     source = re.sub(r'<script type="module"[^>]*></script>', '', source)
     page.set_content(source)
     page.evaluate("""() => {
@@ -82,7 +85,7 @@ if __name__ == '__main__':
         if os.environ.get('CHROMIUM_PATH'):opts['executable_path']=os.environ['CHROMIUM_PATH']
         browser = p.chromium.launch(**opts)
         page=browser.new_page(viewport={'width':1448,'height':1086},device_scale_factor=1)
-        page.on('pageerror',lambda e:report['errors'].append(str(e)))
+        page.on('pageerror',lambda e:(report['errors'].append(str(e)), print('CLIENT ERROR:', str(e))))
         mount(page)
         page.get_by_role('button',name='Open local test workspace').click()
         page.wait_for_selector('.paper')
@@ -103,8 +106,15 @@ if __name__ == '__main__':
             check('Completion toggles', 'done' in row.get_attribute('class'))
             row.locator('[data-done]').click();page.wait_for_timeout(900)
             editor=page.locator('#item-p2 [data-edit]')
-            editor.click();editor.fill('Finish and test billing carefully');page.keyboard.press('Enter');page.wait_for_timeout(900)
+            editor.click()
+            caret_preserved=editor.evaluate('''el => { const r=document.createRange();r.setStart(el.firstChild,3);r.collapse(true);const s=getSelection();s.removeAllRanges();s.addRange(r);el.dispatchEvent(new MouseEvent('click',{bubbles:true}));return getSelection().anchorOffset===3; }''')
+            check('Clicking an active editor preserves the caret',caret_preserved)
+            editor.fill('Finish and test billing carefully');page.keyboard.press('Enter');page.wait_for_timeout(900)
             check('Inline text editing saves',page.locator('#item-p2 .task-text').inner_text()=='Finish and test billing carefully')
+            editor.click();editor.fill('Finish and test billing before checking')
+            row.locator('[data-done]').click();page.wait_for_timeout(900)
+            check('Toggling completion commits the active text first',row.locator('.task-text').inner_text()=='Finish and test billing before checking')
+            row.locator('[data-done]').click();page.wait_for_timeout(900)
             editor.click();editor.fill('Finish and test billing');page.keyboard.press('Enter');page.wait_for_timeout(900)
             editor.click();editor.fill('Replace PNGs with Lottie animations');page.wait_for_timeout(1000)
             check('Duplicate dropdown appears while typing',page.get_by_text('Possible text duplicate',exact=True).count()==1)
@@ -129,10 +139,15 @@ if __name__ == '__main__':
             page.get_by_role('button',name='Revoke',exact=True).click();page.wait_for_timeout(300)
             check('Share revocation',page.get_by_text('Link revoked.',exact=True).count()==1)
             page.keyboard.press('Escape')
+        if not HARNESS:
+            page.reload(wait_until='networkidle');page.wait_for_selector('.paper')
+            check('Native session cookie reopens the saved workspace',page.locator('#test-login').count()==0)
+            check('Saved task survives a full browser reload',page.locator('#item-p2 .task-text').inner_text()=='Finish and test billing')
         for width in [393,700,768,1100]:
             page.set_viewport_size({'width':width,'height':852});page.wait_for_timeout(250)
             check(f'No page overflow at {width}px',page.evaluate('document.documentElement.scrollWidth<=innerWidth'))
             if width==393:
+                check('Mobile column tabs are available without a hidden gesture',page.locator('.column-tabs').is_visible())
                 page.evaluate('document.activeElement?.blur()');page.mouse.move(1,1);page.wait_for_timeout(250)
                 page.screenshot(path=str(OUT/'board-mobile.png'),full_page=True)
                 page.screenshot(path=str(OUT/'board-mobile-viewport.png'))
