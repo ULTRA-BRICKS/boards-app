@@ -1,12 +1,25 @@
 # Boards
 
-## Open the prototype
+## Publication status — one-time Pages activation required
 
-**[Cloud notebook prototype](https://rawcdn.githack.com/ultrabricks/boards-app/89a117f152df5720705716a25eb59d087d433433/apps/prototype/index.html)** · **[Separate Conloca Sans specimen](https://rawcdn.githack.com/ultrabricks/boards-app/89a117f152df5720705716a25eb59d087d433433/apps/prototype/type.html)**
+The previously supplied githack prototype address returned **404** for the user. The source HTML and JavaScript do exist in the referenced GitHub commit, but that does not prove the external CDN serves them. **Do not treat the old CDN address as a working service.**
 
-These are immutable source-hosted entrypoints through rawgit.hack, not a Vercel deployment. The notebook talks directly to the separate Neon **`boards_prototype`** database through a restricted Data API. No database password, provider secret or original team data is sent to the browser. The static host may display its standard first-visit confirmation.
+A same-origin static publication is now prepared on the [`gh-pages` branch](https://github.com/ultrabricks/boards-app/tree/gh-pages), commit [`abb14aba`](https://github.com/ultrabricks/boards-app/commit/abb14aba78fa93f8cb7176dff77c07ddb1232325). It includes the notebook, separate type specimen, styles and source modules. The browser import map resolves the prototype's legacy module identifiers locally; no githack network requests are needed. Neon Auth and the isolated Data API allow `https://ultrabricks.github.io`.
 
-**Verification boundary:** the PostgreSQL functions were deployed and tested against real Neon; a committed write was read in a later transaction as the anonymous role. The actual interface passed Chromium interaction checks with a fixture RPC transport. The external CDN → browser → Auth/Data API HTTPS/CORS path could not be independently checked from the restricted runner, and is not claimed as a completed production smoke test. [Exact review and scope](docs/PROTOTYPE-2026-09-11.md).
+**An administrator must enable GitHub Pages once:**
+
+Open [Settings → Pages](https://github.com/ultrabricks/boards-app/settings/pages), then set **Source: Deploy from a branch**, **Branch: gh-pages**, **Folder: /(root)** and click **Save**. This repository's Pages site was still disabled when the preparation was checked. Creating files and configuring the repository's Pages service are separate permissions; the available connector does not expose the latter action.
+
+After GitHub reports a successful Pages deployment, the intended addresses are:
+
+- Notebook: https://ultrabricks.github.io/boards-app/
+- Separate Conloca Sans specimen: https://ultrabricks.github.io/boards-app/type.html
+
+**These are target addresses, not a claim that the deployment has already succeeded.** Keep the trailing slash on the notebook base URL. `gh-pages` is a prepared snapshot; updates to the full application's `main` branch do not automatically replace it.
+
+The notebook talks directly to the separate Neon **`boards_prototype`** database through a restricted Data API. No database password, provider secret or original team data is sent to the browser. The original `scriptboard` database is unchanged.
+
+**Verification boundary:** previous PostgreSQL checks and browser fixture tests are documented in [the exact prototype review](docs/PROTOTYPE-2026-09-11.md). They do not establish a successful public-site → browser → Auth/Data API HTTPS/CORS smoke test. That check remains required after Pages is enabled.
 
 ### Using this prototype
 
@@ -14,11 +27,11 @@ Opening the notebook without a key creates a separate sample workspace with the 
 
 Pages, columns and thoughts are editable in place. Create a page through its thumbnail, then type its title directly. Avatars overlap in a chain, with hover elevation; `@Name` plus Enter assigns a sample person. Search responds from the loaded workspace immediately. Cloud writes use version checks; conflicts stop editing rather than silently overwrite another session. Failed saves offer retry and a draft backup, never a hidden local-only mode.
 
-The prototype deliberately does **not** pretend that Google/Slack/GitHub sign-in, email invitations, provider linking, generated artwork, photo transcription or messenger OpenGraph cards are live. Those belong to the full application's separate provider adapters. The original `scriptboard` database and its team workspace were not modified.
+The prototype deliberately does **not** pretend that Google/Slack/GitHub sign-in, email invitations, provider linking, generated artwork, photo transcription or messenger OpenGraph cards are live. Those belong to the full application's separate provider adapters.
 
 ## Full application and Bun migration
 
-The repository also contains the fuller board backend, identity/linking flows, deterministic PNG previews and provider adapters. The Bun/Oxc/Nx migration remains in [PR #2](https://github.com/ultrabricks/boards-app/pull/2); it must not be described as merged or fully verified merely because the isolated prototype is accessible. The older root commands still reflect the previous runtime until that migration is accepted.
+The repository also contains the fuller board backend, identity/linking flows, deterministic PNG previews and provider adapters. The Bun/Oxc/Nx migration remains in [PR #2](https://github.com/ultrabricks/boards-app/pull/2); it must not be described as merged or fully verified merely because a static prototype has been prepared. The older root commands still reflect the previous runtime until that migration is accepted.
 
 The prototype is plain browser ES modules plus PostgreSQL RPCs: no container, Python server or Node process is required to host it. The new browser harness is TypeScript and runs with Bun:
 
@@ -32,7 +45,7 @@ Set `CHROMIUM_PATH` for a system Chromium. This harness uses actual HTML/CSS/mod
 
 ## Visual reference
 
-These existing images come from the last successful full-application native CI run, not the new prototype harness. Their [manifest](https://github.com/ultrabricks/boards-app/blob/visual-evidence/evidence.json) records the source and run. Current prototype screenshots are produced by its TypeScript harness and attached to the delivery conversation; they are not generated UI mockups.
+These existing images come from the last successful full-application native CI run, not the new prototype harness. Their [manifest](https://github.com/ultrabricks/boards-app/blob/visual-evidence/evidence.json) records the source and run. Prototype screenshots were produced by its TypeScript harness and attached to the delivery conversation; they are not generated UI mockups or evidence of a successful public deployment.
 
 ![Paper board](https://raw.githubusercontent.com/ultrabricks/boards-app/visual-evidence/screenshots/board-desktop.png)
 
@@ -48,6 +61,6 @@ These existing images come from the last successful full-application native CI r
 
 [Roadmap](ROADMAP.md) · [Architecture](docs/ARCHITECTURE.md) · [Provider setup](docs/SETUP.md) · [Security](SECURITY.md) · [Previous full-app review](docs/REVIEW-2026-09-10.md) · [GitHub Actions](https://github.com/ultrabricks/boards-app/actions)
 
-The prototype is bounded to 200 isolated notebooks, 50 share links per notebook and a 512 KB document. It is a demonstration, not an audited multi-tenant identity platform. The static host has no uptime guarantee. Keep backups. Revoking a share prevents new reads but cannot remove screenshots someone already saved.
+The prototype is bounded to 200 isolated notebooks, 50 share links per notebook and a 512 KB document. It is a demonstration, not an audited multi-tenant identity platform. Keep backups. Revoking a share prevents new reads but cannot remove screenshots someone already saved.
 
 The Conloca specimen is separate from the board. It contains original editable glyph geometry and a compiler, not a packaged font binary. The variable file is constructed on the visitor's device. Neither a test matrix count nor server-only coverage should be reported as whole-application coverage.
