@@ -1,0 +1,41 @@
+name: Recover source and probe prototype
+on:
+  push:
+    branches: [work/bun-shell-quality]
+    paths: [.github/workflows/recovery-20260911.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - name: Recover ordinary source without changing any branch
+        shell: bash
+        run: |
+          mkdir -p test-results
+          if test -f .delivery/apply.ts; then
+            bunx --bun oxfmt@0.67.0 --write apps packages server scripts tests/*.test.mjs
+            bun .delivery/apply.ts
+          fi
+          bun add --dev --exact nx@23.2.1
+          bun run format
+          bun run format
+          tar --exclude=node_modules --exclude=.git --exclude=dist --exclude=.data --exclude=.env.local --exclude=.private --exclude=test-results --exclude=coverage --exclude=.seed-people.json -cf /tmp/source.tar .
+          mv /tmp/source.tar test-results/source.tar
+          bun run verify > test-results/verify.log 2>&1
+      - name: Probe the public HTML response, never authenticate or write data
+        if: always()
+        run: |
+          curl --connect-timeout 10 --max-time 30 -sS -H 'Accept: text/html' -D test-results/prototype-headers.txt 'https://ep-long-pond-ay3myrkz.apirest.c-5.us-east-2.aws.neon.tech/boards_prototype/rest/v1/rpc/index' -o test-results/prototype-response.html
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: recovered-bun-source
+          path: test-results/
+          retention-days: 7
