@@ -1,1 +1,0 @@
-{"name":"type-site","root":"apps/type-site","targets":{"dev":{"executor":"nx:run-commands","options":{"command":"npm run dev:type"}},"build":{"executor":"nx:run-commands","outputs":["{workspaceRoot}/dist/type-site"],"options":{"command":"npm run build:type"}},"deploy":{"executor":"nx:run-commands","options":{"command":"npm run deploy:type"}}}}
