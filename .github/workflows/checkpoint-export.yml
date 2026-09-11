@@ -1,0 +1,36 @@
+name: Review checkpoint export
+on:
+  push:
+    branches: [work/bun-shell-quality]
+    paths: [.github/workflows/checkpoint-export.yml]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - name: Recover source with checksums
+        run: |
+          mkdir -p /tmp/review-export
+          git archive --format=tar HEAD > /tmp/review-export/checkout.tar
+          if test -d .delivery; then
+            bunx --bun oxfmt@0.67.0 --write apps packages server scripts tests/*.test.mjs
+            bun .delivery/apply.ts
+          fi
+          bun add --dev --exact nx@23.2.1
+          bun run format
+          bun run format
+          tar --exclude=node_modules --exclude=.git --exclude=.delivery --exclude=coverage --exclude=test-results --exclude=dist --exclude=.data --exclude='.env*' --exclude='*.ttf' --exclude='*.woff*' --exclude='*.otf' -cf /tmp/review-export/materialized.tar .
+          cp bun.lock /tmp/review-export/bun.lock
+          git rev-parse HEAD > /tmp/review-export/source-sha.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: review-checkpoint-source
+          path: /tmp/review-export/
+          retention-days: 7
