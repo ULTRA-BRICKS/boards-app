@@ -1,0 +1,90 @@
+name: Isolated prototype
+on:
+  push:
+    branches: [main, work/cloud-prototype]
+    paths: ['apps/prototype/**', 'deploy/prototype/**', 'tests/prototype-*.ts', '.github/workflows/prototype.yml']
+  pull_request:
+    paths: ['apps/prototype/**', 'deploy/prototype/**', 'tests/prototype-*.ts', '.github/workflows/prototype.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: prototype-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - name: Resolve the prototype-only browser tools
+        run: bun add --no-save --exact playwright@1.63.0
+      - run: bun --bun x playwright install --with-deps chromium
+      - name: Actual UI source with explicitly isolated fixture RPC
+        run: bun tests/prototype-browser.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prototype-browser
+          path: |
+            test-results/prototype-browser.json
+            docs/screenshots/prototype-*.png
+          retention-days: 14
+  live-http:
+    if: github.repository == 'ultrabricks/boards-app' && github.event_name != 'pull_request'
+    needs: browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - name: Public CDN, anonymous token, CORS and isolated persistence
+        run: bun tests/prototype-live-smoke.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prototype-live-http
+          path: test-results/prototype-live.json
+          retention-days: 14
+  screenshots:
+    if: github.repository == 'ultrabricks/boards-app' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [browser, live-http]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: prototype-browser
+          path: ${{ runner.temp }}/prototype-evidence
+      - name: Attach only public prototype screenshots to the evidence branch
+        shell: bash
+        env:
+          EVIDENCE: ${{ runner.temp }}/prototype-evidence
+        run: |
+          set -euo pipefail
+          for file in prototype-desktop.png prototype-mobile.png; do
+            test -f "$EVIDENCE/docs/screenshots/$file"
+            test ! -L "$EVIDENCE/docs/screenshots/$file"
+          done
+          git fetch --depth=1 origin visual-evidence
+          git worktree add --detach "$RUNNER_TEMP/prototype-visual" FETCH_HEAD
+          cd "$RUNNER_TEMP/prototype-visual"
+          mkdir -p screenshots
+          cp "$EVIDENCE/docs/screenshots/prototype-desktop.png" screenshots/
+          cp "$EVIDENCE/docs/screenshots/prototype-mobile.png" screenshots/
+          cp "$EVIDENCE/test-results/prototype-browser.json" prototype-browser.json
+          printf '{"sourceCommit":"%s","run":"https://github.com/%s/actions/runs/%s","mode":"actual UI with fixture RPC; external HTTP verified separately"}\n' "$GITHUB_SHA" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" > prototype-evidence.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add screenshots/prototype-desktop.png screenshots/prototype-mobile.png prototype-browser.json prototype-evidence.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "docs: attach prototype screenshots for ${GITHUB_SHA:0:12}"
+          git push origin HEAD:refs/heads/visual-evidence
