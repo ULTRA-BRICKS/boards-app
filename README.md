@@ -1,25 +1,14 @@
 # Boards
 
-## Publication status — one-time Pages activation required
+## Open the live prototype
 
-The previously supplied githack prototype address returned **404** for the user. The source HTML and JavaScript do exist in the referenced GitHub commit, but that does not prove the external CDN serves them. **Do not treat the old CDN address as a working service.**
+**[Cloud notebook — boards-app-gamma.vercel.app](https://boards-app-gamma.vercel.app/)** · **[Conloca Sans specimen](https://boards-app-gamma.vercel.app/type.html)**
 
-A same-origin static publication is now prepared on the [`gh-pages` branch](https://github.com/ultrabricks/boards-app/tree/gh-pages), commit [`abb14aba`](https://github.com/ultrabricks/boards-app/commit/abb14aba78fa93f8cb7176dff77c07ddb1232325). It includes the notebook, separate type specimen, styles and source modules. The browser import map resolves the prototype's legacy module identifiers locally; no githack network requests are needed. Neon Auth and the isolated Data API allow `https://ultrabricks.github.io`.
+Published to Vercel through the authorized local CLI. GitHub Pages activation and githack are not required. This is the isolated notebook prototype, not the full Bun application or the original team workspace.
 
-**An administrator must enable GitHub Pages once:**
+**Live verification, 2026-09-13:** an unmodified Chromium browser on the developer Mac opened the public URL and rendered all 15 seed tasks, saved a Unicode/emoji edit through the real Neon Data API (HTTP 200), and read that edit in a second independent browser context. The original task text was then restored. No request mocking, browser fetch bridge or CORS bypass was used; no uncaught JavaScript errors were recorded. The separate specimen and static resources returned HTTP 200. [Verification details](docs/LIVE-SMOKE-2026-09-13.md).
 
-Open [Settings → Pages](https://github.com/ultrabricks/boards-app/settings/pages), then set **Source: Deploy from a branch**, **Branch: gh-pages**, **Folder: /(root)** and click **Save**. This repository's Pages site was still disabled when the preparation was checked. Creating files and configuring the repository's Pages service are separate permissions; the available connector does not expose the latter action.
-
-After GitHub reports a successful Pages deployment, the intended addresses are:
-
-- Notebook: https://ultrabricks.github.io/boards-app/
-- Separate Conloca Sans specimen: https://ultrabricks.github.io/boards-app/type.html
-
-**These are target addresses, not a claim that the deployment has already succeeded.** Keep the trailing slash on the notebook base URL. `gh-pages` is a prepared snapshot; updates to the full application's `main` branch do not automatically replace it.
-
-The notebook talks directly to the separate Neon **`boards_prototype`** database through a restricted Data API. No database password, provider secret or original team data is sent to the browser. The original `scriptboard` database is unchanged.
-
-**Verification boundary:** previous PostgreSQL checks and browser fixture tests are documented in [the exact prototype review](docs/PROTOTYPE-2026-09-11.md). They do not establish a successful public-site → browser → Auth/Data API HTTPS/CORS smoke test. That check remains required after Pages is enabled.
+Storage remains the isolated `boards_prototype` database. The original `scriptboard` database was not modified. Full sign-in, integrations, generated illustrations, photo recognition, complete Bun migration and wider release checks remain unfinished; this URL is not a claim that all roadmap items are complete.
 
 ### Using this prototype
 
