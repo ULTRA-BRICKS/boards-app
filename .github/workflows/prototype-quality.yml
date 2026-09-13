@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: prototype-${{ github.ref }}
+  group: prototype-quality-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   core:

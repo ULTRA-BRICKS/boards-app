@@ -1,3 +1,4 @@
+import { openTaskCounts } from "./lib/people";
 import { stackMarkup as makeStack, animateCards } from "./lib/stack";
 /** Isolated cloud prototype; no production account or integration is simulated. */
 import { installFont } from "./lib/font";
@@ -7,6 +8,7 @@ import {
   colors,
   collapsedCount,
   drawStrike,
+  drawStrikes,
   pencilSound,
   soundEnabled,
   setSound,
@@ -226,6 +228,8 @@ function failSave(message) {
         sessionStorage.removeItem(cacheKey + ":draft");
       } catch {}
     }
+    queue?.dispose();
+    queue = null;
     ws = null;
     close();
     await open();
@@ -250,6 +254,7 @@ function initQueue(v, enabled) {
     send: async ({ document, version }) =>
       rpc("notebook", { capability: cap, expected_version: version, document }),
     onState: (s) => {
+      if (s.kind === "pending" && s.version !== undefined) persist();
       if (s.kind === "saved") {
         persist();
         say("Saved");
@@ -447,7 +452,7 @@ function render() {
   observeNavigation();
   mark("board-render");
   requestAnimationFrame(() => {
-    $$(".task.done").forEach((row) => drawStrike(row));
+    drawStrikes($$(".task.done"));
     mark("board-frame");
   });
 }
@@ -787,7 +792,7 @@ function person(id, row, anchor, expanded = false) {
   const p = ws.people.find((p) => p.id === id);
   if (!p) return;
   const tasks = tasksForPerson(ws, id).filter(
-    (r) => !r.item.done && r.item.id !== row?.dataset.item,
+    (r) => !r.item.done && (r.item.id !== row?.dataset.item || r.boardId !== boardId),
   );
   mini(
     p.name,
@@ -833,7 +838,7 @@ function previewPerson(anchor) {
       row = anchor.closest("[data-item]");
     if (!p) return;
     const tasks = tasksForPerson(ws, id).filter(
-      (r) => !r.item.done && r.item.id !== row?.dataset.item,
+      (r) => !r.item.done && (r.item.id !== row?.dataset.item || r.boardId !== boardId),
     );
     peek = document.createElement("section");
     peek.className = "peek";
@@ -875,6 +880,7 @@ function scheduleClosePreview() {
   }, 180);
 }
 function people() {
+  const openCounts = openTaskCounts(ws);
   modal(
     "People",
     '<div class="picker-caption">People in this space</div><div class="people-list">' +
@@ -888,7 +894,7 @@ function people() {
             "<span>" +
             escape(p.name) +
             "</span><small>" +
-            tasksForPerson(ws, p.id).filter((r) => !r.item.done).length +
+            (openCounts.get(p.id) || 0) +
             " open tasks</small></button>",
         )
         .join("") +
@@ -1103,7 +1109,7 @@ document.addEventListener("keydown", (e) => {
 void installFont()
   .then(() => {
     mark("font-ready");
-    $$(".task.done").forEach((row) => drawStrike(row));
+    drawStrikes($$(".task.done"));
   })
   .catch(() => {});
 void open();
@@ -1139,7 +1145,7 @@ window.addEventListener(
 window.addEventListener("resize", () => {
   if (ws) {
     observeNavigation();
-    $$(".task.done").forEach((row) => drawStrike(row));
+    drawStrikes($$(".task.done"));
   }
 });
 document.addEventListener(

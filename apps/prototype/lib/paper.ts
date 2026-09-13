@@ -47,29 +47,35 @@ export function strikePath(width: number, y: number, seed: number) {
   );
   return { d: "M" + points.join(" L"), width: 1.3 + random() * 0.5 };
 }
-export function drawStrike(row: HTMLElement, animate = false) {
-  row.querySelector(".ink-strike")?.remove();
-  if (!row.classList.contains("done")) return;
+function measureStrike(row: HTMLElement) {
+  if (!row.classList.contains("done")) return null;
   const text = row.querySelector<HTMLElement>(".task-text");
-  if (!text || text.isContentEditable || !text.firstChild) return;
+  if (!text || text.isContentEditable || !text.firstChild) return null;
   const range = document.createRange();
   range.selectNodeContents(text);
   const box = text.getBoundingClientRect();
-  const rectangles = Array.from(range.getClientRects()).filter((r) => r.width > 0);
+  return {
+    row,
+    text,
+    width: box.width,
+    height: box.height,
+    lines: Array.from(range.getClientRects())
+      .filter((r) => r.width > 0)
+      .map((r) => ({ x: r.left - box.left, y: r.top - box.top + r.height * 0.53, width: r.width })),
+  };
+}
+function appendStrike(plan: ReturnType<typeof measureStrike>, animate = false) {
+  if (!plan) return;
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.classList.add("ink-strike");
   svg.setAttribute("aria-hidden", "true");
-  svg.setAttribute("width", String(box.width));
-  svg.setAttribute("height", String(box.height));
-  rectangles.forEach((r, i) => {
-    const shape = strikePath(
-      r.width,
-      r.top - box.top + r.height * 0.53,
-      hash(row.dataset.item || "") + i,
-    );
+  svg.setAttribute("width", String(plan.width));
+  svg.setAttribute("height", String(plan.height));
+  plan.lines.forEach((line, i) => {
+    const shape = strikePath(line.width, line.y, hash(plan.row.dataset.item || "") + i);
     const p = document.createElementNS(svg.namespaceURI, "path");
     p.setAttribute("d", shape.d);
-    p.setAttribute("transform", `translate(${r.left - box.left} 0)`);
+    p.setAttribute("transform", `translate(${line.x} 0)`);
     p.setAttribute("stroke-width", String(shape.width));
     p.setAttribute("pathLength", "1");
     svg.append(p);
@@ -82,7 +88,19 @@ export function drawStrike(row: HTMLElement, animate = false) {
         { duration: 230, delay: i * 45, easing: "ease-out", fill: "both" },
       );
   });
-  text.append(svg);
+  plan.text.append(svg);
+}
+export function drawStrike(row: HTMLElement, animate = false) {
+  row.querySelector(".ink-strike")?.remove();
+  appendStrike(measureStrike(row), animate);
+}
+export function drawStrikes(rows: Iterable<HTMLElement>) {
+  const list = Array.from(rows);
+  // Three phases: remove old decorations, read all geometry, append all new decorations.
+  // No per-row layout read after a previous row's SVG write.
+  list.forEach((row) => row.querySelector(".ink-strike")?.remove());
+  const plans = list.map(measureStrike);
+  plans.forEach((plan) => appendStrike(plan));
 }
 let audio: AudioContext | undefined;
 export function soundEnabled() {
