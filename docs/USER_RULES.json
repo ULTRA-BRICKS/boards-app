@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-09-13",
+  "precedence": "Latest explicit user request overrides older requests and assistant assumptions.",
+  "rules": [
+    {"id":"process-memory","date":"2026-09-13","requirement":"Classify observed failures, persist their evidence and countermeasures, update roadmap, and continue real work. Re-read the process documents on each request."},
+    {"id":"delivery","date":"2026-09-13","requirement":"Review, fix, test, merge and publish working changes. Put the verified service URL here in chat and at the top of README. Maintain actual browser screenshots."},
+    {"id":"runtime","requirement":"Bun for everything feasible, Oxc/Oxfmt extensively, TypeScript tooling and Nx. No Docker Compose or Python prerequisite for the application."},
+    {"id":"performance","date":"2026-09-13","requirement":"Measure with agent-browser, track cold/reload/render/cloud/interaction metrics, implement public service-worker app shell and stale-while-revalidate, show a specific board title when known."},
+    {"id":"data-safety","requirement":"Never lose entered data or silently pretend local-only storage is cloud-saved. Handle offline, concurrent writes and interrupted saves explicitly; protect private capabilities."},
+    {"id":"assignments","date":"2026-09-13","requirement":"Allow changing, adding and removing multiple assignees. Avatars overlap sequentially at the right; hover/focus lifts the selected avatar."},
+    {"id":"avatar-fallback","date":"2026-09-13","requirement":"Use real approved Slack photos when available; otherwise first letter on distinct non-repeating color backgrounds. This supersedes older image-silhouette fallback requests."},
+    {"id":"person-list","date":"2026-09-13","requirement":"Label other tasks assigned to the person. N=3: lengths 0–5 show all; lengths 6+ initially show 3 with an explicit expansion action."},
+    {"id":"paper-navigation","date":"2026-09-13","requirement":"No application masthead or logo. Active-column navigation follows position. Layered paper stack exposes neighboring titles and expands to page thumbnails with animation."},
+    {"id":"creation","requirement":"New pages/columns and photo drafts are edited on the actual sheet, not formal creation dialogs or JSON wizards."},
+    {"id":"drawing","date":"2026-09-13","requirement":"Consistent extensive hand-drawn icon system; restrained animated jitter/thickness strike-through with gentle completion sound; reduced-motion and mute support."},
+    {"id":"bottom-menu","date":"2026-09-13","requirement":"Share replaces trailing ellipsis. Remove technical prototype disclaimers from action menus; keep accurate permissions/privacy explanations where relevant."},
+    {"id":"remaining-features","requirement":"Track real OAuth/account linking, confirmed avatar proposals, email, Slack/Linear/GitHub tickets and backlinks, semantic duplicate/art matching, image generation, photo import and deterministic scoped link previews as separate unfinished gates."},
+    {"id":"quality","requirement":"2000+ meaningful test cases for full project, explicit 80%+ coverage scope, many independent CI checks for format/lint/types/tests/security/bundles/loading/accessibility; actual adverse browser testing."},
+    {"id":"local-work","requirement":"Authorized work is under ~/xp on the Mac. Preserve other changes. CLI GitHub/Vercel access is available; retry transient failures with backoff, not repetitive speculative reconnect requests."}
+  ]
+}

@@ -47,3 +47,20 @@ R2 still needs a real hosted project, sign-in configuration and two-user cloud s
 The Neon workspace was read again without modification: document version 1, one board, three people, fifteen items. A connector SQL read is not a deployed application-to-database round-trip.
 
 Remaining refinements: live approved profile images and provider identities, real email delivery, bounded image/vision configuration, larger semantic evaluation and indexing, account recovery/retention, dependency lockfiles and hosted release checks. Keep these gates open rather than marking them complete from mocked tests.
+
+## Active delivery plan — 2026-09-13 (supersedes older execution status)
+Read AGENTS.md, docs/USER_RULES.json and docs/PROCESS.md first. Main source is still 0dd04be; the polished prototype exists in a separate uncommitted worktree and is not deployed yet.
+
+| Step | Work | Completion evidence | Current state |
+|---|---|---|---|
+| P0 | Classify interruptions and make work recoverable | PROCESS.md, USER_RULES.json, AGENTS.md, local HANDOFF | Documents written; checkpoint commit pending |
+| P1 | Review the actual prototype changes, preservation of input during loading/saving, private-safe SWR | Tests with real exit codes; no private data in public shell cache; regression cases for every found loss | 96 unit / 13 Chromium / 12 WebKit fixture groups observed; additional race checks needed |
+| P2 | Finish visual/interaction corrections: assignments, initials, N+2, active navigation, stack, icons, completion | Native screenshots, keyboard/touch and accessibility, no uncaught errors | Working locally; screenshots require final review |
+| P3 | Bound loading and interaction regressions | Before/after cold and repeat metrics, SW lifecycle checks, asset budgets, no hidden network waits | Baseline captured; final build measurements pending |
+| P4 | Commit/review and publish prototype to current Vercel project | Clean reviewed diff, CI, public build ID, actual unmocked save + independent read + reload | Not yet published |
+| P5 | Update README/screenshots/issues and handoff | Exact URL/build/SHA and clear scope; no leaked editing key or real portraits in Git | Pending P4 |
+| F1 | Integrate recovered full Bun app, authentication and providers | Separate PR #2 / issue #6 gates | Not part of a falsely claimed prototype completion |
+
+User-reported prototype issues are tracked in #5; full-product gaps in #6. A working prototype with better UX must not imply that live OAuth, account linking, semantic AI or messenger OG have been shipped.
+
+Process acceptance: a remote `exit 0` is not sufficient if a shell command masked test failure. Rate limits are handled with pauses, failed mutations are read back before retry, and explicit safety blocks are not bypassed. No fixed cause/timer is assigned to Thinking failed without evidence.
