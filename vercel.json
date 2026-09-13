@@ -1,12 +1,43 @@
 {
-  "$schema":"https://openapi.vercel.sh/vercel.json",
-  "framework":null,
-  "buildCommand":"npm run build",
-  "outputDirectory":"dist/board",
-  "functions":{"api/index.js":{"maxDuration":60,"includeFiles":"{server,packages}/**"}},
-  "rewrites":[
-    {"source":"/s/:id","destination":"/api/index?route=share-page&id=:id"},
-    {"source":"/api/:path*","destination":"/api/index?route=:path*"}
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist/board",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 60,
+      "includeFiles": "{server,packages}/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/s/:id",
+      "destination": "/api/index?route=share-page&id=:id"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index?route=:path*"
+    }
   ],
-  "headers":[{"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"no-referrer"},{"key":"X-Frame-Options","value":"DENY"}]}]
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
+      ]
+    }
+  ],
+  "bunVersion": "1.x",
+  "installCommand": "bun install --frozen-lockfile"
 }

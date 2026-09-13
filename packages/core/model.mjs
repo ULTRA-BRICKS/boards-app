@@ -1,13 +1,182 @@
-export function uid(){if(globalThis.crypto.randomUUID)return crypto.randomUUID();const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const s=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');return`${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`}
-const task=(id,text,tag='',assignees=[])=>({id,text,tag,assignees,done:false});
-const PEOPLE=['Danny','Niko','Mariam'].map(name=>({id:name.toLowerCase(),name,email:'',avatar:'',slackUserId:'',slackUrl:''}));
-export const DEFAULT_BOARD={schemaVersion:1,title:'Product roadmap',space:{id:'launch',name:'Launch workspace'},people:PEOPLE,integrations:{slack:{enabled:false,workspace:''},linear:{enabled:false,baseUrl:''}},tagline:'Build · Ship · Grow',footer:'Small steps. Big progress.',typography:{headingWeight:800,bodyWeight:450,width:100},columns:[
-{id:'landing',title:'Landing',subtitle:'Polish · Stabilize · Convert',note:'Smooth pages.\nHappier people.',icon:'auto',items:[task('l1','Replace PNGs with Lottie animations','S'),task('l2','Fix UI inconsistencies','S'),task('l3','Fix responsive breakpoint inconsistencies','S'),task('l4','Define Puck components','N',['niko']),task('l5','Add UI micro-interactions','S'),task('l6','Assemble in Conloca and add all blog posts','M',['mariam']),task('l7','Optimize for SEO','?'),task('l8','Add a legal page to the footer','S')]},
-{id:'product',title:'Product',subtitle:'Ship · Improve · Learn',note:'Build useful\nthings.',icon:'auto',items:[task('p1','Add a demo & Puck editor','N',['niko']),task('p2','Finish and test billing','D',['danny']),task('p3','Test and improve onboarding','S/M',['mariam']),task('p4','Add analytics with PostHog','N',['niko'])]},
-{id:'marketing',title:'Marketing',subtitle:'Share · Engage · Grow',note:'Tell the\nstory.',icon:'auto',items:[task('m1','Create a launch video'),task('m2','Create social profiles'),task('m3','Write a blog post about setting up with agents')]}]};
-export const clone=x=>structuredClone(x);
-export function validateBoard(input){if(!input||input.schemaVersion!==1)throw Error('Неизвестная версия данных');const str=(v,max,label)=>{if(typeof v!=='string'||v.length>max)throw Error(`Неверное поле: ${label}`);return v};const ids=new Set();const id=v=>{if(typeof v!=='string'||!/^[\w-]{1,80}$/.test(v)||['__proto__','constructor','prototype'].includes(v)||ids.has(v))throw Error('Повторяющийся или неверный ID');ids.add(v);return v};
-if(!Array.isArray(input.columns)||input.columns.length>24)throw Error('Максимум 24 колонки');let total=0;const cols=input.columns.map(c=>{if(!c||!Array.isArray(c.items)||c.items.length>200)throw Error('Максимум 200 задач в колонке');total+=c.items.length;return{id:id(c.id),title:str(c.title,120,'заголовок'),subtitle:str(c.subtitle,180,'подзаголовок'),note:str(c.note,240,'заметка'),illustrationId:typeof c.illustrationId==='string'&&/^[\w-]{1,80}$/.test(c.illustrationId)?c.illustrationId:'',icon:['auto','window','cube','megaphone','spark','flag','none'].includes(c.icon)?c.icon:'auto',items:c.items.map(t=>{if(typeof t.done!=='boolean')throw Error('Неверный статус задачи');return{id:id(t.id),text:str(t.text,1000,'задача'),tag:str(t.tag||'',24,'метка'),assignees:Array.isArray(t.assignees)?t.assignees.filter(v=>typeof v==='string').slice(0,12):[],done:t.done}})}});if(total>1200)throw Error('Максимум 1200 задач');
-const people=Array.isArray(input.people)?input.people.slice(0,200).map(p=>({id:str(p.id,80,'ID пользователя'),name:str(p.name,120,'имя'),email:str(p.email||'',200,'email'),avatar:str(p.avatar||'',1000,'аватар'),slackUserId:str(p.slackUserId||'',80,'Slack ID'),slackUrl:str(p.slackUrl||'',1000,'Slack URL')})):PEOPLE;
-const t=input.typography||{},num=(v,min,max)=>{if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max)throw Error('Неверные параметры шрифта');return v};const board={schemaVersion:1,githubRepo:/^[\w.-]+\/[\w.-]+$/.test(input.githubRepo||'')?input.githubRepo:'',title:str(input.title,120,'название'),space:input.space&&typeof input.space==='object'?{id:str(input.space.id||'launch',80,'space ID'),name:str(input.space.name||'Workspace',120,'space name')}:{id:'launch',name:'Launch workspace'},people,integrations:input.integrations&&typeof input.integrations==='object'?input.integrations:{slack:{enabled:false,workspace:''},linear:{enabled:false,baseUrl:''}},tagline:str(input.tagline,180,'слоган'),footer:str(input.footer,240,'подпись'),typography:{headingWeight:num(t.headingWeight,300,800),bodyWeight:num(t.bodyWeight,300,800),width:num(t.width,85,125)},columns:cols};if(new TextEncoder().encode(JSON.stringify(board)).length>131072)throw Error('Доска больше 128 КБ');return board;}
-export function moveItem(board,from,to,item,index){const a=board.columns.find(c=>c.id===from),b=board.columns.find(c=>c.id===to);if(!a||!b)return false;const at=a.items.findIndex(t=>t.id===item);if(at<0)return false;const [t]=a.items.splice(at,1);b.items.splice(Math.max(0,Math.min(index,b.items.length)),0,t);return true;}
+export function uid() {
+  if (globalThis.crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 15) | 64;
+  b[8] = (b[8] & 63) | 128;
+  const s = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20)}`;
+}
+const task = (id, text, tag = "", assignees = []) => ({ id, text, tag, assignees, done: false });
+const PEOPLE = ["Danny", "Niko", "Mariam"].map((name) => ({
+  id: name.toLowerCase(),
+  name,
+  email: "",
+  avatar: "",
+  slackUserId: "",
+  slackUrl: "",
+}));
+export const DEFAULT_BOARD = {
+  schemaVersion: 1,
+  title: "Product roadmap",
+  space: { id: "launch", name: "Launch workspace" },
+  people: PEOPLE,
+  integrations: {
+    slack: { enabled: false, workspace: "" },
+    linear: { enabled: false, baseUrl: "" },
+  },
+  tagline: "Build · Ship · Grow",
+  footer: "Small steps. Big progress.",
+  typography: { headingWeight: 800, bodyWeight: 450, width: 100 },
+  columns: [
+    {
+      id: "landing",
+      title: "Landing",
+      subtitle: "Polish · Stabilize · Convert",
+      note: "Smooth pages.\nHappier people.",
+      icon: "auto",
+      items: [
+        task("l1", "Replace PNGs with Lottie animations", "S"),
+        task("l2", "Fix UI inconsistencies", "S"),
+        task("l3", "Fix responsive breakpoint inconsistencies", "S"),
+        task("l4", "Define Puck components", "N", ["niko"]),
+        task("l5", "Add UI micro-interactions", "S"),
+        task("l6", "Assemble in Conloca and add all blog posts", "M", ["mariam"]),
+        task("l7", "Optimize for SEO", "?"),
+        task("l8", "Add a legal page to the footer", "S"),
+      ],
+    },
+    {
+      id: "product",
+      title: "Product",
+      subtitle: "Ship · Improve · Learn",
+      note: "Build useful\nthings.",
+      icon: "auto",
+      items: [
+        task("p1", "Add a demo & Puck editor", "N", ["niko"]),
+        task("p2", "Finish and test billing", "D", ["danny"]),
+        task("p3", "Test and improve onboarding", "S/M", ["mariam"]),
+        task("p4", "Add analytics with PostHog", "N", ["niko"]),
+      ],
+    },
+    {
+      id: "marketing",
+      title: "Marketing",
+      subtitle: "Share · Engage · Grow",
+      note: "Tell the\nstory.",
+      icon: "auto",
+      items: [
+        task("m1", "Create a launch video"),
+        task("m2", "Create social profiles"),
+        task("m3", "Write a blog post about setting up with agents"),
+      ],
+    },
+  ],
+};
+export const clone = (x) => structuredClone(x);
+export function validateBoard(input) {
+  if (!input || input.schemaVersion !== 1) throw Error("Неизвестная версия данных");
+  const str = (v, max, label) => {
+    if (typeof v !== "string" || v.length > max) throw Error(`Неверное поле: ${label}`);
+    return v;
+  };
+  const ids = new Set();
+  const id = (v) => {
+    if (
+      typeof v !== "string" ||
+      !/^[\w-]{1,80}$/.test(v) ||
+      ["__proto__", "constructor", "prototype"].includes(v) ||
+      ids.has(v)
+    )
+      throw Error("Повторяющийся или неверный ID");
+    ids.add(v);
+    return v;
+  };
+  if (!Array.isArray(input.columns) || input.columns.length > 24)
+    throw Error("Максимум 24 колонки");
+  let total = 0;
+  const cols = input.columns.map((c) => {
+    if (!c || !Array.isArray(c.items) || c.items.length > 200)
+      throw Error("Максимум 200 задач в колонке");
+    total += c.items.length;
+    return {
+      id: id(c.id),
+      title: str(c.title, 120, "заголовок"),
+      subtitle: str(c.subtitle, 180, "подзаголовок"),
+      note: str(c.note, 240, "заметка"),
+      illustrationId:
+        typeof c.illustrationId === "string" && /^[\w-]{1,80}$/.test(c.illustrationId)
+          ? c.illustrationId
+          : "",
+      icon: ["auto", "window", "cube", "megaphone", "spark", "flag", "none"].includes(c.icon)
+        ? c.icon
+        : "auto",
+      items: c.items.map((t) => {
+        if (typeof t.done !== "boolean") throw Error("Неверный статус задачи");
+        return {
+          id: id(t.id),
+          text: str(t.text, 1000, "задача"),
+          tag: str(t.tag || "", 24, "метка"),
+          assignees: Array.isArray(t.assignees)
+            ? t.assignees.filter((v) => typeof v === "string").slice(0, 12)
+            : [],
+          done: t.done,
+        };
+      }),
+    };
+  });
+  if (total > 1200) throw Error("Максимум 1200 задач");
+  const people = Array.isArray(input.people)
+    ? input.people.slice(0, 200).map((p) => ({
+        id: str(p.id, 80, "ID пользователя"),
+        name: str(p.name, 120, "имя"),
+        email: str(p.email || "", 200, "email"),
+        avatar: str(p.avatar || "", 1000, "аватар"),
+        slackUserId: str(p.slackUserId || "", 80, "Slack ID"),
+        slackUrl: str(p.slackUrl || "", 1000, "Slack URL"),
+      }))
+    : PEOPLE;
+  const t = input.typography || {},
+    num = (v, min, max) => {
+      if (typeof v !== "number" || !Number.isFinite(v) || v < min || v > max)
+        throw Error("Неверные параметры шрифта");
+      return v;
+    };
+  const board = {
+    schemaVersion: 1,
+    githubRepo: /^[\w.-]+\/[\w.-]+$/.test(input.githubRepo || "") ? input.githubRepo : "",
+    title: str(input.title, 120, "название"),
+    space:
+      input.space && typeof input.space === "object"
+        ? {
+            id: str(input.space.id || "launch", 80, "space ID"),
+            name: str(input.space.name || "Workspace", 120, "space name"),
+          }
+        : { id: "launch", name: "Launch workspace" },
+    people,
+    integrations:
+      input.integrations && typeof input.integrations === "object"
+        ? input.integrations
+        : { slack: { enabled: false, workspace: "" }, linear: { enabled: false, baseUrl: "" } },
+    tagline: str(input.tagline, 180, "слоган"),
+    footer: str(input.footer, 240, "подпись"),
+    typography: {
+      headingWeight: num(t.headingWeight, 300, 800),
+      bodyWeight: num(t.bodyWeight, 300, 800),
+      width: num(t.width, 85, 125),
+    },
+    columns: cols,
+  };
+  if (new TextEncoder().encode(JSON.stringify(board)).length > 131072)
+    throw Error("Доска больше 128 КБ");
+  return board;
+}
+export function moveItem(board, from, to, item, index) {
+  const a = board.columns.find((c) => c.id === from),
+    b = board.columns.find((c) => c.id === to);
+  if (!a || !b) return false;
+  const at = a.items.findIndex((t) => t.id === item);
+  if (at < 0) return false;
+  const [t] = a.items.splice(at, 1);
+  b.items.splice(Math.max(0, Math.min(index, b.items.length)), 0, t);
+  return true;
+}

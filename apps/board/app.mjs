@@ -1,100 +1,1393 @@
-import {unresolvedHints,setAssignee} from '/packages/core/assignees.mjs';
-import {reviewPhoto} from '/photo-review.mjs';
-import {installFont} from '/packages/font/font.mjs';
-import {artSVG,pickArt} from '/packages/core/art.mjs';
-import {uid,clone} from '/packages/core/model.mjs';
-import {newBoard,tasksForPerson,safeURL} from '/packages/core/workspace.mjs';
-import {references} from '/packages/core/references.mjs';
-import {SyncQueue} from '/packages/core/sync.mjs';
-const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)],app=$('#app'),overlays=$('#overlays');
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const paths={boards:'M4 6L18 4L20 19L6 21ZM8 2L3 3L2 17M9 9L16 8M10 13L16 12',search:'M16 16L22 22M18 10A8 8 0 1 1 2 10A8 8 0 1 1 18 10',share:'M8 12L17 6M8 13L17 19M7 10A3 3 0 1 1 7 16A3 3 0 1 1 7 10M19 2A3 3 0 1 1 19 8A3 3 0 1 1 19 2M19 16A3 3 0 1 1 19 22A3 3 0 1 1 19 16',more:'M5 12L5.1 12M12 12L12.1 12M19 12L19.1 12',close:'M6 6L18 18M18 6L6 18',person:'M5 22Q5 12 12 13Q19 12 19 22M12 2A5 5 0 1 1 12 12A5 5 0 1 1 12 2',plus:'M12 4L12 20M4 12L20 12',camera:'M3 7L8 7L10 4L16 4L18 7L22 7L22 21L3 21ZM12 10A4 4 0 1 1 12 18A4 4 0 1 1 12 10',check:'M4 12L9 18L21 5'};
-const icon=name=>`<svg class="icon" viewBox="0 0 25 25" aria-hidden="true"><path d="${paths[name]||paths.more}"/></svg>`;
-let state={ws:null,people:[],requests:[],user:null,config:null,boardId:'',columnId:'',shared:false},sync=null,undo=[],redo=[],selected=new Set(),modalReturn=null,edit=null,debounce=null,searchSeq=0,hoverSeq=0;
-let hover=null,pop=null,toastTimer,errorOpen=false,columnObserver=null,dialogEpoch=0,workspaceEpoch=0;
-const board=()=>state.ws.boards.find(b=>b.id===state.boardId)||state.ws.boards[0];
-const item=(cid,id)=>board().columns.find(c=>c.id===cid)?.items.find(t=>t.id===id);
-async function api(path,{method='GET',data}={}){const r=await fetch('/api/'+path,{method,credentials:'same-origin',headers:data?{'Content-Type':'application/json'}:{},body:data?JSON.stringify(data):undefined});let value;try{value=await r.json()}catch{throw Error('The server did not return a valid response.')}if(!r.ok)throw Object.assign(Error(value.error||'Request failed.'),{status:r.status});return value}
-const post=(path,data)=>api(path,{method:'POST',data});
-function toast(text){const el=$('#toast');el.textContent=text;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),5200)}
-function downloadJSON(value,name='board-backup.json'){const u=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
-function configureSync(version){sync?.dispose();sync=new SyncQueue({send:async({document,version})=>api('state',{method:'PUT',data:{version,value:document}}),onState:s=>{const el=$('.save-state');if(el)el.textContent=s.kind==='pending'?'Ink drying…':s.kind==='saving'?'Saving…':s.kind==='saved'?'':s.kind==='error'?'Not saved':'';if(s.kind==='error'||s.kind==='conflict')saveError(s.message||'Another session made changes.')}});sync.configure({enabled:!state.shared,version})}
-async function flush(){finishEdit();if(!sync)return;for(let i=0;i<100;i++){if(sync.paused)throw Error('Resolve the save error before continuing.');await sync.flush();if(!sync.running&&sync.sequence===sync.ack)return;await new Promise(r=>setTimeout(r,80))}throw Error('Saving is taking longer than expected. Please try again.')}
-function saveError(message){if(errorOpen)return;errorOpen=true;dialog('Your last edits are not saved',`<p class="notice">${esc(message)} Your changes are still in this page. Nothing has switched to a local-only mode.</p><div class="actions"><button class="button" id="backup">Save a backup</button><button class="primary" id="retry-save">Retry</button><button id="reload-cloud">Reload cloud version</button></div>`,{dismiss:false});$('#backup').onclick=()=>downloadJSON(state.ws);$('#retry-save').onclick=()=>{errorOpen=false;closeDialog();sync.retry()};$('#reload-cloud').onclick=async()=>{if(!confirm('Discard unsaved changes and load the cloud version?'))return;errorOpen=false;closeDialog();await loadWorkspace()}}
-function change(fn,{render=true,allowPaused=false,background=false}={}){if(state.shared||sync?.paused&&!allowPaused)return;if(edit&&!background)finishEdit();undo.push(clone(state.ws));if(undo.length>40)undo.shift();redo=[];fn();sync.change(state.ws);if(render)renderBoard()}
-async function loadWorkspace(){const epoch=++workspaceEpoch,r=await api('state'),p=await api('people');if(epoch!==workspaceEpoch)return;undo=[];redo=[];state.ws=r.value;state.people=p.people;state.requests=p.requests;state.user=p.user;if(!state.ws.boards.some(b=>b.id===state.boardId))state.boardId=state.ws.boards[0].id;configureSync(r.version);renderBoard();void autoArt();}
-async function start(){try{const sharedId=location.pathname.startsWith('/s/')?location.pathname.slice(3):null;if(sharedId){state.shared=true;state.shareId=sharedId;state.ws=await api('shared?id='+encodeURIComponent(sharedId));state.people=state.ws.people;state.boardId=state.ws.boards[0]?.id;renderBoard();return}state.config=await api('status');state.user=state.config.user;if(!state.config.ready)return setup();if(new URLSearchParams(location.search).has('verify'))return verifyScreen();if(!state.user){resetPrivateState();return login();}state.boardId=new URLSearchParams(location.search).get('board')||state.boardId;await loadWorkspace();const focus=new URLSearchParams(location.search).get('item');if(focus)focusItem(state.boardId,focus)}catch(e){setup(e.message)}}
-function setup(error=''){const c=state.config;app.innerHTML=`<section class="gate">${artSVG('sprout')}<p class="eyebrow">Before the first page</p><h1>Connect your notebook.</h1><p>Boards opens directly in your cloud workspace. Until the connection and sign-in are ready, this page stays closed.</p><ul class="setup-checks">${(c?.checks||[]).map(x=>`<li class="setup-check"><span class="${x.ready?'ready':''}">${x.ready?'✓':'○'}</span><div>${esc(x.label)}<small>${esc(x.message||x.keys.join(' / '))}</small></div></li>`).join('')}</ul>${error?`<p class="form-error">${esc(error)}</p>`:''}<p class="small">Run setup on the server or your own computer. Credentials never go into the browser or public source code.</p><pre>npm run setup\n# Then restart, or run npm run deploy</pre><div class="actions"><button class="primary" id="recheck">Check connection again</button></div></section>`;$('#recheck').onclick=()=>start()}
-function login(error=''){app.innerHTML=`<section class="gate">${artSVG('book')}<p class="eyebrow">Your pages are waiting</p><h1>Come on in.</h1><p>Sign in with a connected account. This notebook is for invited people only.</p><div class="login-options">${state.config.providers.map(p=>`<button class="button" data-login="${p}">Continue with ${esc(p[0].toUpperCase()+p.slice(1))}</button>`).join('')}${state.config.test?'<button class="primary" id="test-login">Open local test workspace</button><p class="small muted">Explicit test mode. No cloud connection or real identity is being simulated.</p>':''}</div>${state.config.email?'<form id="email-login" class="separated"><label>Email address<input name="email" type="email" autocomplete="email" required></label><button class="primary">Send sign-in link</button></form>':''}<p class="form-error">${esc(error)}</p><p class="small muted">Link additional accounts from your profile after signing in. Matching email addresses never silently combine provider accounts.</p></section>`;$$('[data-login]').forEach(b=>b.onclick=()=>oauth(b.dataset.login));$('#test-login')?.addEventListener('click',async()=>{try{await post('auth/test',{});await start()}catch(e){toast(e.message)}});$('#email-login')?.addEventListener('submit',async e=>{e.preventDefault();const b=e.target.querySelector('button');b.disabled=true;try{await post('auth/email',{email:new FormData(e.target).get('email')});toast('A sign-in link was sent if this email is invited.')}catch(e){toast(e.message)}finally{b.disabled=false}})}
-function verifyScreen(){app.innerHTML=`<section class="gate"><p class="eyebrow">Just one last step</p><h1>Open your notebook?</h1><p>Confirm to use this one-time email sign-in link.</p><button class="primary" id="verify">Sign in</button></section>`;$('#verify').onclick=async()=>{try{await post('auth/verify',{token:new URLSearchParams(location.search).get('verify')});history.replaceState({},'','/');await start()}catch(e){toast(e.message)}}}
-async function oauth(provider,link=false,proposalId=null){try{if(state.ws)await flush();const r=await post('auth/start',{provider,link,proposalId});location.assign(r.url)}catch(e){toast(e.message)}}
-function resetPrivateState(){workspaceEpoch++;sync?.dispose();sync=null;undo=[];redo=[];selected.clear();tickets.clear();artAttempts.clear();clearTimeout(debounce);columnObserver?.disconnect();closePop();clearHover();state.ws=null;state.people=[];state.requests=[];state.user=null;state.boardId='';state.columnId='';}
-function linkedText(t){let at=0,out='';for(const r of references(t,board()?.githubRepo)){out+=esc(t.slice(at,r.start));out+=`<a href="${esc(r.url||'#')}" data-ticket="${esc(t.slice(r.start,r.end))}" rel="noopener noreferrer"${r.url?' target="_blank"':''}>${esc(r.label)}</a>`;at=r.end}return out+esc(t.slice(at))}
-function taskHTML(t,c){const orphan=unresolvedHints(t,state.people),avatars=(t.assignees||[]).map(id=>{const p=state.people.find(p=>p.id===id);return p?`<button class="avatar-button" data-person="${esc(id)}" aria-label="${esc(p.name)}"><img class="avatar${p.avatarPending?' pending':''}" src="${esc(p.avatar||'/placeholder.svg')}" alt="${esc(p.name)}" loading="lazy" referrerpolicy="no-referrer"></button>`:''}).join('');return `<li class="task${t.id==='l4'?' group-start':''}${t.done?' done':''}${selected.has(t.id)?' selected':''}${state.ws.neighborIds?.includes(t.id)?' neighbor':''}" id="item-${esc(t.id)}" data-item="${esc(t.id)}" data-col="${esc(c.id)}"><button class="task-check" data-done aria-label="${t.done?'Reopen':'Complete'} ${esc(t.text)}" aria-pressed="${t.done}"${state.shared?' disabled':''}><span class="ring"></span></button><div class="task-text" data-edit="item" tabindex="${state.shared?'-1':'0'}" role="${state.shared?'text':'textbox'}" aria-label="Task text" aria-multiline="true">${linkedText(t.text)}</div><div class="task-actions">${avatars}${orphan.map(h=>`<button class="avatar-button unresolved" data-assign data-resolve-hint="${esc(h)}" aria-label="Resolve assignee ${esc(h)}"><img class="avatar" src="/placeholder.svg" alt="Unresolved ${esc(h)}" title="Unresolved: ${esc(h)}"></button>`).join('')}${!state.shared?'<button class="add-person" data-assign aria-label="Assign a person"></button>':''}</div>${!state.shared?'<button class="task-more" data-item-menu aria-label="Task actions">⋮</button>':''}</li>`}
-function renderBoard(){if(edit)finishEdit();closePop();clearHover();if(!state.ws?.boards?.length)return;const b=board();document.title=b.title;app.innerHTML=`<article class="paper" style="--cols:${Math.max(1,b.columns.length)};--heading-weight:${b.typography.headingWeight};--body-weight:${Math.max(520,b.typography.bodyWeight)};--width:${b.typography.width}"><div class="paper-caption"><span class="board-title" data-edit="title" tabindex="${state.shared?'-1':'0'}">${esc(b.title)}</span><span class="tagline" data-edit="tagline">${esc(b.tagline)}</span></div><nav class="column-tabs" aria-label="Columns on this page">${b.columns.map(c=>`<button data-column-jump="${esc(c.id)}" aria-current="${c.id===(state.columnId||b.columns[0]?.id)?'true':'false'}">${esc(c.title)}</button>`).join('')}</nav><div class="columns">${b.columns.map((c,i)=>`<section class="column" data-col="${esc(c.id)}" id="column-${esc(c.id)}"><div class="hero">${c.illustrationId?.startsWith('art-')?`<img class="generated-art" src="${state.shared?'/api/share-image?id='+esc(state.shareId)+'&art=':'/api/illustration?id='}${esc(c.illustrationId)}" alt="Drawing for ${esc(c.title)}">`:artSVG(c.illustrationId||pickArt(c.title))}<div class="scribble" data-edit="note" tabindex="${state.shared?'-1':'0'}">${esc(c.note)}</div>${!state.shared?'<button class="redraw" data-redraw>New sketch ↗</button>':''}</div><h1 data-edit="column-title" tabindex="${state.shared?'-1':'0'}">${esc(c.title)}</h1>${!state.shared?'<button class="column-menu" data-column-menu aria-label="Column actions">'+icon('more')+'</button>':''}<div class="column-subtitle" data-edit="subtitle" tabindex="${state.shared?'-1':'0'}">${esc(c.subtitle)}</div><ul class="tasks">${c.items.map(t=>taskHTML(t,c)).join('')}</ul>${!c.items.length?'<div class="empty-column">A little room for<br>your next big idea.</div>':''}${!state.shared?'<button class="add-item" data-add-item>+ Add a thought</button>':''}<div class="end-note">${i===0?'A cleaner, faster,\nmore delightful experience.':i===1?'Better tools\ncreate happier users.':'Great products\ndeserve great stories.'}</div>${i===2?artSVG('flag',{className:'end-doodle'}):''}</section>`).join('')}${!b.columns.length?'<section class="empty-column">A fresh page. Add your first column from the page tabs.</section>':''}</div><div class="paper-footer"><span data-edit="footer">${esc(b.footer)}</span><span class="after">A brighter internet ahead.</span></div></article><nav class="edge-tabs" aria-label="Notebook navigation"><button class="edge-tab" data-nav="boards" aria-label="Boards and columns">${icon('boards')}<span>Pages</span></button>${!state.shared?`<button class="edge-tab" data-nav="search" aria-label="Search workspace">${icon('search')}<span>Find</span></button><button class="edge-tab" data-nav="share" aria-label="Share selection or board">${icon('share')}<span>Share</span></button><button class="edge-tab" data-nav="more" aria-label="Notebook settings and profile">${icon('more')}<span>More</span>${state.requests.some(p=>p.target===state.user?.id)?'<i class="dot"></i>':''}</button>`:''}</nav><div class="save-state" role="status"></div>`;bindBoard();observeColumns();}
-function bindBoard(){app.onclick=async e=>{const target=e.target.closest('button,a,[data-edit]');if(!target)return;const row=target.closest('[data-item]'),col=target.closest('[data-col]')?.dataset.col;state.columnId=col||state.columnId;
- if(target.hasAttribute('data-column-jump')){finishEdit();state.columnId=target.dataset.columnJump;$('#column-'+CSS.escape(state.columnId))?.scrollIntoView({behavior:'smooth',block:'start'});return}
- if(target.dataset.nav){finishEdit();return ({boards:pages,search:searchDialog,share:shareDialog,more:moreDialog})[target.dataset.nav]()}
- if(target.hasAttribute('data-person'))return profile(target.dataset.person);
- if(target.hasAttribute('data-ticket')){e.preventDefault();return ticketDialog(target.dataset.ticket,row)}
- if(state.shared)return;
- if(target.hasAttribute('data-edit'))return startEdit(target);
- if(target.hasAttribute('data-done'))return change(()=>{const t=item(col,row.dataset.item);t.done=!t.done});
- if(target.hasAttribute('data-assign'))return peoplePicker(row,target);
- if(target.hasAttribute('data-item-menu'))return itemMenu(row,target);
- if(target.hasAttribute('data-column-menu'))return columnMenu(col,target);
- if(target.hasAttribute('data-add-item'))return addItem(col);
- if(target.hasAttribute('data-redraw'))return redraw(col,true);
- };app.onkeydown=e=>{if(e.target.matches('[data-edit]')&&!e.target.isContentEditable&&(e.key==='Enter'||e.key===' ')){e.preventDefault();startEdit(e.target)}};app.onmouseover=e=>{const p=e.target.closest('[data-person]'),t=e.target.closest('[data-ticket]');if(p)profileHover(p);else if(t)ticketHover(t)};app.onmouseout=e=>{if(e.target.closest('[data-person],[data-ticket]'))clearHover()};$$('img.avatar',app).forEach(im=>im.onerror=()=>{im.onerror=null;im.src='/placeholder.svg'});}
-function observeColumns(){columnObserver?.disconnect();if(!('IntersectionObserver' in window))return;columnObserver=new IntersectionObserver(entries=>{const visible=entries.filter(e=>e.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];if(!visible)return;state.columnId=visible.target.dataset.col;$$('[data-column-jump]').forEach(b=>b.setAttribute('aria-current',String(b.dataset.columnJump===state.columnId)))},{rootMargin:'-12% 0px -60% 0px',threshold:[0,.1,.5]});$$('.column',app).forEach(c=>columnObserver.observe(c))}
-function field(el){const c=board().columns.find(c=>c.id===el.closest('[data-col]')?.dataset.col),id=el.closest('[data-item]')?.dataset.item;switch(el.dataset.edit){case'item':return [c.items.find(t=>t.id===id),'text',1000];case'column-title':return[c,'title',120];case'note':return[c,'note',240];case'subtitle':return[c,'subtitle',180];default:return[board(),el.dataset.edit,el.dataset.edit==='title'?120:240]}}
-function startEdit(el){if(state.shared||sync?.paused||edit?.el===el)return;finishEdit();const[obj,key,max]=field(el);edit={el,obj,key,max,old:obj[key]};el.textContent=obj[key];el.contentEditable='plaintext-only';el.focus();const range=document.createRange();range.selectNodeContents(el);range.collapse(false);const sel=getSelection();sel.removeAllRanges();sel.addRange(range);el.oninput=()=>{if(el.textContent.length>max)toast(`Please keep this to ${max} characters.`);if(key==='text')suggest(el)};el.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();el.textContent=edit.old;finishEdit();renderBoard()}else if(e.key==='Enter'&&!e.shiftKey&&!pop?.classList.contains('mentions')){e.preventDefault();finishEdit();renderBoard()}};el.onblur=()=>setTimeout(()=>{if(edit?.el===el&&!pop?.contains(document.activeElement)){finishEdit();renderBoard()}},170);}
-function finishEdit(){if(!edit)return;const {el,obj,key,max,old}=edit;edit=null;el.contentEditable='false';el.oninput=null;el.onkeydown=null;el.onblur=null;clearTimeout(debounce);searchSeq++;const text=el.innerText.replace(/\r/g,'').trim().slice(0,max);el.textContent=text;if(text!==old){change(()=>{obj[key]=text;if(key==='title'&&obj.items)obj.illustrationId=''}, {render:false,allowPaused:true});if(key==='title'&&obj.items)setTimeout(()=>redraw(obj.id,false),650)}closePop();}
-function addItem(col){const id=uid();change(()=>board().columns.find(c=>c.id===col).items.push({id,text:'',tag:'',assignees:[],done:false}));startEdit($(`#item-${CSS.escape(id)} [data-edit]`));}
-function closePop(){if(pop?.restoreKeys)pop.restoreKeys();pop?.remove();pop=null}
-function popup(anchor,html,{mentions=false}={}){closePop();pop=document.createElement('div');pop.className='popover'+(mentions?' mentions':'');pop.setAttribute('role','listbox');pop.innerHTML=html;document.body.append(pop);const r=anchor.getBoundingClientRect(),w=pop.getBoundingClientRect().width;pop.style.left=Math.max(12,Math.min(innerWidth-w-12,r.left))+'px';pop.style.top=Math.max(12,Math.min(innerHeight-pop.offsetHeight-100,r.bottom+8))+'px';pop.onmousedown=e=>{if(e.target.closest('button'))e.preventDefault()};return pop}
-function peoplePicker(row,anchor,query='',fromMention=false){const resolveHint=anchor.dataset.resolveHint||'',t=item(row.dataset.col,row.dataset.item),matches=state.people.filter(p=>p.name.toLowerCase().includes(query.toLowerCase())||p.email?.toLowerCase().includes(query.toLowerCase()));const box=popup(anchor,`<div class="popover-title">${fromMention?'Mention a person':'Who is doing this?'}</div>${matches.map(p=>`<button data-pick="${esc(p.id)}" role="option"><img class="avatar" src="${esc(p.avatar)}" alt="">${esc(p.name)} ${t.assignees.includes(p.id)?'✓':''}</button>`).join('')}<button data-new-person>+ Add ${query?esc(query):'a person'}…</button>`,{mentions:fromMention});$$('[data-pick]',box).forEach(b=>b.onclick=()=>{if(fromMention&&edit){edit.el.textContent=edit.el.textContent.replace(/@[^@\n]*$/,'').trimEnd();finishEdit()}change(()=>setAssignee(t,state.people.find(p=>p.id===b.dataset.pick),{remove:t.assignees.includes(b.dataset.pick)&&!fromMention,resolveHint}));closePop()});$('[data-new-person]',box).onclick=()=>{if(fromMention&&edit){edit.el.textContent=edit.el.textContent.replace(/@[^@\n]*$/,'').trimEnd();finishEdit()}closePop();createPerson(query,row.dataset.col,row.dataset.item,resolveHint)};if(fromMention){const previousKeys=anchor.onkeydown;box.restoreKeys=()=>{if(edit?.el===anchor)anchor.onkeydown=previousKeys};let index=0;const opts=$$('[data-pick]',box);opts[0]?.classList.add('active');anchor.onkeydown=e=>{if(['ArrowDown','ArrowUp','Enter','Escape'].includes(e.key)){e.preventDefault();if(e.key==='Escape'){closePop();return}if(e.key==='Enter'){opts[index]?.click();return}opts[index]?.classList.remove('active');index=Math.max(0,Math.min(opts.length-1,index+(e.key==='ArrowDown'?1:-1)));opts[index]?.classList.add('active')}}}}
-function suggest(el){const row=el.closest('[data-item]'),text=el.innerText,m=/@([^@\n]*)$/.exec(text);if(m)return peoplePicker(row,el,m[1],true);closePop();const seq=++searchSeq;clearTimeout(debounce);if(text.trim().length<12)return;debounce=setTimeout(async()=>{try{const r=await post('search',{query:text,duplicate:true,boardId:state.boardId,columnId:row.dataset.col,exclude:state.boardId+':'+row.dataset.item});if(seq!==searchSeq||!edit||!r.hits.length)return;const box=popup(el,`<div class="popover-title">${r.mode==='hybrid'?'Similar thoughts already exist':'Possible text duplicate'}</div>${r.hits.map((h,i)=>`<button data-hit="${i}" role="option">${esc(h.title)}<small>${esc(h.boardTitle)} / ${esc(h.columnTitle)}</small></button>`).join('')}<button data-dismiss>Keep this as a separate item</button>`);$$('[data-hit]',box).forEach(b=>b.onclick=()=>{const h=r.hits[Number(b.dataset.hit)];finishEdit();focusItem(h.boardId,h.itemId)});$('[data-dismiss]',box).onclick=()=>closePop()}catch{}},600)}
-function itemMenu(row,anchor){finishEdit();const col=row.dataset.col,id=row.dataset.item,t=item(col,id),box=popup(anchor,`<button data-a="select">${selected.has(id)?'Deselect':'Select for sharing'}</button><button data-a="share">Share this item</button><button data-a="up">Move up ↑</button><button data-a="down">Move down ↓</button><button data-a="move">Move to another column…</button><button data-a="remove" class="danger">Remove item…</button>`);box.onclick=e=>{const a=e.target.closest('[data-a]')?.dataset.a;if(!a)return;closePop();if(a==='select'){selected.has(id)?selected.delete(id):selected.add(id);return renderBoard()}if(a==='share'){selected=new Set([id]);return shareDialog('item')}if(a==='remove'){if(confirm('Remove this item? Undo is available from More.'))change(()=>{const c=board().columns.find(c=>c.id===col);c.items=c.items.filter(t=>t.id!==id)});return}if(a==='move'){dialog('Move this thought',`<div class="stack">${board().columns.filter(c=>c.id!==col).map(c=>`<button class="button" data-move="${esc(c.id)}">${esc(c.title)}</button>`).join('')}</div>`);$$('[data-move]').forEach(b=>b.onclick=()=>{change(()=>{board().columns.find(c=>c.id===col).items=board().columns.find(c=>c.id===col).items.filter(x=>x.id!==id);board().columns.find(c=>c.id===b.dataset.move).items.push(t)});closeDialog()});return}change(()=>{const c=board().columns.find(c=>c.id===col),i=c.items.indexOf(t),j=Math.max(0,Math.min(c.items.length-1,i+(a==='up'?-1:1)));c.items.splice(i,1);c.items.splice(j,0,t)})}}
-function columnMenu(id,anchor){const box=popup(anchor,'<button data-a="share">Share this column</button><button data-a="left">Move left ↑</button><button data-a="right">Move right ↓</button><button data-a="remove" class="danger">Remove column…</button>');box.onclick=e=>{const a=e.target.closest('[data-a]')?.dataset.a;if(!a)return;closePop();if(a==='share'){state.columnId=id;return shareDialog('column')}if(a==='remove'){if(confirm('Remove this column and its items? Undo is available.'))change(()=>board().columns=board().columns.filter(c=>c.id!==id));return}change(()=>{const a=board().columns,i=a.findIndex(c=>c.id===id),j=Math.max(0,Math.min(a.length-1,i+(e.target.dataset.a==='left'?-1:1)));const[c]=a.splice(i,1);a.splice(j,0,c)})}}
-function dialog(title,html,{wide=false,dismiss=true}={}){finishEdit();closeDialog();closePop();modalReturn=document.activeElement;overlays.innerHTML=`<div class="backdrop"><section class="dialog${wide?' wide':''}" role="dialog" aria-modal="true" aria-labelledby="dialog-title">${dismiss?'<button class="close" aria-label="Close">'+icon('close')+'</button>':''}<h2 id="dialog-title">${esc(title)}</h2>${html}</section></div>`;$('.close',overlays)?.addEventListener('click',()=>closeDialog());$('.backdrop',overlays).onclick=e=>{if(dismiss&&e.target.classList.contains('backdrop'))closeDialog()};const first=$('input,textarea,button:not(.close),a',overlays);first?.focus();overlays.dataset.dismiss=String(dismiss);app.inert=true;}
-function closeDialog(){dialogEpoch++;app.inert=false;overlays.innerHTML='';modalReturn?.focus?.();modalReturn=null}
-function focusItem(boardId,itemId){finishEdit();state.boardId=boardId;selected.clear();closeDialog();renderBoard();if(!state.shared)history.replaceState({},'',`/?board=${encodeURIComponent(boardId)}&item=${encodeURIComponent(itemId)}`);requestAnimationFrame(()=>{const el=$('#item-'+CSS.escape(itemId));el?.scrollIntoView({behavior:'smooth',block:'center'});el?.classList.add('focused')})}
-function pages(){dialog('Choose a page',`<div class="stack">${state.ws.boards.map(b=>`<button class="dialog-item" data-board="${esc(b.id)}">${icon('boards')}<span class="item-main">${esc(b.title)}<small>${b.columns.length} columns · ${b.columns.reduce((n,c)=>n+c.items.length,0)} thoughts</small></span>${b.id===state.boardId?'✓':''}</button>`).join('')}</div><div class="separated"><p class="small muted">On this page</p>${board().columns.map(c=>`<button data-jump="${esc(c.id)}">${esc(c.title)} ↗</button>`).join('')}</div>${!state.shared?'<div class="actions"><button class="button" id="new-board">+ New page</button><button class="button" id="new-column">+ Column</button><button id="photo-import">'+icon('camera')+' From a photo</button></div>':''}`);$$('[data-board]',overlays).forEach(el=>el.onclick=()=>{state.boardId=el.dataset.board;selected.clear();closeDialog();renderBoard();if(!state.shared)history.replaceState({},'','/?board='+encodeURIComponent(state.boardId));void autoArt()});$$('[data-jump]',overlays).forEach(el=>el.onclick=()=>{closeDialog();$('#column-'+CSS.escape(el.dataset.jump))?.scrollIntoView({behavior:'smooth',block:'start'})});$('#new-board')?.addEventListener('click',()=>nameDialog('A fresh page','Page title',title=>{const b=newBoard(title);change(()=>{state.ws.boards.push(b);state.boardId=b.id});closeDialog()}));$('#new-column')?.addEventListener('click',()=>nameDialog('A new column','Column title',title=>{const c={id:uid(),title,subtitle:'A little progress, every day.',note:'Make it\nhappen.',icon:'auto',items:[]};change(()=>board().columns.push(c));closeDialog();void redraw(c.id)}));$('#photo-import')?.addEventListener('click',photoDialog)}
-function nameDialog(title,label,fn){dialog(title,`<form id="name-form"><label>${esc(label)}<input name="name" required maxlength="120" autocomplete="off"></label><button class="primary">Create</button></form>`);$('#name-form').onsubmit=e=>{e.preventDefault();fn(new FormData(e.target).get('name').trim())}}
-function searchDialog(){dialog('Find a thought',`<input class="palette-input" id="search-query" type="search" placeholder="Words, meaning, a ticket…" aria-label="Search workspace" autocomplete="off"><p class="small muted" id="search-mode">Your current page and column come first when relevance is similar.</p><div class="search-hits" role="listbox" id="hits"></div><p class="small muted">↑ ↓ to explore · Enter to open · Esc to close</p>`);let timer,seq=0,hits=[],active=0;const input=$('#search-query'),container=$('#hits');input.oninput=()=>{clearTimeout(timer);const n=++seq;timer=setTimeout(async()=>{try{const r=await post('search',{query:input.value,boardId:state.boardId,columnId:state.columnId});if(n!==seq||!container.isConnected)return;hits=r.hits;active=0;$('#search-mode').textContent=r.mode==='hybrid'?'Words + meaning · current page and column prioritized':r.warning||'Word search · current page and column prioritized';container.innerHTML=hits.map((h,i)=>`<button class="search-hit${!i?' active':''}" data-result="${i}" role="option"><small>${esc(h.boardTitle)} / ${esc(h.columnTitle)}</small><span class="text">${esc(h.title)}</span></button>`).join('')||'<p class="muted small">No matching thoughts yet.</p>';$$('[data-result]',container).forEach(b=>b.onclick=()=>{const h=hits[Number(b.dataset.result)];focusItem(h.boardId,h.itemId)})}catch(e){if(n===seq&&container.isConnected)$('#search-mode').textContent=e.message}},300)};input.onkeydown=e=>{if(!['ArrowDown','ArrowUp','Enter'].includes(e.key))return;e.preventDefault();if(e.key==='Enter'){const h=hits[active];if(h)focusItem(h.boardId,h.itemId);return}active=Math.max(0,Math.min(hits.length-1,active+(e.key==='ArrowDown'?1:-1)));$$('.search-hit',container).forEach((b,i)=>b.classList.toggle('active',i===active));$('.search-hit.active',container)?.scrollIntoView({block:'nearest'})}}
-function profileHover(anchor){if(hover)return;const p=state.people.find(p=>p.id===anchor.dataset.person);if(!p)return;hoverCard(anchor,`<strong>${esc(p.name)}</strong><small>${tasksForPerson(state.ws,p.id).filter(t=>!t.item.done).length} open thoughts${p.avatarPending?' · your photo proposal':''}</small><small>Click to see their pages</small>`)}
-function hoverCard(anchor,html){clearHover();hover=document.createElement('div');hover.className='hover-card';hover.innerHTML=html;document.body.append(hover);const r=anchor.getBoundingClientRect();hover.style.left=Math.max(12,Math.min(innerWidth-hover.offsetWidth-12,r.right-100))+'px';hover.style.top=Math.max(12,Math.min(innerHeight-hover.offsetHeight-100,r.bottom+10))+'px'}
-function clearHover(){hoverSeq++;hover?.remove();hover=null}
-const tickets=new Map();async function getTicket(ref){if(!tickets.has(ref))tickets.set(ref,await post('ticket',{reference:ref,repo:board().githubRepo}));return tickets.get(ref)}
-async function ticketHover(anchor){if(state.shared)return;const n=++hoverSeq;try{const t=await getTicket(anchor.dataset.ticket);if(n!==hoverSeq||!anchor.matches(':hover'))return;hoverCard(anchor,`<strong>${esc(t.title)}</strong><small>${esc(t.label)} · ${esc(t.kind)} · ${esc(t.state)}</small>`)}catch{}}
-async function ticketDialog(ref,row){dialog('Opening ticket…','<p class="muted">Checking the source.</p>');const epoch=dialogEpoch;try{const t=await getTicket(ref);if(epoch!==dialogEpoch)return;dialog(t.title,`<p class="eyebrow">${esc(t.label)} · ${esc(t.kind)} · ${esc(t.state)}</p><p class="small">${esc(t.description||'No description.')}</p><div class="actions"><a class="button" href="${esc(safeURL(t.url))}" target="_blank" rel="noopener noreferrer">Open in ${esc(t.provider)} ↗</a>${row&&!state.shared?'<button id="backlink" class="button">Add a board link to the ticket</button>':''}</div>`);$('#backlink')?.addEventListener('click',async()=>{if(!confirm('Post a comment on this ticket linking to this board item? The board still requires sign-in.'))return;try{await flush();const r=await post('backlink',{reference:ref,repo:board().githubRepo,boardId:state.boardId,itemId:row.dataset.item});toast(r.status==='sent'?'Comment posted.':'Delivery is pending.')}catch(e){toast(e.message)}})}catch(e){if(epoch!==dialogEpoch)return;dialog('Ticket unavailable',`<p>${esc(e.message)}</p><p class="small muted">The reference remains in your task. Connect the integration to enable its preview.</p>`)}}
-async function profile(id){clearHover();const p=state.people.find(p=>p.id===id)||{id,name:state.user?.name||'Your profile',avatar:'/placeholder.svg',isSelf:id===state.user?.id,accounts:[]},tasks=tasksForPerson(state.ws,id);dialog(p.name,`<div class="profile-title"><img class="profile-photo" src="${esc(p.avatar||'/placeholder.svg')}" alt="${esc(p.name)}"><p class="small muted">${tasks.filter(t=>!t.item.done).length} open thoughts across ${new Set(tasks.map(t=>t.boardId)).size} pages</p>${p.avatarPending?'<p class="small">Your proposed photo is awaiting their confirmation.</p>':''}</div>${!state.shared?`<div class="actions"><label class="button">${icon('camera')} ${p.isSelf?'Change photo':'Suggest a photo'}<input type="file" id="avatar-upload" accept="image/png,image/jpeg,image/webp" class="sr-only"></label></div><p class="small muted">${p.isSelf?'Your own photo changes immediately.':'Suggestions are only accepted when no profile photo is available. You see yours immediately; everyone else sees it after the owner approves.'}</p><div class="separated"><p class="small muted">Connected accounts</p>${(p.accounts||[]).map(a=>a.url?`<a class="button" href="${esc(safeURL(a.url))}" target="_blank" rel="noopener noreferrer">${esc(a.provider)} ↗</a>`:`<span class="pill">${esc(a.provider)}</span>`).join('')}${p.slackUrl?`<a class="button" href="${esc(safeURL(p.slackUrl))}" target="_blank" rel="noopener noreferrer">Slack ↗</a>`:''}<div class="actions">${(state.config?.providers||[]).map(provider=>`<button data-link-provider="${provider}" class="button">${p.isSelf?'Link':'Suggest linking'} ${provider}</button>`).join('')||'<p class="small muted">No OAuth providers are configured yet.</p>'}</div></div>`:''}<div class="separated stack">${tasks.map((t,i)=>`<button class="dialog-item" data-task-index="${i}"><span>${t.item.done?'✓':'○'}</span><span class="item-main">${esc(t.item.text)}<small>${esc(t.boardTitle)} / ${esc(t.columnTitle)}</small></span></button>`).join('')||'<p class="muted">No assigned thoughts yet.</p>'}</div>`);$$('[data-task-index]').forEach(b=>b.onclick=()=>{const t=tasks[Number(b.dataset.taskIndex)];focusItem(t.boardId,t.item.id)});$('#avatar-upload')?.addEventListener('change',async e=>{try{const file=e.target.files[0];if(!file)return;const image=await fileImage(file,{avatar:true});await flush();const r=await post('avatar',{target:id,image});await refreshPeople();profile(id);toast(r.status==='pending'?'Photo proposed. Only you and the owner see it until confirmation.':'Your photo is updated.')}catch(e){toast(e.message)}});$$('[data-link-provider]').forEach(b=>b.onclick=async()=>{if(p.isSelf)return oauth(b.dataset.linkProvider,true);try{await post('proposals/link',{target:id,provider:b.dataset.linkProvider});toast('Request added. They must sign in and confirm ownership of that account.')}catch(e){toast(e.message)}})}
-async function refreshPeople(){const p=await api('people');state.people=p.people;state.requests=p.requests;renderBoard()}
-async function fileImage(file,{avatar=false}={}){if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>12000000)throw Error('Choose a PNG, JPEG or WebP under 12 MB.');const bitmap=await createImageBitmap(file),canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');if(avatar){canvas.width=256;canvas.height=256;const size=Math.min(bitmap.width,bitmap.height);ctx.drawImage(bitmap,(bitmap.width-size)/2,(bitmap.height-size)/2,size,size,0,0,256,256)}else{const scale=Math.min(1,1400/Math.max(bitmap.width,bitmap.height));canvas.width=Math.round(bitmap.width*scale);canvas.height=Math.round(bitmap.height*scale);ctx.drawImage(bitmap,0,0,canvas.width,canvas.height)}bitmap.close();const result=canvas.toDataURL('image/jpeg',.8);if(result.length>(avatar?290000:1800000))throw Error('The compressed image is still too large. Please use a smaller image.');return result}
-function createPerson(name='',col='',taskId='',resolveHint=''){dialog('Someone new',`<form id="person-form"><label>Name<input name="name" value="${esc(name)}" required maxlength="120" autocomplete="off"></label><label>Email<input name="email" type="email" required autocomplete="off"></label><label>Photo, optional<input name="avatar" type="file" accept="image/png,image/jpeg,image/webp"></label><p class="small muted">This creates an invited person, not an account impersonating them. They sign in to confirm their identity and suggested photo.</p><button class="primary">Add person</button></form>`);$('#person-form').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),b=$('button',e.target);b.disabled=true;try{await flush();const p=(await post('people',{name:f.get('name'),email:f.get('email')})).person;const photo=f.get('avatar');if(photo?.size)await post('avatar',{target:p.id,image:await fileImage(photo,{avatar:true})});await loadWorkspace();const t=item(col,taskId);if(t)change(()=>setAssignee(t,p,{resolveHint}));closeDialog();toast('Person added.')}catch(e){toast(e.message);b.disabled=false}}}
-function moreDialog(){dialog('In the margins',`<div class="stack"><button class="dialog-item" id="my-profile">${icon('person')} Your profile & accounts</button><button class="dialog-item" id="requests">${icon('check')} Confirmations <span class="pill">${state.requests.filter(p=>p.target===state.user?.id).length}</span></button><button class="dialog-item" id="workspace-settings">${icon('boards')} Page & workspace settings</button><button class="dialog-item" id="connections">${icon('more')} Connections & cloud</button></div><div class="actions separated"><button class="button" id="undo"${undo.length?'':' disabled'}>Undo ↶</button><button class="button" id="redo"${redo.length?'':' disabled'}>Redo ↷</button><button id="export">Export backup</button><button id="logout">Sign out</button></div>`);$('#my-profile').onclick=()=>profile(state.user.id);$('#requests').onclick=requestsDialog;$('#connections').onclick=connections;$('#workspace-settings').onclick=settingsDialog;$('#export').onclick=()=>downloadJSON(state.ws);$('#undo').onclick=()=>{redo.push(clone(state.ws));state.ws=undo.pop();sync.change(state.ws);closeDialog();renderBoard()};$('#redo').onclick=()=>{undo.push(clone(state.ws));state.ws=redo.pop();sync.change(state.ws);closeDialog();renderBoard()};$('#logout').onclick=async()=>{try{await flush();await post('auth/logout',{});closeDialog();resetPrivateState();await start()}catch(e){toast(e.message)}}}
-function settingsDialog(){dialog('A few page details',`<form id="settings-form"><label>Workspace name<input name="space" maxlength="120" value="${esc(state.ws.name)}" required></label><label>Default GitHub repository for #123 references<input name="repo" placeholder="owner/repository" value="${esc(board().githubRepo||'')}" pattern="[\\w.-]+/[\\w.-]+"></label><label>Footer note<textarea name="footer" maxlength="240">${esc(board().footer)}</textarea></label><button class="primary">Save details</button></form>`);$('#settings-form').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);change(()=>{state.ws.name=f.get('space');board().githubRepo=f.get('repo');board().footer=f.get('footer')});closeDialog()}}
-function connections(){const c=state.config;dialog('Behind the paper',`<p class="notice">${c.test?'Explicit local test database — not cloud.':'Connected to the configured cloud database.'}</p><div class="stack small"><p>Login: ${esc(c.providers.join(', ')||'email only')}</p><p>Email: ${c.email?'Resend configured':'not configured'}</p><p>Semantic search: ${c.ai.embedding?'provider configured':'word search only — connect embeddings'}</p><p>AI drawings: ${c.ai.image?'Cloudflare configured; daily application cap applies':'local illustrations only — connect Cloudflare'}</p><p>Photo import: ${c.ai.vision?'vision provider configured':'not configured'}</p><p>GitHub / Slack / Linear tokens: ${Object.entries(c.integrations).filter(([,v])=>v).map(([k])=>esc(k)).join(', ')||'none'}</p></div><p class="small muted">Configured does not guarantee provider access or remaining quota. Provider errors are shown when a feature runs. Set credentials on the server with <code>npm run setup</code>; nothing secret is stored in this page.</p>${state.user.owner?'<button class="button" id="sync-slack">Import Slack people</button>':''}`);$('#sync-slack')?.addEventListener('click',async()=>{try{await flush();const r=await post('slack/sync',{});await loadWorkspace();closeDialog();toast(`${r.count} Slack profiles checked. Login identities are not automatically merged.`)}catch(e){toast(e.message)}})}
-function requestsDialog(){const list=state.requests.filter(p=>p.target===state.user.id);dialog('Your confirmations',`${list.map(p=>`<section class="pending-card"><p>${esc(state.people.find(x=>x.id===p.by)?.name||'A teammate')} ${p.type==='avatar'?'suggested this photo.':`suggested linking ${esc(p.provider)}.`}</p>${p.type==='avatar'?`<img src="/api/asset?id=${esc(p.asset)}" class="profile-photo" alt="Proposed photo"><div class="actions"><button class="button" data-confirm="${esc(p.id)}">Approve photo</button><button data-reject="${esc(p.id)}">Reject</button></div>`:`<button class="button" data-prove="${esc(p.id)}">Sign in to ${esc(p.provider)} to confirm</button><button data-reject="${esc(p.id)}">Reject</button>`}</section>`).join('')||'<p class="muted">Nothing awaiting your confirmation.</p>'}<p class="small muted">Linking proves control of the other account. No teammate can link an account on your behalf.</p>`);$$('[data-confirm],[data-reject]').forEach(b=>b.onclick=async()=>{try{await post('proposals/confirm',{id:b.dataset.confirm||b.dataset.reject,accept:!!b.dataset.confirm});await refreshPeople();requestsDialog()}catch(e){toast(e.message)}});$$('[data-prove]').forEach(b=>b.onclick=()=>{const p=list.find(p=>p.id===b.dataset.prove);oauth(p.provider,true,p.id)})}
-function shareDialog(kind){const count=selected.size;kind||=count===1?'item':count>1?'items':'board';dialog('Send a little progress',`<label>What should the link show?<select id="share-kind"><option value="board">This page</option><option value="column">Current column</option><option value="item" ${count!==1?'disabled':''}>Selected thought</option><option value="items" ${!count?'disabled':''}>Selected thoughts (${count})</option><option value="space">All pages in the workspace</option></select></label><div class="share-options"><label><input id="share-neighbors" type="checkbox"> Include faded neighboring items</label></div><p class="small muted">Anyone with this read-only link can see the selected content. Private email and account details are excluded. The preview uses the latest saved state, not AI.</p><button class="primary" id="make-share">Create view link</button><div id="share-result"></div>`,{wide:true});$('#share-kind').value=kind;$('#make-share').onclick=async()=>{const button=$('#make-share');button.disabled=true;try{await flush();const kind=$('#share-kind').value,scope={kind,boardId:state.boardId,columnId:state.columnId||board().columns[0]?.id,itemIds:[...selected],neighbors:$('#share-neighbors').checked},r=await post('share',scope);$('#share-result').innerHTML=`<img class="preview" src="${esc(r.preview)}" alt="Generated link preview"><label>Read-only link<input id="share-url" readonly value="${esc(r.url)}"></label><div class="actions"><button class="button" id="copy-link">Copy link</button><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Open ↗</a><button class="danger" id="revoke-link">Revoke</button></div><p class="small muted">Messengers can cache previews. Revoking a link cannot remove a screenshot they already cached.</p>`;$('#copy-link').onclick=async()=>{try{await navigator.clipboard.writeText(r.url);toast('Link copied.')}catch{$('#share-url').select();toast('Select and copy the link.')}};$('#revoke-link').onclick=async()=>{try{await post('share/revoke',{id:r.id});$('#share-result').innerHTML='<p>Link revoked.</p>'}catch(e){toast(e.message)}}}catch(e){toast(e.message)}finally{button.disabled=false}}}
-const artAttempts=new Set();async function autoArt(){if(state.shared||!state.config?.ai?.image&&!state.config?.ai?.embedding)return;for(const c of board().columns)if(!c.illustrationId&&!artAttempts.has(c.id+':'+c.title)){artAttempts.add(c.id+':'+c.title);await redraw(c.id,false)}}
-async function redraw(id,force=false){if(state.shared||!state.config?.ai?.image&&!state.config?.ai?.embedding){if(force)toast('Connect an image provider in server settings. Local drawings remain available.');return}const b=board(),c=b.columns.find(c=>c.id===id);if(!c)return;const title=c.title,epoch=workspaceEpoch,ws=state.ws;try{const r=await post('illustration',{title,description:c.subtitle,force});if(epoch!==workspaceEpoch||state.ws!==ws||!ws.boards.includes(b)||!b.columns.includes(c)||c.title!==title)return;change(()=>c.illustrationId=r.id,{render:!edit,background:true});if(r.warning&&force)toast(r.warning)}catch(e){if(force)toast(e.message)}}
-function photoDialog(){
- dialog('From paper to a page',`<p>Photograph your notebook, review the transcription, then add it as a new page. Nothing is created until you confirm.</p><p class="small muted">The photo is sent to your configured vision provider. Avoid uploading private information you cannot share with that provider.</p><label>Photo<input type="file" id="photo-file" accept="image/png,image/jpeg,image/webp"></label><div id="photo-result"></div><div class="actions"><button class="primary" id="read-photo"${state.config.ai.vision?'':' disabled'}>Read this photo</button></div>${!state.config.ai.vision?'<p class="notice">Connect VISION_BASE_URL, VISION_MODEL and VISION_API_KEY on the server first.</p>':''}`,{wide:true});
- let image=null,fileVersion=0;
- const input=$('#photo-file'),result=$('#photo-result'),button=$('#read-photo');
- input.onchange=async event=>{const version=++fileVersion;try{const data=await fileImage(event.target.files[0]);if(!result.isConnected||version!==fileVersion)return;image=data;result.replaceChildren();const preview=document.createElement('img');preview.className='preview-photo';preview.src=data;preview.alt='Your photo';result.append(preview)}catch(error){if(result.isConnected)toast(error.message)}};
- button.onclick=async()=>{
-  if(!image)return toast('Choose a photo first.');
-  const version=fileVersion;button.disabled=true;input.disabled=true;button.textContent='Reading the page…';
-  try{
-   const draft=await post('photo',{image});if(!result.isConnected||version!==fileVersion)return;
-   reviewPhoto(result,draft,{onError:error=>toast(error.message),onConfirm:async value=>{
-    await flush();const response=await post('import',{board:value});state.boardId=response.boardId;await loadWorkspace();if(result.isConnected)closeDialog();toast('A new page was added from your reviewed draft.');
-   }});
-  }catch(error){if(result.isConnected)toast(error.message)}finally{if(button.isConnected){button.disabled=false;input.disabled=false;button.textContent='Read this photo'}}
- };
+import { documents as searchDocuments, rank as rankSearch } from "/packages/core/search.mjs";
+import { pageShelf } from "/pages.ts";
+import { unresolvedHints, setAssignee } from "/packages/core/assignees.mjs";
+import { reviewPhoto } from "/photo-review.mjs";
+import { installBoardFont } from "/font-loader.ts";
+import { artSVG, pickArt } from "/packages/core/art.mjs";
+import { uid, clone } from "/packages/core/model.mjs";
+import { newBoard, tasksForPerson, safeURL } from "/packages/core/workspace.mjs";
+import { references } from "/packages/core/references.mjs";
+import { SyncQueue } from "/packages/core/sync.mjs";
+const $ = (s, r = document) => r.querySelector(s),
+  $$ = (s, r = document) => [...r.querySelectorAll(s)],
+  app = $("#app"),
+  overlays = $("#overlays");
+const esc = (s) =>
+  String(s ?? "").replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
+const paths = {
+  boards: "M4 6L18 4L20 19L6 21ZM8 2L3 3L2 17M9 9L16 8M10 13L16 12",
+  search: "M16 16L22 22M18 10A8 8 0 1 1 2 10A8 8 0 1 1 18 10",
+  share:
+    "M8 12L17 6M8 13L17 19M7 10A3 3 0 1 1 7 16A3 3 0 1 1 7 10M19 2A3 3 0 1 1 19 8A3 3 0 1 1 19 2M19 16A3 3 0 1 1 19 22A3 3 0 1 1 19 16",
+  more: "M5 12L5.1 12M12 12L12.1 12M19 12L19.1 12",
+  close: "M6 6L18 18M18 6L6 18",
+  person: "M5 22Q5 12 12 13Q19 12 19 22M12 2A5 5 0 1 1 12 12A5 5 0 1 1 12 2",
+  plus: "M12 4L12 20M4 12L20 12",
+  camera: "M3 7L8 7L10 4L16 4L18 7L22 7L22 21L3 21ZM12 10A4 4 0 1 1 12 18A4 4 0 1 1 12 10",
+  check: "M4 12L9 18L21 5",
+};
+const icon = (name) =>
+  `<svg class="icon" viewBox="0 0 25 25" aria-hidden="true"><path d="${paths[name] || paths.more}"/></svg>`;
+let state = {
+    ws: null,
+    people: [],
+    requests: [],
+    user: null,
+    config: null,
+    boardId: "",
+    columnId: "",
+    shared: false,
+  },
+  sync = null,
+  undo = [],
+  redo = [],
+  selected = new Set(),
+  modalReturn = null,
+  edit = null,
+  debounce = null,
+  searchSeq = 0,
+  hoverSeq = 0;
+let hover = null,
+  pop = null,
+  toastTimer,
+  errorOpen = false,
+  columnObserver = null,
+  dialogEpoch = 0,
+  workspaceEpoch = 0;
+const board = () => state.ws.boards.find((b) => b.id === state.boardId) || state.ws.boards[0];
+const item = (cid, id) =>
+  board()
+    .columns.find((c) => c.id === cid)
+    ?.items.find((t) => t.id === id);
+async function api(path, { method = "GET", data } = {}) {
+  const r = await fetch("/api/" + path, {
+    method,
+    credentials: "same-origin",
+    ...(data && method !== "GET" && method !== "HEAD"
+      ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }
+      : {}),
+  });
+  let value;
+  try {
+    value = await r.json();
+  } catch {
+    throw Error("The server did not return a valid response.");
+  }
+  if (!r.ok) throw Object.assign(Error(value.error || "Request failed."), { status: r.status });
+  return value;
 }
-document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'&&state.ws&&!state.shared){e.preventDefault();return searchDialog()}if(e.key==='Escape'){closePop();if(overlays.innerHTML&&overlays.dataset.dismiss!=='false')closeDialog();clearHover()}if(e.key==='Tab'&&overlays.innerHTML){const controls=$$('button:not(:disabled),a[href],input:not(:disabled),textarea,select',[...overlays.children][0]).filter(el=>el.offsetParent!==null);if(!controls.length)return;const first=controls[0],last=controls.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});document.addEventListener('pointerdown',e=>{if(pop&&!pop.contains(e.target)&&!e.target.closest('[data-edit],[data-assign],[data-item-menu],[data-column-menu]'))closePop()});window.addEventListener('beforeunload',e=>{if(sync&&sync.sequence>sync.ack){e.preventDefault();e.returnValue=''}});
-await installFont().catch(()=>toast('The custom lettering could not load. A browser fallback is being used.'));await start();
+const post = (path, data) => api(path, { method: "POST", data });
+function toast(text) {
+  const el = $("#toast");
+  el.textContent = text;
+  el.classList.add("visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("visible"), 5200);
+}
+function downloadJSON(value, name = "board-backup.json") {
+  const u = URL.createObjectURL(
+      new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }),
+    ),
+    a = document.createElement("a");
+  a.href = u;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(u), 1000);
+}
+function configureSync(version) {
+  sync?.dispose();
+  sync = new SyncQueue({
+    send: async ({ document, version }) =>
+      api("state", { method: "PUT", data: { version, value: document } }),
+    onState: (s) => {
+      const el = $(".save-state");
+      if (el)
+        el.textContent =
+          s.kind === "pending"
+            ? "Ink drying…"
+            : s.kind === "saving"
+              ? "Saving…"
+              : s.kind === "saved"
+                ? ""
+                : s.kind === "error"
+                  ? "Not saved"
+                  : "";
+      if (s.kind === "error" || s.kind === "conflict")
+        saveError(s.message || "Another session made changes.");
+    },
+  });
+  sync.configure({ enabled: !state.shared, version });
+}
+async function flush() {
+  finishEdit();
+  if (!sync) return;
+  for (let i = 0; i < 100; i++) {
+    if (sync.paused) throw Error("Resolve the save error before continuing.");
+    await sync.flush();
+    if (!sync.running && sync.sequence === sync.ack) return;
+    await new Promise((r) => setTimeout(r, 80));
+  }
+  throw Error("Saving is taking longer than expected. Please try again.");
+}
+function saveError(message) {
+  if (errorOpen) return;
+  errorOpen = true;
+  dialog(
+    "Your last edits are not saved",
+    `<p class="notice">${esc(message)} Your changes are still in this page. Nothing has switched to a local-only mode.</p><div class="actions"><button class="button" id="backup">Save a backup</button><button class="primary" id="retry-save">Retry</button><button id="reload-cloud">Reload cloud version</button></div>`,
+    { dismiss: false },
+  );
+  $("#backup").onclick = () => downloadJSON(state.ws);
+  $("#retry-save").onclick = () => {
+    errorOpen = false;
+    closeDialog();
+    sync.retry();
+  };
+  $("#reload-cloud").onclick = async () => {
+    if (!confirm("Discard unsaved changes and load the cloud version?")) return;
+    errorOpen = false;
+    closeDialog();
+    await loadWorkspace();
+  };
+}
+function change(fn, { render = true, allowPaused = false, background = false } = {}) {
+  if (state.shared || (sync?.paused && !allowPaused)) return;
+  if (edit && !background) finishEdit();
+  undo.push(clone(state.ws));
+  if (undo.length > 40) undo.shift();
+  redo = [];
+  fn();
+  sync.change(state.ws);
+  if (render) renderBoard();
+}
+async function loadWorkspace() {
+  const epoch = ++workspaceEpoch,
+    [r, p] = await Promise.all([api("state"), api("people")]);
+  if (epoch !== workspaceEpoch) return;
+  undo = [];
+  redo = [];
+  state.ws = r.value;
+  state.people = p.people;
+  state.requests = p.requests;
+  state.user = p.user;
+  if (!state.ws.boards.some((b) => b.id === state.boardId)) state.boardId = state.ws.boards[0].id;
+  configureSync(r.version);
+  renderBoard();
+  void autoArt();
+}
+async function start() {
+  try {
+    const sharedId = location.pathname.startsWith("/s/") ? location.pathname.slice(3) : null;
+    if (sharedId) {
+      state.shared = true;
+      state.shareId = sharedId;
+      state.ws = await api("shared?id=" + encodeURIComponent(sharedId));
+      state.people = state.ws.people;
+      state.boardId = state.ws.boards[0]?.id;
+      renderBoard();
+      return;
+    }
+    state.config = await api("status");
+    state.user = state.config.user;
+    if (!state.config.ready) return setup();
+    if (new URLSearchParams(location.search).has("verify")) return verifyScreen();
+    if (!state.user) {
+      resetPrivateState();
+      return login();
+    }
+    state.boardId = new URLSearchParams(location.search).get("board") || state.boardId;
+    await loadWorkspace();
+    const focus = new URLSearchParams(location.search).get("item");
+    if (focus) focusItem(state.boardId, focus);
+  } catch (e) {
+    setup(e.message);
+  }
+}
+function setup(error = "") {
+  const c = state.config;
+  app.innerHTML = `<section class="gate">${artSVG("sprout")}<p class="eyebrow">Before the first page</p><h1>Connect your notebook.</h1><p>Boards opens directly in your cloud workspace. Until the connection and sign-in are ready, this page stays closed.</p><ul class="setup-checks">${(c?.checks || []).map((x) => `<li class="setup-check"><span class="${x.ready ? "ready" : ""}">${x.ready ? "✓" : "○"}</span><div>${esc(x.label)}<small>${esc(x.message || x.keys.join(" / "))}</small></div></li>`).join("")}</ul>${error ? `<p class="form-error">${esc(error)}</p>` : ""}<p class="small">Run setup on the server or your own computer. Credentials never go into the browser or public source code.</p><pre>bun run setup\n# Then restart, or run bun run deploy</pre><div class="actions"><button class="primary" id="recheck">Check connection again</button></div></section>`;
+  $("#recheck").onclick = () => start();
+}
+function login(error = "") {
+  app.innerHTML = `<section class="gate">${artSVG("book")}<p class="eyebrow">Your pages are waiting</p><h1>Come on in.</h1><p>Sign in with a connected account. This notebook is for invited people only.</p><div class="login-options">${state.config.providers.map((p) => `<button class="button" data-login="${p}">Continue with ${esc(p[0].toUpperCase() + p.slice(1))}</button>`).join("")}${state.config.test ? '<button class="primary" id="test-login">Open local test workspace</button><p class="small muted">Explicit test mode. No cloud connection or real identity is being simulated.</p>' : ""}</div>${state.config.email ? '<form id="email-login" class="separated"><label>Email address<input name="email" type="email" autocomplete="email" required></label><button class="primary">Send sign-in link</button></form>' : ""}<p class="form-error">${esc(error)}</p><p class="small muted">Link additional accounts from your profile after signing in. Matching email addresses never silently combine provider accounts.</p></section>`;
+  $$("[data-login]").forEach((b) => (b.onclick = () => oauth(b.dataset.login)));
+  $("#test-login")?.addEventListener("click", async () => {
+    try {
+      await post("auth/test", {});
+      await start();
+    } catch (e) {
+      toast(e.message);
+    }
+  });
+  $("#email-login")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const b = e.target.querySelector("button");
+    b.disabled = true;
+    try {
+      await post("auth/email", { email: new FormData(e.target).get("email") });
+      toast("A sign-in link was sent if this email is invited.");
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      b.disabled = false;
+    }
+  });
+}
+function verifyScreen() {
+  app.innerHTML = `<section class="gate"><p class="eyebrow">Just one last step</p><h1>Open your notebook?</h1><p>Confirm to use this one-time email sign-in link.</p><button class="primary" id="verify">Sign in</button></section>`;
+  $("#verify").onclick = async () => {
+    try {
+      await post("auth/verify", { token: new URLSearchParams(location.search).get("verify") });
+      history.replaceState({}, "", "/");
+      await start();
+    } catch (e) {
+      toast(e.message);
+    }
+  };
+}
+async function oauth(provider, link = false, proposalId = null) {
+  try {
+    if (state.ws) await flush();
+    const r = await post("auth/start", { provider, link, proposalId });
+    location.assign(r.url);
+  } catch (e) {
+    toast(e.message);
+  }
+}
+function resetPrivateState() {
+  workspaceEpoch++;
+  sync?.dispose();
+  sync = null;
+  undo = [];
+  redo = [];
+  selected.clear();
+  tickets.clear();
+  artAttempts.clear();
+  clearTimeout(debounce);
+  columnObserver?.disconnect();
+  closePop();
+  clearHover();
+  state.ws = null;
+  state.people = [];
+  state.requests = [];
+  state.user = null;
+  state.boardId = "";
+  state.columnId = "";
+}
+function linkedText(t) {
+  let at = 0,
+    out = "";
+  for (const r of references(t, board()?.githubRepo)) {
+    out += esc(t.slice(at, r.start));
+    out += `<a href="${esc(r.url || "#")}" data-ticket="${esc(t.slice(r.start, r.end))}" rel="noopener noreferrer"${r.url ? ' target="_blank"' : ""}>${esc(r.label)}</a>`;
+    at = r.end;
+  }
+  return out + esc(t.slice(at));
+}
+function taskHTML(t, c) {
+  const orphan = unresolvedHints(t, state.people),
+    avatars = (t.assignees || [])
+      .slice(0, 3)
+      .map((id, index) => {
+        const p = state.people.find((p) => p.id === id);
+        return p
+          ? `<button class="avatar-button" style="--avatar-order:${index + 1}" data-person="${esc(id)}" aria-label="${esc(p.name)}"><img class="avatar${p.avatarPending ? " pending" : ""}" src="${esc(p.avatar || "/placeholder.svg")}" alt="${esc(p.name)}" loading="lazy" referrerpolicy="no-referrer"></button>`
+          : "";
+      })
+      .join("");
+  return `<li class="task${t.id === "l4" ? " group-start" : ""}${t.done ? " done" : ""}${selected.has(t.id) ? " selected" : ""}${state.ws.neighborIds?.includes(t.id) ? " neighbor" : ""}" id="item-${esc(t.id)}" data-item="${esc(t.id)}" data-col="${esc(c.id)}"><button class="task-check" data-done aria-label="${t.done ? "Reopen" : "Complete"} ${esc(t.text)}" aria-pressed="${t.done}"${state.shared ? " disabled" : ""}><span class="ring"></span></button><div class="task-text" data-edit="item" tabindex="${state.shared ? "-1" : "0"}" role="${state.shared ? "text" : "textbox"}" aria-label="Task text" aria-multiline="true">${linkedText(t.text)}</div><div class="task-actions">${avatars}${(t.assignees || []).length > 3 ? `<button class="avatar-overflow" data-overflow aria-label="Show all ${(t.assignees || []).length} assignees">+${t.assignees.length - 3}</button>` : ""}${orphan.map((h) => `<button class="avatar-button unresolved" data-assign data-resolve-hint="${esc(h)}" aria-label="Resolve assignee ${esc(h)}"><img class="avatar" src="/placeholder.svg" alt="Unresolved ${esc(h)}" title="Unresolved: ${esc(h)}"></button>`).join("")}${!state.shared ? '<button class="add-person" data-assign aria-label="Assign a person"></button>' : ""}</div>${!state.shared ? '<button class="task-more" data-item-menu aria-label="Task actions">⋮</button>' : ""}</li>`;
+}
+function renderBoard() {
+  app.ondrop = null;
+  app.ondragover = null;
+  if (edit) finishEdit();
+  closePop();
+  clearHover();
+  if (!state.ws?.boards?.length) return;
+  const b = board();
+  document.title = b.title;
+  app.innerHTML = `<article class="paper" style="--cols:${Math.max(1, b.columns.length)};--heading-weight:${b.typography.headingWeight};--body-weight:${Math.max(520, b.typography.bodyWeight)};--width:${b.typography.width}"><div class="paper-caption"><span class="board-title" data-edit="title" data-placeholder="Untitled" tabindex="${state.shared ? "-1" : "0"}">${esc(b.title)}</span><span class="tagline" data-edit="tagline">${esc(b.tagline)}</span></div><nav class="column-tabs" aria-label="Columns on this page">${b.columns.map((c) => `<button data-column-jump="${esc(c.id)}" aria-current="${c.id === (state.columnId || b.columns[0]?.id) ? "true" : "false"}">${esc(c.title)}</button>`).join("")}</nav><div class="columns">${b.columns.map((c, i) => `<section class="column" data-col="${esc(c.id)}" id="column-${esc(c.id)}"><div class="hero">${c.illustrationId?.startsWith("art-") ? `<img class="generated-art" src="${state.shared ? "/api/share-image?id=" + esc(state.shareId) + "&art=" : "/api/illustration?id="}${esc(c.illustrationId)}" alt="Drawing for ${esc(c.title)}">` : artSVG(c.illustrationId || pickArt(c.title))}<div class="scribble" data-edit="note" tabindex="${state.shared ? "-1" : "0"}">${esc(c.note)}</div>${!state.shared ? '<button class="redraw" data-redraw>New sketch ↗</button>' : ""}</div><h1 data-edit="column-title" tabindex="${state.shared ? "-1" : "0"}">${esc(c.title)}</h1>${!state.shared ? '<button class="column-menu" data-column-menu aria-label="Column actions">' + icon("more") + "</button>" : ""}<div class="column-subtitle" data-edit="subtitle" tabindex="${state.shared ? "-1" : "0"}">${esc(c.subtitle)}</div><ul class="tasks">${c.items.map((t) => taskHTML(t, c)).join("")}</ul>${!c.items.length ? '<div class="empty-column">A little room for<br>your next big idea.</div>' : ""}${!state.shared ? '<button class="add-item" data-add-item>+ Add a thought</button>' : ""}<div class="end-note">${i === 0 ? "A cleaner, faster,\nmore delightful experience." : i === 1 ? "Better tools\ncreate happier users." : "Great products\ndeserve great stories."}</div>${i === 2 ? artSVG("flag", { className: "end-doodle" }) : ""}</section>`).join("")}${!state.shared && !b.columns.length ? '<section class="empty-column"><button class="column-placeholder" data-new-column aria-label="New column">+</button></section>' : ""}</div><div class="paper-footer"><span data-edit="footer">${esc(b.footer)}</span><span class="after">A brighter internet ahead.</span></div></article><nav class="edge-tabs" aria-label="Notebook navigation"><button class="edge-tab" data-nav="boards" aria-label="Boards and columns">${icon("boards")}<span>Pages</span></button>${!state.shared ? `<button class="edge-tab" data-nav="search" aria-label="Search workspace">${icon("search")}<span>Find</span></button><button class="edge-tab" data-nav="share" aria-label="Share selection or board">${icon("share")}<span>Share</span></button><button class="edge-tab" data-nav="more" aria-label="Notebook settings and profile">${icon("more")}<span>More</span>${state.requests.some((p) => p.target === state.user?.id) ? '<i class="dot"></i>' : ""}</button>` : ""}</nav><div class="save-state" role="status"></div>`;
+  bindBoard();
+  observeColumns();
+}
+function bindBoard() {
+  app.onclick = async (e) => {
+    const target = e.target.closest("button,a,[data-edit]");
+    if (!target) return;
+    const row = target.closest("[data-item]"),
+      col = target.closest("[data-col]")?.dataset.col;
+    state.columnId = col || state.columnId;
+    if (target.hasAttribute("data-column-jump")) {
+      finishEdit();
+      state.columnId = target.dataset.columnJump;
+      $("#column-" + CSS.escape(state.columnId))?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      return;
+    }
+    if (target.dataset.nav) {
+      finishEdit();
+      return { boards: pages, search: searchDialog, share: shareDialog, more: moreDialog }[
+        target.dataset.nav
+      ]();
+    }
+    if (target.hasAttribute("data-new-column")) return addColumn();
+    if (target.hasAttribute("data-overflow")) {
+      if (state.shared) return;
+      return peoplePicker(row, target);
+    }
+    if (target.hasAttribute("data-person")) return profile(target.dataset.person);
+    if (target.hasAttribute("data-ticket")) {
+      e.preventDefault();
+      return ticketDialog(target.dataset.ticket, row);
+    }
+    if (state.shared) return;
+    if (target.hasAttribute("data-edit")) return startEdit(target);
+    if (target.hasAttribute("data-done"))
+      return change(() => {
+        const t = item(col, row.dataset.item);
+        t.done = !t.done;
+      });
+    if (target.hasAttribute("data-assign")) return peoplePicker(row, target);
+    if (target.hasAttribute("data-item-menu")) return itemMenu(row, target);
+    if (target.hasAttribute("data-column-menu")) return columnMenu(col, target);
+    if (target.hasAttribute("data-add-item")) return addItem(col);
+    if (target.hasAttribute("data-redraw")) return redraw(col, true);
+  };
+  app.onkeydown = (e) => {
+    if (
+      e.target.matches("[data-edit]") &&
+      !e.target.isContentEditable &&
+      (e.key === "Enter" || e.key === " ")
+    ) {
+      e.preventDefault();
+      startEdit(e.target);
+    }
+  };
+  app.onmouseover = (e) => {
+    const p = e.target.closest("[data-person]"),
+      t = e.target.closest("[data-ticket]");
+    if (p) profileHover(p);
+    else if (t) ticketHover(t);
+  };
+  app.onmouseout = (e) => {
+    if (e.target.closest("[data-person],[data-ticket]")) clearHover();
+  };
+  $$("img.avatar", app).forEach(
+    (im) =>
+      (im.onerror = () => {
+        im.onerror = null;
+        im.src = "/placeholder.svg";
+      }),
+  );
+}
+function observeColumns() {
+  columnObserver?.disconnect();
+  if (!("IntersectionObserver" in window)) return;
+  columnObserver = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((e) => e.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      state.columnId = visible.target.dataset.col;
+      $$("[data-column-jump]").forEach((b) =>
+        b.setAttribute("aria-current", String(b.dataset.columnJump === state.columnId)),
+      );
+    },
+    { rootMargin: "-12% 0px -60% 0px", threshold: [0, 0.1, 0.5] },
+  );
+  $$(".column", app).forEach((c) => columnObserver.observe(c));
+}
+function field(el) {
+  const c = board().columns.find((c) => c.id === el.closest("[data-col]")?.dataset.col),
+    id = el.closest("[data-item]")?.dataset.item;
+  switch (el.dataset.edit) {
+    case "item":
+      return [c.items.find((t) => t.id === id), "text", 1000];
+    case "column-title":
+      return [c, "title", 120];
+    case "note":
+      return [c, "note", 240];
+    case "subtitle":
+      return [c, "subtitle", 180];
+    default:
+      return [board(), el.dataset.edit, el.dataset.edit === "title" ? 120 : 240];
+  }
+}
+function startEdit(el) {
+  if (state.shared || sync?.paused || edit?.el === el) return;
+  finishEdit();
+  const [obj, key, max] = field(el);
+  edit = { el, obj, key, max, old: obj[key] };
+  el.textContent = obj[key];
+  el.contentEditable = "plaintext-only";
+  el.focus();
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  el.oninput = () => {
+    if (el.textContent.length > max) toast(`Please keep this to ${max} characters.`);
+    if (key === "text") suggest(el);
+  };
+  el.onkeydown = (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      el.textContent = edit.old;
+      finishEdit();
+      renderBoard();
+    } else if (e.key === "Enter" && !e.shiftKey && !pop?.classList.contains("mentions")) {
+      e.preventDefault();
+      finishEdit();
+      renderBoard();
+    }
+  };
+  el.onblur = () =>
+    setTimeout(() => {
+      if (edit?.el === el && !pop?.contains(document.activeElement)) {
+        finishEdit();
+        renderBoard();
+      }
+    }, 170);
+}
+function finishEdit() {
+  if (!edit) return;
+  const { el, obj, key, max, old } = edit;
+  edit = null;
+  el.contentEditable = "false";
+  el.oninput = null;
+  el.onkeydown = null;
+  el.onblur = null;
+  clearTimeout(debounce);
+  searchSeq++;
+  const text = el.innerText.replace(/\r/g, "").trim().slice(0, max);
+  el.textContent = text;
+  if (text !== old) {
+    change(
+      () => {
+        obj[key] = text;
+        if (key === "title" && obj.items) obj.illustrationId = "";
+      },
+      { render: false, allowPaused: true },
+    );
+    if (key === "title" && obj.items) setTimeout(() => redraw(obj.id, false), 650);
+  }
+  closePop();
+}
+function addItem(col) {
+  const id = uid();
+  change(() =>
+    board()
+      .columns.find((c) => c.id === col)
+      .items.push({ id, text: "", tag: "", assignees: [], done: false }),
+  );
+  startEdit($(`#item-${CSS.escape(id)} [data-edit]`));
+}
+function closePop() {
+  if (pop?.restoreKeys) pop.restoreKeys();
+  pop?.remove();
+  pop = null;
+}
+function popup(anchor, html, { mentions = false } = {}) {
+  closePop();
+  pop = document.createElement("div");
+  pop.className = "popover" + (mentions ? " mentions" : "");
+  pop.setAttribute("role", "listbox");
+  pop.innerHTML = html;
+  document.body.append(pop);
+  const r = anchor.getBoundingClientRect(),
+    w = pop.getBoundingClientRect().width;
+  pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.left)) + "px";
+  pop.style.top = Math.max(12, Math.min(innerHeight - pop.offsetHeight - 100, r.bottom + 8)) + "px";
+  pop.onmousedown = (e) => {
+    if (e.target.closest("button")) e.preventDefault();
+  };
+  return pop;
+}
+function peoplePicker(row, anchor, query = "", fromMention = false) {
+  const resolveHint = anchor.dataset.resolveHint || "",
+    t = item(row.dataset.col, row.dataset.item),
+    matches = state.people.filter(
+      (p) =>
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.email?.toLowerCase().includes(query.toLowerCase()),
+    );
+  const box = popup(
+    anchor,
+    `<div class="popover-title">${fromMention ? "Mention a person" : "Who is doing this?"}</div>${matches.map((p) => `<button data-pick="${esc(p.id)}" role="option"><img class="avatar" src="${esc(p.avatar)}" alt="">${esc(p.name)} ${t.assignees.includes(p.id) ? "✓" : ""}</button>`).join("")}<button data-new-person>+ Add ${query ? esc(query) : "a person"}…</button>`,
+    { mentions: fromMention },
+  );
+  $$("[data-pick]", box).forEach(
+    (b) =>
+      (b.onclick = () => {
+        if (fromMention && edit) {
+          edit.el.textContent = edit.el.textContent.replace(/@[^@\n]*$/, "").trimEnd();
+          finishEdit();
+        }
+        change(() =>
+          setAssignee(
+            t,
+            state.people.find((p) => p.id === b.dataset.pick),
+            { remove: t.assignees.includes(b.dataset.pick) && !fromMention, resolveHint },
+          ),
+        );
+        closePop();
+      }),
+  );
+  $("[data-new-person]", box).onclick = () => {
+    if (fromMention && edit) {
+      edit.el.textContent = edit.el.textContent.replace(/@[^@\n]*$/, "").trimEnd();
+      finishEdit();
+    }
+    closePop();
+    createPerson(query, row.dataset.col, row.dataset.item, resolveHint);
+  };
+  if (fromMention) {
+    const previousKeys = anchor.onkeydown;
+    box.restoreKeys = () => {
+      if (edit?.el === anchor) anchor.onkeydown = previousKeys;
+    };
+    let index = 0;
+    const opts = $$("[data-pick]", box);
+    opts[0]?.classList.add("active");
+    anchor.onkeydown = (e) => {
+      if (["ArrowDown", "ArrowUp", "Enter", "Escape"].includes(e.key)) {
+        e.preventDefault();
+        if (e.key === "Escape") {
+          closePop();
+          return;
+        }
+        if (e.key === "Enter") {
+          opts[index]?.click();
+          return;
+        }
+        opts[index]?.classList.remove("active");
+        index = Math.max(0, Math.min(opts.length - 1, index + (e.key === "ArrowDown" ? 1 : -1)));
+        opts[index]?.classList.add("active");
+      }
+    };
+  }
+}
+function suggest(el) {
+  const row = el.closest("[data-item]"),
+    text = el.innerText,
+    m = /@([^@\n]*)$/.exec(text);
+  if (m) return peoplePicker(row, el, m[1], true);
+  closePop();
+  const seq = ++searchSeq;
+  clearTimeout(debounce);
+  if (text.trim().length < 12) return;
+  debounce = setTimeout(async () => {
+    try {
+      const r = await post("search", {
+        query: text,
+        duplicate: true,
+        boardId: state.boardId,
+        columnId: row.dataset.col,
+        exclude: state.boardId + ":" + row.dataset.item,
+      });
+      if (seq !== searchSeq || !edit || !r.hits.length) return;
+      const box = popup(
+        el,
+        `<div class="popover-title">${r.mode === "hybrid" ? "Similar thoughts already exist" : "Possible text duplicate"}</div>${r.hits.map((h, i) => `<button data-hit="${i}" role="option">${esc(h.title)}<small>${esc(h.boardTitle)} / ${esc(h.columnTitle)}</small></button>`).join("")}<button data-dismiss>Keep this as a separate item</button>`,
+      );
+      $$("[data-hit]", box).forEach(
+        (b) =>
+          (b.onclick = () => {
+            const h = r.hits[Number(b.dataset.hit)];
+            finishEdit();
+            focusItem(h.boardId, h.itemId);
+          }),
+      );
+      $("[data-dismiss]", box).onclick = () => closePop();
+    } catch {}
+  }, 600);
+}
+function itemMenu(row, anchor) {
+  finishEdit();
+  const col = row.dataset.col,
+    id = row.dataset.item,
+    t = item(col, id),
+    box = popup(
+      anchor,
+      `<button data-a="select">${selected.has(id) ? "Deselect" : "Select for sharing"}</button><button data-a="share">Share this item</button><button data-a="up">Move up ↑</button><button data-a="down">Move down ↓</button><button data-a="move">Move to another column…</button><button data-a="remove" class="danger">Remove item…</button>`,
+    );
+  box.onclick = (e) => {
+    const a = e.target.closest("[data-a]")?.dataset.a;
+    if (!a) return;
+    closePop();
+    if (a === "select") {
+      if (selected.has(id)) selected.delete(id);
+      else selected.add(id);
+      return renderBoard();
+    }
+    if (a === "share") {
+      selected = new Set([id]);
+      return shareDialog("item");
+    }
+    if (a === "remove") {
+      if (confirm("Remove this item? Undo is available from More."))
+        change(() => {
+          const c = board().columns.find((c) => c.id === col);
+          c.items = c.items.filter((t) => t.id !== id);
+        });
+      return;
+    }
+    if (a === "move") {
+      dialog(
+        "Move this thought",
+        `<div class="stack">${board()
+          .columns.filter((c) => c.id !== col)
+          .map((c) => `<button class="button" data-move="${esc(c.id)}">${esc(c.title)}</button>`)
+          .join("")}</div>`,
+      );
+      $$("[data-move]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            change(() => {
+              board().columns.find((c) => c.id === col).items = board()
+                .columns.find((c) => c.id === col)
+                .items.filter((x) => x.id !== id);
+              board()
+                .columns.find((c) => c.id === b.dataset.move)
+                .items.push(t);
+            });
+            closeDialog();
+          }),
+      );
+      return;
+    }
+    change(() => {
+      const c = board().columns.find((c) => c.id === col),
+        i = c.items.indexOf(t),
+        j = Math.max(0, Math.min(c.items.length - 1, i + (a === "up" ? -1 : 1)));
+      c.items.splice(i, 1);
+      c.items.splice(j, 0, t);
+    });
+  };
+}
+function columnMenu(id, anchor) {
+  const box = popup(
+    anchor,
+    '<button data-a="share">Share this column</button><button data-a="left">Move left ↑</button><button data-a="right">Move right ↓</button><button data-a="remove" class="danger">Remove column…</button>',
+  );
+  box.onclick = (e) => {
+    const a = e.target.closest("[data-a]")?.dataset.a;
+    if (!a) return;
+    closePop();
+    if (a === "share") {
+      state.columnId = id;
+      return shareDialog("column");
+    }
+    if (a === "remove") {
+      if (confirm("Remove this column and its items? Undo is available."))
+        change(() => (board().columns = board().columns.filter((c) => c.id !== id)));
+      return;
+    }
+    change(() => {
+      const a = board().columns,
+        i = a.findIndex((c) => c.id === id),
+        j = Math.max(0, Math.min(a.length - 1, i + (e.target.dataset.a === "left" ? -1 : 1)));
+      const [c] = a.splice(i, 1);
+      a.splice(j, 0, c);
+    });
+  };
+}
+function dialog(title, html, { wide = false, dismiss = true } = {}) {
+  finishEdit();
+  closeDialog();
+  closePop();
+  modalReturn = document.activeElement;
+  overlays.innerHTML = `<div class="backdrop"><section class="dialog${wide ? " wide" : ""}" role="dialog" aria-modal="true" aria-labelledby="dialog-title">${dismiss ? '<button class="close" aria-label="Close">' + icon("close") + "</button>" : ""}<h2 id="dialog-title">${esc(title)}</h2>${html}</section></div>`;
+  $(".close", overlays)?.addEventListener("click", () => closeDialog());
+  $(".backdrop", overlays).onclick = (e) => {
+    if (dismiss && e.target.classList.contains("backdrop")) closeDialog();
+  };
+  const first = $("input,textarea,button:not(.close),a", overlays);
+  first?.focus();
+  overlays.dataset.dismiss = String(dismiss);
+  app.inert = true;
+}
+function closeDialog() {
+  dialogEpoch++;
+  app.inert = false;
+  overlays.innerHTML = "";
+  modalReturn?.focus?.();
+  modalReturn = null;
+}
+function focusItem(boardId, itemId) {
+  finishEdit();
+  state.boardId = boardId;
+  selected.clear();
+  closeDialog();
+  renderBoard();
+  if (!state.shared)
+    history.replaceState(
+      {},
+      "",
+      `/?board=${encodeURIComponent(boardId)}&item=${encodeURIComponent(itemId)}`,
+    );
+  requestAnimationFrame(() => {
+    const el = $("#item-" + CSS.escape(itemId));
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    el?.classList.add("focused");
+  });
+}
+function addPage() {
+  finishEdit();
+  closeDialog();
+  const page = newBoard("");
+  change(() => {
+    state.ws.boards.push(page);
+    state.boardId = page.id;
+    state.columnId = "";
+    selected.clear();
+  });
+  history.replaceState({}, "", "/?board=" + encodeURIComponent(page.id));
+  const title = $('[data-edit="title"]');
+  if (title) startEdit(title);
+}
+function addColumn() {
+  finishEdit();
+  closeDialog();
+  const column = { id: uid(), title: "", subtitle: "", note: "", icon: "auto", items: [] };
+  change(() => board().columns.push(column));
+  const title = $("#column-" + CSS.escape(column.id) + ' [data-edit="column-title"]');
+  if (title) {
+    title.dataset.placeholder = "Untitled";
+    startEdit(title);
+  }
+}
+function pages() {
+  finishEdit();
+  closeDialog();
+  modalReturn = document.activeElement;
+  overlays.dataset.dismiss = "true";
+  pageShelf({
+    host: overlays,
+    pages: state.ws.boards,
+    currentId: state.boardId,
+    readonly: state.shared,
+    onOpen: (id) => {
+      state.boardId = id;
+      state.columnId = "";
+      selected.clear();
+      closeDialog();
+      renderBoard();
+      if (!state.shared) history.replaceState({}, "", "/?board=" + encodeURIComponent(id));
+      void autoArt();
+    },
+    onNew: addPage,
+    onColumn: addColumn,
+    onPhoto: photoDialog,
+    onClose: closeDialog,
+  });
+  app.inert = true;
+}
+function searchDialog() {
+  dialog(
+    "Find a thought",
+    `<input class="palette-input" id="search-query" type="search" placeholder="Words, meaning, a ticket…" aria-label="Search workspace" autocomplete="off"><p class="small muted" id="search-mode">Your current page and column come first when relevance is similar.</p><div class="search-hits" role="listbox" id="hits"></div><p class="small muted">↑ ↓ to explore · Enter to open · Esc to close</p>`,
+  );
+  let timer,
+    seq = 0,
+    hits = [],
+    active = 0;
+  const input = $("#search-query"),
+    container = $("#hits"),
+    status = $("#search-mode");
+  // Only the authenticated workspace already in memory; never persisted in browser caches.
+  const corpus = searchDocuments(state.ws),
+    context = { boardId: state.boardId, columnId: state.columnId };
+  const show = (next, mode) => {
+    hits = next;
+    active = 0;
+    status.textContent = mode;
+    container.innerHTML =
+      hits
+        .map(
+          (h, i) =>
+            `<button class="search-hit${!i ? " active" : ""}" data-result="${i}" role="option"><small>${esc(h.boardTitle)} / ${esc(h.columnTitle)}</small><span class="text">${esc(h.title)}</span></button>`,
+        )
+        .join("") || '<p class="muted small">No matching thoughts yet.</p>';
+    $$("[data-result]", container).forEach(
+      (button) =>
+        (button.onclick = () => {
+          const hit = hits[Number(button.dataset.result)];
+          if (hit) focusItem(hit.boardId, hit.itemId);
+        }),
+    );
+  };
+  input.oninput = () => {
+    clearTimeout(timer);
+    const n = ++seq,
+      query = input.value.trim();
+    // Respond in this input event, before any network request or debounce.
+    show(
+      query.length >= 2 ? rankSearch(query, corpus, context) : [],
+      "Word matches · current page and column prioritized",
+    );
+    if (query.length < 2 || !state.config.ai.embedding) return;
+    timer = setTimeout(async () => {
+      if (!container.isConnected || n !== seq) return;
+      try {
+        const result = await post("search", { query, ...context });
+        if (n !== seq || !container.isConnected) return;
+        show(
+          result.hits,
+          result.mode === "hybrid"
+            ? "Words + meaning · current page and column prioritized"
+            : result.warning || "Word matches · semantic service unavailable",
+        );
+      } catch (error) {
+        if (n === seq && container.isConnected)
+          status.textContent = "Word matches remain available · " + error.message;
+      }
+    }, 250);
+  };
+  input.onkeydown = (event) => {
+    if (!["ArrowDown", "ArrowUp", "Enter"].includes(event.key)) return;
+    event.preventDefault();
+    if (event.key === "Enter") {
+      const hit = hits[active];
+      if (hit) focusItem(hit.boardId, hit.itemId);
+      return;
+    }
+    active = Math.max(0, Math.min(hits.length - 1, active + (event.key === "ArrowDown" ? 1 : -1)));
+    $$(".search-hit", container).forEach((button, i) =>
+      button.classList.toggle("active", i === active),
+    );
+    $(".search-hit.active", container)?.scrollIntoView({ block: "nearest" });
+  };
+}
+function profileHover(anchor) {
+  if (hover) return;
+  const p = state.people.find((p) => p.id === anchor.dataset.person);
+  if (!p) return;
+  hoverCard(
+    anchor,
+    `<strong>${esc(p.name)}</strong><small>${tasksForPerson(state.ws, p.id).filter((t) => !t.item.done).length} open thoughts${p.avatarPending ? " · your photo proposal" : ""}</small><small>Click to see their pages</small>`,
+  );
+}
+function hoverCard(anchor, html) {
+  clearHover();
+  hover = document.createElement("div");
+  hover.className = "hover-card";
+  hover.innerHTML = html;
+  document.body.append(hover);
+  const r = anchor.getBoundingClientRect();
+  hover.style.left =
+    Math.max(12, Math.min(innerWidth - hover.offsetWidth - 12, r.right - 100)) + "px";
+  hover.style.top =
+    Math.max(12, Math.min(innerHeight - hover.offsetHeight - 100, r.bottom + 10)) + "px";
+}
+function clearHover() {
+  hoverSeq++;
+  hover?.remove();
+  hover = null;
+}
+const tickets = new Map();
+async function getTicket(ref) {
+  if (!tickets.has(ref))
+    tickets.set(ref, await post("ticket", { reference: ref, repo: board().githubRepo }));
+  return tickets.get(ref);
+}
+async function ticketHover(anchor) {
+  if (state.shared) return;
+  const n = ++hoverSeq;
+  try {
+    const t = await getTicket(anchor.dataset.ticket);
+    if (n !== hoverSeq || !anchor.matches(":hover")) return;
+    hoverCard(
+      anchor,
+      `<strong>${esc(t.title)}</strong><small>${esc(t.label)} · ${esc(t.kind)} · ${esc(t.state)}</small>`,
+    );
+  } catch {}
+}
+async function ticketDialog(ref, row) {
+  dialog("Opening ticket…", '<p class="muted">Checking the source.</p>');
+  const epoch = dialogEpoch;
+  try {
+    const t = await getTicket(ref);
+    if (epoch !== dialogEpoch) return;
+    dialog(
+      t.title,
+      `<p class="eyebrow">${esc(t.label)} · ${esc(t.kind)} · ${esc(t.state)}</p><p class="small">${esc(t.description || "No description.")}</p><div class="actions"><a class="button" href="${esc(safeURL(t.url))}" target="_blank" rel="noopener noreferrer">Open in ${esc(t.provider)} ↗</a>${row && !state.shared ? '<button id="backlink" class="button">Add a board link to the ticket</button>' : ""}</div>`,
+    );
+    $("#backlink")?.addEventListener("click", async () => {
+      if (
+        !confirm(
+          "Post a comment on this ticket linking to this board item? The board still requires sign-in.",
+        )
+      )
+        return;
+      try {
+        await flush();
+        const r = await post("backlink", {
+          reference: ref,
+          repo: board().githubRepo,
+          boardId: state.boardId,
+          itemId: row.dataset.item,
+        });
+        toast(r.status === "sent" ? "Comment posted." : "Delivery is pending.");
+      } catch (e) {
+        toast(e.message);
+      }
+    });
+  } catch (e) {
+    if (epoch !== dialogEpoch) return;
+    dialog(
+      "Ticket unavailable",
+      `<p>${esc(e.message)}</p><p class="small muted">The reference remains in your task. Connect the integration to enable its preview.</p>`,
+    );
+  }
+}
+async function profile(id) {
+  clearHover();
+  const p = state.people.find((p) => p.id === id) || {
+      id,
+      name: state.user?.name || "Your profile",
+      avatar: "/placeholder.svg",
+      isSelf: id === state.user?.id,
+      accounts: [],
+    },
+    tasks = tasksForPerson(state.ws, id);
+  dialog(
+    p.name,
+    `<div class="profile-title"><img class="profile-photo" src="${esc(p.avatar || "/placeholder.svg")}" alt="${esc(p.name)}"><p class="small muted">${tasks.filter((t) => !t.item.done).length} open thoughts across ${new Set(tasks.map((t) => t.boardId)).size} pages</p>${p.avatarPending ? '<p class="small">Your proposed photo is awaiting their confirmation.</p>' : ""}</div>${!state.shared ? `<div class="actions"><label class="button">${icon("camera")} ${p.isSelf ? "Change photo" : "Suggest a photo"}<input type="file" id="avatar-upload" accept="image/png,image/jpeg,image/webp" class="sr-only"></label></div><p class="small muted">${p.isSelf ? "Your own photo changes immediately." : "Suggestions are only accepted when no profile photo is available. You see yours immediately; everyone else sees it after the owner approves."}</p><div class="separated"><p class="small muted">Connected accounts</p>${(p.accounts || []).map((a) => (a.url ? `<a class="button" href="${esc(safeURL(a.url))}" target="_blank" rel="noopener noreferrer">${esc(a.provider)} ↗</a>` : `<span class="pill">${esc(a.provider)}</span>`)).join("")}${p.slackUrl ? `<a class="button" href="${esc(safeURL(p.slackUrl))}" target="_blank" rel="noopener noreferrer">Slack ↗</a>` : ""}<div class="actions">${(state.config?.providers || []).map((provider) => `<button data-link-provider="${provider}" class="button">${p.isSelf ? "Link" : "Suggest linking"} ${provider}</button>`).join("") || '<p class="small muted">No OAuth providers are configured yet.</p>'}</div></div>` : ""}<div class="separated stack">${tasks.map((t, i) => `<button class="dialog-item" data-task-index="${i}"><span>${t.item.done ? "✓" : "○"}</span><span class="item-main">${esc(t.item.text)}<small>${esc(t.boardTitle)} / ${esc(t.columnTitle)}</small></span></button>`).join("") || '<p class="muted">No assigned thoughts yet.</p>'}</div>`,
+  );
+  $$("[data-task-index]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const t = tasks[Number(b.dataset.taskIndex)];
+        focusItem(t.boardId, t.item.id);
+      }),
+  );
+  $("#avatar-upload")?.addEventListener("change", async (e) => {
+    try {
+      const file = e.target.files[0];
+      if (!file) return;
+      const image = await fileImage(file, { avatar: true });
+      await flush();
+      const r = await post("avatar", { target: id, image });
+      await refreshPeople();
+      profile(id);
+      toast(
+        r.status === "pending"
+          ? "Photo proposed. Only you and the owner see it until confirmation."
+          : "Your photo is updated.",
+      );
+    } catch (e) {
+      toast(e.message);
+    }
+  });
+  $$("[data-link-provider]").forEach(
+    (b) =>
+      (b.onclick = async () => {
+        if (p.isSelf) return oauth(b.dataset.linkProvider, true);
+        try {
+          await post("proposals/link", { target: id, provider: b.dataset.linkProvider });
+          toast("Request added. They must sign in and confirm ownership of that account.");
+        } catch (e) {
+          toast(e.message);
+        }
+      }),
+  );
+}
+async function refreshPeople() {
+  const p = await api("people");
+  state.people = p.people;
+  state.requests = p.requests;
+  renderBoard();
+}
+async function fileImage(file, { avatar = false } = {}) {
+  if (
+    !file ||
+    !["image/png", "image/jpeg", "image/webp"].includes(file.type) ||
+    file.size > 12000000
+  )
+    throw Error("Choose a PNG, JPEG or WebP under 12 MB.");
+  const bitmap = await createImageBitmap(file),
+    canvas = document.createElement("canvas"),
+    ctx = canvas.getContext("2d");
+  if (avatar) {
+    canvas.width = 256;
+    canvas.height = 256;
+    const size = Math.min(bitmap.width, bitmap.height);
+    ctx.drawImage(
+      bitmap,
+      (bitmap.width - size) / 2,
+      (bitmap.height - size) / 2,
+      size,
+      size,
+      0,
+      0,
+      256,
+      256,
+    );
+  } else {
+    const scale = Math.min(1, 1400 / Math.max(bitmap.width, bitmap.height));
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  }
+  bitmap.close();
+  const result = canvas.toDataURL("image/jpeg", 0.8);
+  if (result.length > (avatar ? 290000 : 1800000))
+    throw Error("The compressed image is still too large. Please use a smaller image.");
+  return result;
+}
+function createPerson(name = "", col = "", taskId = "", resolveHint = "") {
+  dialog(
+    "Someone new",
+    `<form id="person-form"><label>Name<input name="name" value="${esc(name)}" required maxlength="120" autocomplete="off"></label><label>Email<input name="email" type="email" required autocomplete="off"></label><label>Photo, optional<input name="avatar" type="file" accept="image/png,image/jpeg,image/webp"></label><p class="small muted">This creates an invited person, not an account impersonating them. They sign in to confirm their identity and suggested photo.</p><button class="primary">Add person</button></form>`,
+  );
+  $("#person-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target),
+      b = $("button", e.target);
+    b.disabled = true;
+    try {
+      await flush();
+      const p = (await post("people", { name: f.get("name"), email: f.get("email") })).person;
+      const photo = f.get("avatar");
+      if (photo?.size)
+        await post("avatar", { target: p.id, image: await fileImage(photo, { avatar: true }) });
+      await loadWorkspace();
+      const t = item(col, taskId);
+      if (t) change(() => setAssignee(t, p, { resolveHint }));
+      closeDialog();
+      toast("Person added.");
+    } catch (e) {
+      toast(e.message);
+      b.disabled = false;
+    }
+  };
+}
+function moreDialog() {
+  dialog(
+    "In the margins",
+    `<div class="stack"><button class="dialog-item" id="my-profile">${icon("person")} Your profile & accounts</button><button class="dialog-item" id="requests">${icon("check")} Confirmations <span class="pill">${state.requests.filter((p) => p.target === state.user?.id).length}</span></button><button class="dialog-item" id="workspace-settings">${icon("boards")} Page & workspace settings</button><button class="dialog-item" id="connections">${icon("more")} Connections & cloud</button></div><div class="actions separated"><button class="button" id="undo"${undo.length ? "" : " disabled"}>Undo ↶</button><button class="button" id="redo"${redo.length ? "" : " disabled"}>Redo ↷</button><button id="export">Export backup</button><button id="logout">Sign out</button></div>`,
+  );
+  $("#my-profile").onclick = () => profile(state.user.id);
+  $("#requests").onclick = requestsDialog;
+  $("#connections").onclick = connections;
+  $("#workspace-settings").onclick = settingsDialog;
+  $("#export").onclick = () => downloadJSON(state.ws);
+  $("#undo").onclick = () => {
+    redo.push(clone(state.ws));
+    state.ws = undo.pop();
+    sync.change(state.ws);
+    closeDialog();
+    renderBoard();
+  };
+  $("#redo").onclick = () => {
+    undo.push(clone(state.ws));
+    state.ws = redo.pop();
+    sync.change(state.ws);
+    closeDialog();
+    renderBoard();
+  };
+  $("#logout").onclick = async () => {
+    try {
+      await flush();
+      await post("auth/logout", {});
+      closeDialog();
+      resetPrivateState();
+      await start();
+    } catch (e) {
+      toast(e.message);
+    }
+  };
+}
+function settingsDialog() {
+  dialog(
+    "A few page details",
+    `<form id="settings-form"><label>Workspace name<input name="space" maxlength="120" value="${esc(state.ws.name)}" required></label><label>Default GitHub repository for #123 references<input name="repo" placeholder="owner/repository" value="${esc(board().githubRepo || "")}" pattern="[\\w.-]+/[\\w.-]+"></label><label>Footer note<textarea name="footer" maxlength="240">${esc(board().footer)}</textarea></label><button class="primary">Save details</button></form>`,
+  );
+  $("#settings-form").onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    change(() => {
+      state.ws.name = f.get("space");
+      board().githubRepo = f.get("repo");
+      board().footer = f.get("footer");
+    });
+    closeDialog();
+  };
+}
+function connections() {
+  const c = state.config;
+  dialog(
+    "Behind the paper",
+    `<p class="notice">${c.test ? "Explicit local test database — not cloud." : "Connected to the configured cloud database."}</p><div class="stack small"><p>Login: ${esc(c.providers.join(", ") || "email only")}</p><p>Email: ${c.email ? "Resend configured" : "not configured"}</p><p>Semantic search: ${c.ai.embedding ? "provider configured" : "word search only — connect embeddings"}</p><p>AI drawings: ${c.ai.image ? "Cloudflare configured; daily application cap applies" : "local illustrations only — connect Cloudflare"}</p><p>Photo import: ${c.ai.vision ? "vision provider configured" : "not configured"}</p><p>GitHub / Slack / Linear tokens: ${
+      Object.entries(c.integrations)
+        .filter(([, v]) => v)
+        .map(([k]) => esc(k))
+        .join(", ") || "none"
+    }</p></div><p class="small muted">Configured does not guarantee provider access or remaining quota. Provider errors are shown when a feature runs. Set credentials on the server with <code>bun run setup</code>; nothing secret is stored in this page.</p>${state.user.owner ? '<button class="button" id="sync-slack">Import Slack people</button>' : ""}`,
+  );
+  $("#sync-slack")?.addEventListener("click", async () => {
+    try {
+      await flush();
+      const r = await post("slack/sync", {});
+      await loadWorkspace();
+      closeDialog();
+      toast(`${r.count} Slack profiles checked. Login identities are not automatically merged.`);
+    } catch (e) {
+      toast(e.message);
+    }
+  });
+}
+function requestsDialog() {
+  const list = state.requests.filter((p) => p.target === state.user.id);
+  dialog(
+    "Your confirmations",
+    `${list.map((p) => `<section class="pending-card"><p>${esc(state.people.find((x) => x.id === p.by)?.name || "A teammate")} ${p.type === "avatar" ? "suggested this photo." : `suggested linking ${esc(p.provider)}.`}</p>${p.type === "avatar" ? `<img src="/api/asset?id=${esc(p.asset)}" class="profile-photo" alt="Proposed photo"><div class="actions"><button class="button" data-confirm="${esc(p.id)}">Approve photo</button><button data-reject="${esc(p.id)}">Reject</button></div>` : `<button class="button" data-prove="${esc(p.id)}">Sign in to ${esc(p.provider)} to confirm</button><button data-reject="${esc(p.id)}">Reject</button>`}</section>`).join("") || '<p class="muted">Nothing awaiting your confirmation.</p>'}<p class="small muted">Linking proves control of the other account. No teammate can link an account on your behalf.</p>`,
+  );
+  $$("[data-confirm],[data-reject]").forEach(
+    (b) =>
+      (b.onclick = async () => {
+        try {
+          await post("proposals/confirm", {
+            id: b.dataset.confirm || b.dataset.reject,
+            accept: !!b.dataset.confirm,
+          });
+          await refreshPeople();
+          requestsDialog();
+        } catch (e) {
+          toast(e.message);
+        }
+      }),
+  );
+  $$("[data-prove]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const p = list.find((p) => p.id === b.dataset.prove);
+        oauth(p.provider, true, p.id);
+      }),
+  );
+}
+function shareDialog(kind) {
+  const count = selected.size;
+  kind ||= count === 1 ? "item" : count > 1 ? "items" : "board";
+  dialog(
+    "Send a little progress",
+    `<label>What should the link show?<select id="share-kind"><option value="board">This page</option><option value="column">Current column</option><option value="item" ${count !== 1 ? "disabled" : ""}>Selected thought</option><option value="items" ${!count ? "disabled" : ""}>Selected thoughts (${count})</option><option value="space">All pages in the workspace</option></select></label><div class="share-options"><label><input id="share-neighbors" type="checkbox"> Include faded neighboring items</label></div><p class="small muted">Anyone with this read-only link can see the selected content. Private email and account details are excluded. The preview uses the latest saved state, not AI.</p><button class="primary" id="make-share">Create view link</button><div id="share-result"></div>`,
+    { wide: true },
+  );
+  const epoch = dialogEpoch,
+    output = $("#share-result");
+  $("#share-kind").value = kind;
+  $("#make-share").onclick = async () => {
+    const button = $("#make-share");
+    button.disabled = true;
+    try {
+      await flush();
+      if (epoch !== dialogEpoch || !output.isConnected) return;
+      const kind = $("#share-kind").value,
+        scope = {
+          kind,
+          boardId: state.boardId,
+          columnId: state.columnId || board().columns[0]?.id,
+          itemIds: [...selected],
+          neighbors: $("#share-neighbors").checked,
+        },
+        r = await post("share", scope);
+      if (epoch !== dialogEpoch || !output.isConnected) {
+        await post("share/revoke", { id: r.id }).catch(() => {});
+        return;
+      }
+      output.innerHTML = `<img class="preview" src="${esc(r.preview)}" alt="Generated link preview"><label>Read-only link<input id="share-url" readonly value="${esc(r.url)}"></label><div class="actions"><button class="button" id="copy-link">Copy link</button><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Open ↗</a><button class="danger" id="revoke-link">Revoke</button></div><p class="small muted">Messengers can cache previews. Revoking a link cannot remove a screenshot they already cached.</p>`;
+      $("#copy-link").onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(r.url);
+          toast("Link copied.");
+        } catch {
+          $("#share-url").select();
+          toast("Select and copy the link.");
+        }
+      };
+      $("#revoke-link").onclick = async () => {
+        try {
+          await post("share/revoke", { id: r.id });
+          if (epoch === dialogEpoch && output.isConnected)
+            output.innerHTML = "<p>Link revoked.</p>";
+        } catch (e) {
+          toast(e.message);
+        }
+      };
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      button.disabled = false;
+    }
+  };
+}
+const artAttempts = new Set();
+async function autoArt() {
+  if (state.shared || (!state.config?.ai?.image && !state.config?.ai?.embedding)) return;
+  for (const c of board().columns)
+    if (!c.illustrationId && !artAttempts.has(c.id + ":" + c.title)) {
+      artAttempts.add(c.id + ":" + c.title);
+      await redraw(c.id, false);
+    }
+}
+async function redraw(id, force = false) {
+  if (state.shared || (!state.config?.ai?.image && !state.config?.ai?.embedding)) {
+    if (force)
+      toast("Connect an image provider in server settings. Local drawings remain available.");
+    return;
+  }
+  const b = board(),
+    c = b.columns.find((c) => c.id === id);
+  if (!c) return;
+  const title = c.title,
+    epoch = workspaceEpoch,
+    ws = state.ws;
+  try {
+    const r = await post("illustration", { title, description: c.subtitle, force });
+    if (
+      epoch !== workspaceEpoch ||
+      state.ws !== ws ||
+      !ws.boards.includes(b) ||
+      !b.columns.includes(c) ||
+      c.title !== title
+    )
+      return;
+    change(() => (c.illustrationId = r.id), { render: !edit, background: true });
+    if (r.warning && force) toast(r.warning);
+  } catch (e) {
+    if (force) toast(e.message);
+  }
+}
+function photoDialog() {
+  finishEdit();
+  closeDialog();
+  const generation = ++dialogEpoch;
+  app.onclick = null;
+  app.onkeydown = null;
+  app.innerHTML = `<article class="paper photo-paper"><button id="leave-photo" aria-label="Back to board">←</button><label>Drop a photograph of your page here<input type="file" id="photo-file" accept="image/png,image/jpeg,image/webp"></label><div id="photo-result"></div><button class="keep-page" id="read-photo" disabled>Read the handwriting ↗</button><p class="small muted">The photo goes to your configured vision provider. Nothing is added until you keep the page.</p>${!state.config.ai.vision ? '<p class="notice">Connect a vision provider in deployment settings to read a photograph.</p>' : ""}</article>`;
+  const input = $("#photo-file"),
+    result = $("#photo-result"),
+    button = $("#read-photo");
+  let image = null,
+    sequence = 0;
+  $("#leave-photo").onclick = () => {
+    dialogEpoch++;
+    renderBoard();
+  };
+  const choose = async (file) => {
+    const current = ++sequence;
+    try {
+      const data = await fileImage(file);
+      if (generation !== dialogEpoch || current !== sequence || !result.isConnected) return;
+      image = data;
+      const preview = document.createElement("img");
+      preview.className = "preview-photo";
+      preview.src = data;
+      preview.alt = "Your source photograph";
+      result.replaceChildren(preview);
+      button.disabled = !state.config.ai.vision;
+    } catch (error) {
+      if (result.isConnected) toast(error.message);
+    }
+  };
+  input.onchange = (event) => {
+    if (event.target.files[0]) void choose(event.target.files[0]);
+  };
+  app.ondragover = (event) => event.preventDefault();
+  app.ondrop = (event) => {
+    event.preventDefault();
+    if (event.dataTransfer.files[0]) void choose(event.dataTransfer.files[0]);
+  };
+  button.onclick = async () => {
+    if (!image) return;
+    button.disabled = true;
+    input.disabled = true;
+    button.textContent = "Reading…";
+    try {
+      const draft = await post("photo", { image });
+      if (generation !== dialogEpoch || !result.isConnected) return;
+      app.ondragover = null;
+      app.ondrop = null;
+      reviewPhoto(app, draft, {
+        onCancel: () => {
+          dialogEpoch++;
+          renderBoard();
+        },
+        onError: (error) => toast(error.message),
+        onConfirm: async (value) => {
+          await flush();
+          const r = await post("import", { board: value });
+          state.boardId = r.boardId;
+          await loadWorkspace();
+          toast("Page added.");
+        },
+      });
+    } catch (error) {
+      if (result.isConnected) toast(error.message);
+    } finally {
+      if (button.isConnected) {
+        button.disabled = false;
+        input.disabled = false;
+        button.textContent = "Read the handwriting ↗";
+      }
+    }
+  };
+}
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && state.ws && !state.shared) {
+    e.preventDefault();
+    return searchDialog();
+  }
+  if (e.key === "Escape") {
+    closePop();
+    if (overlays.innerHTML && overlays.dataset.dismiss !== "false") closeDialog();
+    clearHover();
+  }
+  if (e.key === "Tab" && overlays.innerHTML) {
+    const controls = $$(
+      "button:not(:disabled),a[href],input:not(:disabled),textarea,select",
+      [...overlays.children][0],
+    ).filter((el) => el.offsetParent !== null);
+    if (!controls.length) return;
+    const first = controls[0],
+      last = controls.at(-1);
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+});
+document.addEventListener("pointerdown", (e) => {
+  if (
+    pop &&
+    !pop.contains(e.target) &&
+    !e.target.closest("[data-edit],[data-assign],[data-item-menu],[data-column-menu]")
+  )
+    closePop();
+});
+window.addEventListener("beforeunload", (e) => {
+  if (sync && sync.sequence > sync.ack) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
+const fontLoading = installBoardFont().catch(() =>
+  toast("The custom lettering could not load. A browser fallback is being used."),
+);
+await start();
+await fontLoading;
+if ("serviceWorker" in navigator && location.protocol !== "file:")
+  navigator.serviceWorker.register("/sw.js").catch(() => {});

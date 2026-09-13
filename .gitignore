@@ -14,3 +14,11 @@ __pycache__/
 *.otf
 *.woff
 *.woff2
+
+coverage/
+playwright-report/
+artifacts/
+.toolchain/
+*.log
+
+/node_modules

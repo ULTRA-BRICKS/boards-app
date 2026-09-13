@@ -1,23 +1,53 @@
 {
   "name": "boards-app",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
-  "engines": {"node": ">=22.16.0"},
-  "scripts": {
-    "dev": "node --env-file-if-exists=.env.local scripts/dev.mjs",
-    "dev:type": "node scripts/type-server.mjs",
-    "build": "node scripts/build.mjs",
-    "build:type": "node scripts/build.mjs --type",
-    "test": "node --test tests/*.test.mjs",
-    "test:browser": "python3 tests/browser.py",
-    "verify": "npm test && npm run build && npm run build:type",
-    "setup": "node scripts/setup.mjs",
-    "deploy": "node scripts/deploy.mjs",
-    "deploy:type": "node scripts/deploy-type.mjs",
-    "build:type:neon": "node scripts/build-neon-type.mjs",
-    "deploy:type:neon": "node scripts/deploy-neon-type.mjs"
+  "engines": {
+    "bun": ">=1.4.2"
   },
-  "dependencies": {"@neondatabase/serverless": "1.0.0"},
-  "devDependencies": {"nx": "^21.5.2", "playwright": "^1.55.0"}
+  "scripts": {
+    "dev": "bun scripts/dev.ts",
+    "dev:type": "bun scripts/type-server.ts",
+    "demo": "bun scripts/dev.ts --demo",
+    "build": "bun scripts/build.ts",
+    "build:type": "bun scripts/build.ts --type",
+    "test": "bun test tests/*.test.mjs tests/unit",
+    "test:legacy": "bun test tests/*.test.mjs",
+    "test:coverage": "bun test tests/*.test.mjs tests/unit --coverage --coverage-reporter=lcov && bun scripts/coverage-gate.ts",
+    "test:browser": "bun --bun x playwright test",
+    "lint": "bun --bun x oxlint -c .oxlintrc.json apps packages server scripts tests api --deny-warnings",
+    "format": "bun --bun x oxfmt --write apps packages server scripts tests api",
+    "format:check": "bun --bun x oxfmt --check apps packages server scripts tests api",
+    "typecheck": "bun --bun x tsc --noEmit",
+    "check:syntax": "bun scripts/check-syntax.ts",
+    "check:bundle": "bun scripts/budgets.ts",
+    "check:security": "bun scripts/security-check.ts",
+    "check:font": "bun scripts/check-font.ts",
+    "verify": "bun run format:check && bun run check:syntax && bun run typecheck && bun run lint && bun run test:coverage && bun run build && bun run build:type && bun run check:bundle && bun run check:styles && bun run check:security && bun run check:font",
+    "setup": "bun scripts/setup.mjs",
+    "deploy": "bun scripts/deploy.mjs",
+    "deploy:type": "bun scripts/deploy-type.mjs",
+    "deploy:type:neon": "bun scripts/deploy-neon-type.mjs",
+    "test:browser:webkit": "BROWSER=webkit bun --bun x playwright test",
+    "check:styles": "bun scripts/style-check.ts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.1.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "@types/bun": "1.4.2",
+    "fast-check": "4.9.0",
+    "fontkit": "2.0.4",
+    "happy-dom": "20.14.3",
+    "nx": "23.2.1",
+    "oxc-parser": "0.149.0",
+    "oxc-transform": "0.149.0",
+    "oxfmt": "0.67.0",
+    "oxlint": "1.82.0",
+    "typescript": "7.0.2"
+  },
+  "packageManager": "bun@1.4.2"
 }

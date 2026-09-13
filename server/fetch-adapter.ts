@@ -34,18 +34,23 @@ export function fetchHandler(
         return name.toLowerCase() === "set-cookie" ? headers.getSetCookie() : headers.get(name);
       },
       body: undefined as BodyInit | undefined,
-      end(body?: BodyInit) { this.body = body; },
+      end(body?: BodyInit) {
+        this.body = body;
+      },
     };
     await handle(
       {
-        method: request.method, url: request.url,
-        headers: Object.fromEntries(request.headers), body: bytes,
+        method: request.method,
+        url: request.url,
+        headers: Object.fromEntries(request.headers),
+        body: bytes,
         socket: { remoteAddress: "fetch-ingress" },
       },
       response,
     );
     return new Response(request.method === "HEAD" ? null : response.body, {
-      status: response.statusCode, headers,
+      status: response.statusCode,
+      headers,
     });
   };
 }
