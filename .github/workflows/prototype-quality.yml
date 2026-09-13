@@ -1,0 +1,76 @@
+name: Prototype quality
+on:
+  push:
+    branches: [main, 'work/prototype-*']
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: prototype-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    defaults:
+      run:
+        working-directory: apps/prototype
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - run: bun install --frozen-lockfile
+      - run: bun check-stage.ts unit
+      - run: bun check-stage.ts lint
+      - run: bun check-stage.ts format
+      - run: bun check-stage.ts build
+      - run: bun budget.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prototype-core
+          path: |
+            .private/stages/
+            docs/metrics/prototype-budget.json
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, webkit]
+    defaults:
+      run:
+        working-directory: apps/prototype
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - name: Install browser
+        env:
+          ENGINE: ${{ matrix.engine }}
+        run: bunx --bun playwright install --with-deps "$ENGINE"
+      - name: Native browser and explicit fixture transport
+        env:
+          ENGINE: ${{ matrix.engine }}
+        shell: bash
+        run: |
+          bun serve.ts > /tmp/boards-prototype-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for n in {1..30}; do curl -fsS http://127.0.0.1:5183/build.json >/dev/null && break; sleep 1; done
+          bun check-stage.ts "$ENGINE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prototype-browser-${{ matrix.engine }}
+          path: |
+            docs/screenshots/boards-*.png
+            docs/metrics/prototype-ui-*.json
+            docs/metrics/accessibility.json
+            .private/stages/
+          retention-days: 14

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="no-referrer"><meta name="theme-color" content="#f8f6f0"><meta name="boards-build" content="__BUILD__">
+<title>Opening this page…</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M8 3l17 1-1 24-19-1z' fill='%23f8f6f0' stroke='%23283f60'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://ep-long-pond-ay3myrkz.neonauth.c-5.us-east-2.aws.neon.tech" crossorigin>
+<link rel="preconnect" href="https://ep-long-pond-ay3myrkz.apirest.c-5.us-east-2.aws.neon.tech" crossorigin>
+<link rel="stylesheet" href="__STYLE__">
+<style>html,body{margin:0;background:#f8f6f0;color:#283f60}.opening-title{font:500 21px/1.4 system-ui;margin:22px 0}.loading-shell{min-height:80vh}.page-skeleton{display:grid;grid-template-columns:repeat(3,1fr);gap:48px}.skeleton-column{min-height:55vh;border-left:1px solid #c5ccd3;padding:75px 20px}.skeleton-column i{display:block;background:#e7e7e0;height:10px;max-width:240px;margin:30px 0;border-radius:5px}.skeleton-column i:nth-child(even){width:67%}@media(max-width:700px){.page-skeleton{grid-template-columns:1fr}.skeleton-column:not(:first-child){display:none}}</style>
+</head><body>
+<main id="app"><article class="paper loading-shell" aria-busy="true"><h1 class="opening-title" id="opening-title">Opening this page…</h1><div class="page-skeleton" aria-hidden="true"><div class="skeleton-column"><i></i><i></i><i></i><i></i></div><div class="skeleton-column"><i></i><i></i><i></i></div><div class="skeleton-column"><i></i><i></i><i></i></div></div></article></main>
+<div id="overlays"></div><p id="status" role="status" aria-live="polite"></p>
+<script>try{const title=(new URLSearchParams(location.hash.slice(1)).get('title')||'').slice(0,120);if(title){document.getElementById('opening-title').textContent='Opening '+title+'…';document.title=title;}performance.mark('boards:shell');}catch{}</script>
+<script type="module" src="__SCRIPT__"></script>
+<noscript><p>This notebook needs JavaScript to read and save your pages.</p></noscript>
+</body></html>

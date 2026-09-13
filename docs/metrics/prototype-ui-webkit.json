@@ -1,0 +1,21 @@
+{
+  "mode": "Native browser; explicit fixture cloud transport",
+  "browser": "webkit",
+  "checks": [
+    "First sample paints before cloud request finishes",
+    "Typing during initial creation survives cloud acknowledgement",
+    "No uncaught exceptions on boot",
+    "Multiple assignments can be changed without closing the picker",
+    "Portraits overlap and hovered portrait is above its neighbor",
+    "Completion updates immediately and draws a stroke on every wrapped line",
+    "Reload restores the same tab before slow cloud revalidation",
+    "Top paper stack opens live board thumbnails and creates a page inline",
+    "Menu ends with Share, not an implementation notice",
+    "Profile lists five in full and collapses six to three plus expansion",
+    "Mobile scrolling updates the active column",
+    "A failed previous save preserves the newer text still being edited",
+    "Revoking a link after closing its dialog produces no stale DOM exception",
+    "No serious or critical automated accessibility violations"
+  ],
+  "errors": []
+}

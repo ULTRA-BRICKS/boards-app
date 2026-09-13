@@ -1,55 +1,52 @@
 # Boards
 
-## Open the live prototype
+**[Open the notebook](https://boards-app-gamma.vercel.app/)** · **[Conloca Sans specimen](https://boards-app-gamma.vercel.app/type.html)**
 
-**[Cloud notebook — boards-app-gamma.vercel.app](https://boards-app-gamma.vercel.app/)** · **[Conloca Sans specimen](https://boards-app-gamma.vercel.app/type.html)**
+Paper-like editable pages, hosted on Vercel with the isolated `boards_prototype` Neon database. [The public build manifest](https://boards-app-gamma.vercel.app/build.json) identifies the deployed asset generation; a source commit alone does not prove that its deployment is live. [Earlier unmocked cloud smoke](docs/LIVE-SMOKE-2026-09-13.md).
 
-Published to Vercel through the authorized local CLI. GitHub Pages activation and githack are not required. This is the isolated notebook prototype, not the full Bun application or the original team workspace.
+## Current prototype work
 
-**Live verification, 2026-09-13:** an unmodified Chromium browser on the developer Mac opened the public URL and rendered all 15 seed tasks, saved a Unicode/emoji edit through the real Neon Data API (HTTP 200), and read that edit in a second independent browser context. The original task text was then restored. No request mocking, browser fetch bridge or CORS bypass was used; no uncaught JavaScript errors were recorded. The separate specimen and static resources returned HTTP 200. [Verification details](docs/LIVE-SMOKE-2026-09-13.md).
+Public app-shell service worker with stale-while-revalidate, one bundled application entry and background font construction. A new sample page paints before cloud acknowledgement; a returning editing tab can restore its own snapshot while revalidating the version. Cloud failures and conflicts remain explicit. Unsaved drafts do not expire with the clean read cache.
 
-Storage remains the isolated `boards_prototype` database. The original `scriptboard` database was not modified. Full sign-in, integrations, generated illustrations, photo recognition, complete Bun migration and wider release checks remain unfinished; this URL is not a claim that all roadmap items are complete.
+Multi-assignee selection stays open for changes, overlapping portraits rise on hover/focus, missing photos use initials on distinct colors. A person's task list is labeled: up to five rows stay expanded; six or more show three with expansion. Column navigation follows position, paper layers open an animated board shelf, and the last bottom action is Share. Completion draws a restrained irregular stroke and supports an optional pencil sound.
 
-### Using this prototype
+![Notebook](docs/screenshots/boards-polished-desktop.png)
 
-Opening the notebook without a key creates a separate sample workspace with the 15 original thoughts. Bookmark the resulting address. Its `#key=…` fragment is the **private editing capability**, not a public share link; do not send it to other people unless they should edit. Use **Share** to make a revocable read-only link. There are no production accounts or account recovery in this prototype. Do not put sensitive data in it.
+<details><summary>Mobile and paper shelf</summary>
+<img width="393" alt="Mobile notebook" src="docs/screenshots/boards-polished-mobile.png">
 
-Pages, columns and thoughts are editable in place. Create a page through its thumbnail, then type its title directly. Avatars overlap in a chain, with hover elevation; `@Name` plus Enter assigns a sample person. Search responds from the loaded workspace immediately. Cloud writes use version checks; conflicts stop editing rather than silently overwrite another session. Failed saves offer retry and a draft backup, never a hidden local-only mode.
-
-The prototype deliberately does **not** pretend that Google/Slack/GitHub sign-in, email invitations, provider linking, generated artwork, photo transcription or messenger OpenGraph cards are live. Those belong to the full application's separate provider adapters.
-
-## Full application and Bun migration
-
-The repository also contains the fuller board backend, identity/linking flows, deterministic PNG previews and provider adapters. The Bun/Oxc/Nx migration remains in [PR #2](https://github.com/ultrabricks/boards-app/pull/2); it must not be described as merged or fully verified merely because a static prototype has been prepared. The older root commands still reflect the previous runtime until that migration is accepted.
-
-The prototype is plain browser ES modules plus PostgreSQL RPCs: no container, Python server or Node process is required to host it. The new browser harness is TypeScript and runs with Bun:
-
-```sh
-bun install
-bunx --bun playwright install chromium
-bun tests/prototype-browser.ts
-```
-
-Set `CHROMIUM_PATH` for a system Chromium. This harness uses actual HTML/CSS/modules and a fixture RPC transport; it is explicitly not a production cookie/CORS test. `deploy/prototype/selftest.sql` exercises the actual PostgreSQL functions using rolled-back fixtures. The schema is in `deploy/prototype/schema.sql` and is intended only for the isolated prototype database.
-
-## Visual reference
-
-These existing images come from the last successful full-application native CI run, not the new prototype harness. Their [manifest](https://github.com/ultrabricks/boards-app/blob/visual-evidence/evidence.json) records the source and run. Prototype screenshots were produced by its TypeScript harness and attached to the delivery conversation; they are not generated UI mockups or evidence of a successful public deployment.
-
-![Paper board](https://raw.githubusercontent.com/ultrabricks/boards-app/visual-evidence/screenshots/board-desktop.png)
-
-<details><summary>Mobile and independent type specimen</summary>
-
-<img width="393" alt="Mobile board" src="https://raw.githubusercontent.com/ultrabricks/boards-app/visual-evidence/screenshots/board-mobile-viewport.png">
-
-![Conloca type specimen](https://raw.githubusercontent.com/ultrabricks/boards-app/visual-evidence/screenshots/type-site.png)
-
+![Board shelf](docs/screenshots/boards-paper-shelf.png)
 </details>
 
-## Source and operational limits
+These screenshots are native browser renders of public sample tasks with an explicitly mocked cloud transport, not AI mockups or evidence of a live provider call. [Chromium report](docs/metrics/prototype-ui-chromium.json), [WebKit report](docs/metrics/prototype-ui-webkit.json), [asset budgets](docs/metrics/prototype-budget.json). WebKit's fixture suite blocks service workers; SW behavior has separate tests.
 
-[Roadmap](ROADMAP.md) · [Architecture](docs/ARCHITECTURE.md) · [Provider setup](docs/SETUP.md) · [Security](SECURITY.md) · [Previous full-app review](docs/REVIEW-2026-09-10.md) · [GitHub Actions](https://github.com/ultrabricks/boards-app/actions)
+## Run and verify with Bun
 
-The prototype is bounded to 200 isolated notebooks, 50 share links per notebook and a 512 KB document. It is a demonstration, not an audited multi-tenant identity platform. Keep backups. Revoking a share prevents new reads but cannot remove screenshots someone already saved.
+```sh
+cd apps/prototype
+bun install --frozen-lockfile
+bun run build
+bun serve.ts
+```
 
-The Conloca specimen is separate from the board. It contains original editable glyph geometry and a compiler, not a packaged font binary. The variable file is constructed on the visitor's device. Neither a test matrix count nor server-only coverage should be reported as whole-application coverage.
+The local shell is at `http://127.0.0.1:5183`; normal operation uses the configured cloud. `bun run test` runs unit regressions. Native fixture checks require Playwright browsers and the local server: `bunx --bun playwright install chromium webkit`, then `bun check-stage.ts chromium` and `bun check-stage.ts webkit`. Each stage records its real exit code and log separately.
+
+The prototype has a dedicated frozen Bun lockfile, Oxc/Oxfmt checks, unit and native-browser CI, axe checks and compressed asset budgets. The fuller Bun/Oxc/Nx migration is still in [PR #2](https://github.com/ultrabricks/boards-app/pull/2); prototype tests do not establish whole-application 80% coverage or completion of that migration.
+
+## Using and protecting your pages
+
+Bookmark the address after creating a page. The `#key=…` fragment is the editing capability; keep it private. Share creates a separately revocable read-only link. This prototype does not have production sign-in or account recovery. Clean and unsaved editing snapshots remain in the current tab's sessionStorage, not service-worker caches or an external analytics service. Closing the tab may remove that recovery copy; export important drafts.
+
+Only public shell resources enter CacheStorage. Auth, task APIs, portraits and shared documents never do. Failed storage writes are reported, version conflicts block destructive replacement, and readonly shares are fetched again instead of restored as private editing snapshots. Link revocation cannot delete screenshots recipients already retained.
+
+**Page options → Loading measurements**, or `window.boardsMetrics()`, exposes local loading, paint, interaction and resource timing without task text, names, URLs with keys, or tokens. These local measurements and CI budgets are not production field percentiles.
+
+Slack portrait import tooling is in `apps/prototype/slack-export.ts`. It exports bounded thumbnails and names, not tokens or emails; the private output belongs outside Git and can be imported through People. Existing records do not gain unverified account ownership. Real Slack photos are not bundled into the public default page or screenshots.
+
+Tabler's MIT icons are converted at build time through RoughJS (MIT); neither the full icon library nor an animation player ships to the browser. Page animation uses actual editable DOM and honors reduced motion. The independent font page builds its original variable typeface locally; font binaries are not shipped as repository attachments.
+
+## Plan and recovery
+
+[Roadmap](ROADMAP.md) · [Execution failure analysis](docs/PROCESS.md) · [Persisted user rules](docs/USER_RULES.json) · [Agent entry point](AGENTS.md) · [Prototype polish #5](https://github.com/ultrabricks/boards-app/issues/5) · [Full-product gaps #6](https://github.com/ultrabricks/boards-app/issues/6)
+
+Real OAuth/linking, email, authenticated provider integrations, semantic matching, generated artwork, photo transcription and server-generated messenger cards remain unfinished full-product gates. The original `scriptboard` team database is not replaced by this prototype. The prototype is bounded to 200 notebooks, 50 shares per notebook and a 512 KB document; it is not an audited multi-tenant identity platform.

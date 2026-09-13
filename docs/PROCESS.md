@@ -43,3 +43,10 @@ OpenAI troubleshooting recommends a new chat for long/unresponsive conversations
 GitHub rate-limit response procedure and bounded backoff: https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
 GitHub request serialization and pause guidance: https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api
 These references explain provider behavior; the local incident evidence above is distinct.
+
+## Newly reproduced in this session: stdin wait before review dispatch
+`review diff --staged` made no progress for several minutes because Desktop Commander's non-TTY stdin remained open. The synchronous review-cli path reads piped stdin to EOF even with --staged; its source documents this in reviewlib/cli.py near _detached_child_stdin. No model had started, so model idle timeouts could not help.
+The corrected invocation uses `review diff --staged ... </dev/null` when no diff is piped. It then started reviewers, returned a clean verdict and exited 0 in 245 seconds. This satisfies the existing review-before-commit hook; the hook was not disabled or forged.
+Class: INPUT-01 (invocation/stream lifecycle). Countermeasure: set stdin to ignore/DEVNULL for noninteractive tools without an input payload; use a parent wall-clock deadline in addition to backend idle limits. Do not misdiagnose an empty log as a provider outage.
+The new check-stage.ts runner writes a JSON result with the real exit code and a bounded log tail. An initial unsupported Bun stderr='stdout' option failed immediately; it was corrected to a shared numeric file descriptor per Bun's documented spawn API before any success was recorded.
+Verified process-document checkpoint: cb9b5bb. Prototype regressions subsequently pass 100 unit tests, 15 Chromium groups and 14 WebKit groups; code release remains a separate gate.
