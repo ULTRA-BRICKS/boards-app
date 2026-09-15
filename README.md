@@ -57,6 +57,9 @@ Tabler's MIT icons are converted at build time through RoughJS (MIT); neither th
 
 ## Plan and recovery
 
+[Interruption analysis and recovery improvements](docs/INTERRUPTIONS-2026-09-15.md): observed causes, evidence, restart rules and the latest account-save regression.
+
+
 [Roadmap](ROADMAP.md) · [Execution failure analysis](docs/PROCESS.md) · [Persisted user rules](docs/USER_RULES.json) · [Agent entry point](AGENTS.md) · [Prototype polish #5](https://github.com/ultrabricks/boards-app/issues/5) · [Full-product gaps #6](https://github.com/ultrabricks/boards-app/issues/6)
 
 Real OAuth/linking, email, authenticated provider integrations, semantic matching, generated artwork, photo transcription remain unfinished full-product gates. Server-generated share cards are now live; client-side unfurl caching remains controlled by recipients. The original `scriptboard` team database is not replaced by this prototype. The prototype is bounded to 200 notebooks, 50 shares per notebook and a 512 KB document; it is not an audited multi-tenant identity platform.

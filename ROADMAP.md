@@ -1,6 +1,11 @@
 # Boards delivery roadmap
 
-## Current checkpoint — accounts and privacy, September 15
+## Current checkpoint — interruption recovery and account save isolation
+Read [the interruption analysis](docs/INTERRUPTIONS-2026-09-15.md) alongside PROCESS.md. Recovery now has unique per-run receipts, closed stdin and bounded child execution. A delayed settings save is tied to its original space and cannot update the next screen. Latest local checks: 228 unit cases, 18 account-browser checks in each engine, strict types/lint/format. These account changes are not deployed.
+
+Next independent work: signed-in board/migration wiring and remaining account races. Production activation still needs the approved corporate domains/owner and authorized DB/mail/Slack/scheduler setup. Preserve blocked writes and intact review hooks; do not retry known quotas before their reset. Current production remains `00c85bc1b7ef1a22`.
+
+## Previous checkpoint — accounts and privacy, September 15
 Public build `00c85bc1b7ef1a22`: no Slack JSON upload, noindex headers/meta, anonymous read-only previews remain available. Account source is not deployed; the exact blockers are in [ACCOUNTS-RELEASE-GATES.md](docs/ACCOUNTS-RELEASE-GATES.md). Local checks: 222 unit tests, strict account types, lint/format, eight account views at four widths with axe checks in Chromium and WebKit. Current independent review attempt returned the configured provider weekly usage limit.
 
 Next gates: receive explicitly approved corporate domains/initial owner; establish least-privilege database and server-only mail credentials; install the Boards Slack app; deploy a real outbox scheduler; integrate the signed-in board/migration path; verify live email/history and finish source review/merge. Existing notebook access is preserved. Older progress sections below are historical, not the current deployment state.

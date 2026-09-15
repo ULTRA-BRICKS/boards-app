@@ -1,5 +1,8 @@
 # Execution reliability and interruption analysis
-Updated 2026-09-13. Based on observable tool replies, process logs and repository state; not hidden model telemetry.
+Updated 2026-09-15. Based on observable tool replies, process logs and repository state; not hidden model telemetry.
+
+## Latest interruption analysis
+[Russian incident review and countermeasures](INTERRUPTIONS-2026-09-15.md). Read this alongside the current ROADMAP checkpoint, not as a fixed model-timeout diagnosis.
 
 ## Failure classes
 | ID | Layer / evidence | Diagnosis | Required response |
@@ -33,7 +36,7 @@ There is no evidence of a fixed session-duration cutoff or that every interrupti
 9. Distinguish local, fixture, CI, and deployed browser evidence. Count test cases and state coverage scope. Retain failed reports privately; public docs describe current evidence and known limitations.
 10. A release is complete only after public HTTP, real-browser interactions, cloud save/readback in independent contexts, screenshot review and README URL verification. User data must be restored after tests; use isolated test spaces.
 
-## Confirmed recovery as of this checkpoint
+## Historical recovery checkpoint (superseded by ROADMAP)
 Worktree: ~/xp/boards-polish-20260913; branch work/prototype-polish-0913. Source is locally changed, not yet deployed. Actual live site still serves the older static build.
 The last completed local runs report 96 unit cases, 13 Chromium scenario groups and 12 WebKit scenario groups. The WebKit fixture group intentionally blocks service workers. Re-run with preserved exit codes before release.
 The separate recovered full-app checkout at ~/xp/boards-app remains uncommitted on work/bun-shell-quality and must not be reset.
