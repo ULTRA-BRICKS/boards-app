@@ -4,21 +4,23 @@
 
 Paper-like editable pages, hosted on Vercel with the isolated `boards_prototype` Neon database. [The public build manifest](https://boards-app-gamma.vercel.app/build.json) identifies the deployed asset generation; a source commit alone does not prove that its deployment is live. [Earlier unmocked cloud smoke](docs/LIVE-SMOKE-2026-09-13.md).
 
+**Live update, 2026-09-15:** browser build `3dfae8a87229ebf6`. [Verified public release](docs/LIVE-RELEASE-2026-09-15.md) · [Every requested feature and what remains](docs/REQUEST-CHECKLIST-2026-09-15.md).
+
 ## Current prototype work
 
 Public app-shell service worker with stale-while-revalidate, one bundled application entry and background font construction. A new sample page paints before cloud acknowledgement; a returning editing tab can restore its own snapshot while revalidating the version. Cloud failures and conflicts remain explicit. Unsaved drafts do not expire with the clean read cache.
 
 Multi-assignee selection stays open for changes, overlapping portraits rise on hover/focus, missing photos use initials on distinct colors. A person's task list is labeled: up to five rows stay expanded; six or more show three with expansion. Column navigation follows position, paper layers open an animated board shelf, and the last bottom action is Share. Completion draws a restrained irregular stroke and supports an optional pencil sound.
 
-![Notebook](docs/screenshots/boards-polished-desktop.png)
+![Notebook on the public service](docs/screenshots/boards-live-0915-desktop.png)
 
 <details><summary>Mobile and paper shelf</summary>
-<img width="393" alt="Mobile notebook" src="docs/screenshots/boards-polished-mobile.png">
+<img width="393" alt="Mobile notebook" src="docs/screenshots/boards-live-0915-mobile.png">
 
 ![Board shelf](docs/screenshots/boards-paper-shelf.png)
 </details>
 
-These screenshots are native browser renders of public sample tasks with an explicitly mocked cloud transport, not AI mockups or evidence of a live provider call. [Chromium report](docs/metrics/prototype-ui-chromium.json), [WebKit report](docs/metrics/prototype-ui-webkit.json), [asset budgets](docs/metrics/prototype-budget.json). WebKit's fixture suite blocks service workers; SW behavior has separate tests.
+The desktop and mobile screenshots were taken on the actual public service in an isolated test notebook, using real Neon requests. The paper-shelf screenshot is from a separately labeled fixture run. No private user key or real team portraits are published. [Chromium report](docs/metrics/prototype-ui-chromium.json), [WebKit report](docs/metrics/prototype-ui-webkit.json), [asset budgets](docs/metrics/prototype-budget.json). WebKit's fixture suite blocks service workers; SW behavior has separate tests.
 
 ## Run and verify with Bun
 
