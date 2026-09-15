@@ -1,5 +1,10 @@
 # Boards delivery roadmap
 
+## Current checkpoint — accounts and privacy, September 15
+Public build `00c85bc1b7ef1a22`: no Slack JSON upload, noindex headers/meta, anonymous read-only previews remain available. Account source is not deployed; the exact blockers are in [ACCOUNTS-RELEASE-GATES.md](docs/ACCOUNTS-RELEASE-GATES.md). Local checks: 222 unit tests, strict account types, lint/format, eight account views at four widths with axe checks in Chromium and WebKit. Current independent review attempt returned the configured provider weekly usage limit.
+
+Next gates: receive explicitly approved corporate domains/initial owner; establish least-privilege database and server-only mail credentials; install the Boards Slack app; deploy a real outbox scheduler; integrate the signed-in board/migration path; verify live email/history and finish source review/merge. Existing notebook access is preserved. Older progress sections below are historical, not the current deployment state.
+
 Updated: 2026-09-10. This is the execution ledger, not a claim that tested adapters are a deployed product. [Tracking issue #1](https://github.com/alex-mextner/boards-app/issues/1) · [Review and evidence](docs/REVIEW-2026-09-10.md).
 
 ## Delivery order and acceptance gates

@@ -4,9 +4,13 @@
 
 Paper-like editable pages, hosted on Vercel with the isolated `boards_prototype` Neon database. [The public build manifest](https://boards-app-gamma.vercel.app/build.json) identifies the deployed asset generation; a source commit alone does not prove that its deployment is live. [Earlier unmocked cloud smoke](docs/LIVE-SMOKE-2026-09-13.md).
 
-**Live update, 2026-09-15:** browser build `3dfae8a87229ebf6`. [Verified public release](docs/LIVE-RELEASE-2026-09-15.md) · [Every requested feature and what remains](docs/REQUEST-CHECKLIST-2026-09-15.md).
+**Earlier live checkpoint, 2026-09-15:** browser build `3dfae8a87229ebf6`. [Verified public release](docs/LIVE-RELEASE-2026-09-15.md) · [Every requested feature and what remains](docs/REQUEST-CHECKLIST-2026-09-15.md).
 
 ## Latest public update
+
+Current public build: **`00c85bc1b7ef1a22`**. The unexplained Slack file import is removed. Board, type and shared pages carry noindex directives while read-only cards remain publicly fetchable. Corporate login, spaces, profiles, item history and mail have a separate tested local implementation but are **not activated in production**. [Exact readiness, tests and blockers](docs/ACCOUNTS-RELEASE-GATES.md).
+
+Previous stack/preview release:
 
 Build `634694f79261ec34`: neighboring sheets now sit behind the active paper, duplicate fresh-page placeholders are removed, and shared URLs now have server-generated current-state metadata and PNG previews. [Release details, screenshots and verification](docs/STACK-AND-PREVIEWS-2026-09-15.md).
 
