@@ -6,6 +6,10 @@ Paper-like editable pages, hosted on Vercel with the isolated `boards_prototype`
 
 **Live update, 2026-09-15:** browser build `3dfae8a87229ebf6`. [Verified public release](docs/LIVE-RELEASE-2026-09-15.md) · [Every requested feature and what remains](docs/REQUEST-CHECKLIST-2026-09-15.md).
 
+## Latest public update
+
+Build `634694f79261ec34`: neighboring sheets now sit behind the active paper, duplicate fresh-page placeholders are removed, and shared URLs now have server-generated current-state metadata and PNG previews. [Release details, screenshots and verification](docs/STACK-AND-PREVIEWS-2026-09-15.md).
+
 ## Current prototype work
 
 Public app-shell service worker with stale-while-revalidate, one bundled application entry and background font construction. A new sample page paints before cloud acknowledgement; a returning editing tab can restore its own snapshot while revalidating the version. Cloud failures and conflicts remain explicit. Unsaved drafts do not expire with the clean read cache.
@@ -51,4 +55,4 @@ Tabler's MIT icons are converted at build time through RoughJS (MIT); neither th
 
 [Roadmap](ROADMAP.md) · [Execution failure analysis](docs/PROCESS.md) · [Persisted user rules](docs/USER_RULES.json) · [Agent entry point](AGENTS.md) · [Prototype polish #5](https://github.com/ultrabricks/boards-app/issues/5) · [Full-product gaps #6](https://github.com/ultrabricks/boards-app/issues/6)
 
-Real OAuth/linking, email, authenticated provider integrations, semantic matching, generated artwork, photo transcription and server-generated messenger cards remain unfinished full-product gates. The original `scriptboard` team database is not replaced by this prototype. The prototype is bounded to 200 notebooks, 50 shares per notebook and a 512 KB document; it is not an audited multi-tenant identity platform.
+Real OAuth/linking, email, authenticated provider integrations, semantic matching, generated artwork, photo transcription remain unfinished full-product gates. Server-generated share cards are now live; client-side unfurl caching remains controlled by recipients. The original `scriptboard` team database is not replaced by this prototype. The prototype is bounded to 200 notebooks, 50 shares per notebook and a 512 KB document; it is not an audited multi-tenant identity platform.

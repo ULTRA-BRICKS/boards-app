@@ -64,3 +64,12 @@ Read AGENTS.md, docs/USER_RULES.json and docs/PROCESS.md first. Main source is s
 User-reported prototype issues are tracked in #5; full-product gaps in #6. A working prototype with better UX must not imply that live OAuth, account linking, semantic AI or messenger OG have been shipped.
 
 Process acceptance: a remote `exit 0` is not sufficient if a shell command masked test failure. Rate limits are handled with pauses, failed mutations are read back before retry, and explicit safety blocks are not bypassed. No fixed cause/timer is assigned to Thinking failed without evidence.
+
+## 2026-09-15 evening: paper depth and share-card release
+Public browser build is now `634694f79261ec34`, Vercel deployment `dpl_XKtn6r7ZBXeEcNYKM9vEx4knd3nQ` on the existing gamma address.
+- Done and live: opaque active sheet in front of true neighboring-paper layers; one fresh-sheet fallback; keyboard focus/current-page state; contrast correction.
+- Done and live: crawler-readable `/s/` URLs, server-rendered metadata and 1200×630 PNGs for board/column/item/selection/space, current-state reads, 404 after revocation. No LLM dependency.
+- Verified: 149 unit cases; 15 Chromium + 14 WebKit groups; nine recovery scenarios per engine; 1/2/3/6 pages at seven widths in each engine. Public unmocked save/read/offline/retry and exact user's board read passed. Five share scopes and updated/revoked images checked over HTTPS.
+- Not closed: independent source-review/commit/merge gate. One bounded attempt on the previously configured GLM backend again timed out for all three roles. Do not fabricate a reviewer verdict or bypass the hook.
+- Remaining product gates: authenticated accounts/linking/email; actual workspace integrations and backlinks; semantic/AI/image/photo workflows; full Bun/Nx consolidation and whole-application 2000+/80% coverage. Recipient messenger caching is not a server-controlled guarantee.
+Release evidence and screenshots: docs/STACK-AND-PREVIEWS-2026-09-15.md. New code is staged/preserved locally; documentation commits and public deployment are separate from merged source delivery.

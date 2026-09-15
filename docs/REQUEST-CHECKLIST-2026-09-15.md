@@ -1,6 +1,6 @@
 # Request-by-request audit of the deployed prototype
 
-Verified service: https://boards-app-gamma.vercel.app/ . Browser build `3dfae8a87229ebf6`, 2026-09-15. See LIVE-RELEASE-2026-09-15.md for actual public-browser evidence. “Live” below refers to this prototype, not the unfinished full app.
+Verified service: https://boards-app-gamma.vercel.app/ . Browser build `634694f79261ec34`, 2026-09-15. See LIVE-RELEASE-2026-09-15.md for actual public-browser evidence. “Live” below refers to this prototype, not the unfinished full app.
 
 | Request | Status | Exact scope / remaining work |
 |---|---|---|
@@ -12,7 +12,7 @@ Verified service: https://boards-app-gamma.vercel.app/ . Browser build `3dfae8a8
 | Explain other tasks and apply N+2, N=3 | Live | Up to five show all; six or more show three with expansion. Current task excluded by both board and item identity. |
 | Navigation tracks position | Live | Active mobile column follows scroll; clicks update the active section. Desktop remains a multi-column sheet. |
 | Extensive hand-drawn icon source | Live | Tabler icons processed through RoughJS at build time; only selected SVG paths shipped, not the whole library. |
-| Clickable overlapping paper stack and animated board selection | Live | Existing board titles or a fresh-page affordance on layered sheets, animated real DOM thumbnails. No Lottie player is required; reduced motion is honored. |
+| Clickable overlapping paper stack and animated board selection | Live | Opaque active sheet in front; real neighboring sheets behind it. One empty affordance only when no neighbors exist. Click/keyboard and reduced motion tested on mobile and desktop. |
 | Animated hand-drawn completion plus sound | Live | Restrained deterministic line variation and optional generated pencil sound; mute available. |
 | Share replaces bottom ellipsis; remove technical paragraphs from menus | Live | Share is last; settings are on the sheet, with useful actions rather than implementation disclaimers. Accurate limitations remain in documentation. |
 | Load/save failure loop, even before editing | Live fix | Clean connection failure is separate from a dirty draft; failed cloud read retains the draft; successful read provides Undo. Nine targeted failure scenarios pass per engine. |
@@ -23,6 +23,6 @@ Verified service: https://boards-app-gamma.vercel.app/ . Browser build `3dfae8a8
 | Live Slack/Linear/GitHub ticket previews and backlinks | Not live | Full-app adapters and fixture tests are not deployed provider integrations. |
 | Semantic duplicates, art-library matching, generated illustrations | Not live | Current live search is lexical and drawings are existing vectors. Real evaluated provider configuration remains required. |
 | Photo-to-board without a creation wizard | Not live in this prototype | An inline draft design exists in full-app work; actual vision provider and reviewed import need integration. |
-| Adaptive dynamic messenger previews for item/selection/column/space | Not live | Read-only scopes and revocation work, but deterministic server-generated OG cards are not yet shipped. |
+| Adaptive dynamic messenger previews for item/selection/column/space | Live endpoints | New /s/ links return current-state Open Graph metadata and deterministic 1200×630 PNGs. All five scopes, content updates and revocation tested over public HTTPS. Actual recipient app caching is outside our control. |
 
 Issues #5, #6 and #7 separate prototype polish, full-product gates and the P0 recovery incident. Do not silently close the remaining rows after a successful prototype release.
