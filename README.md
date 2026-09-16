@@ -6,7 +6,11 @@ Paper-like editable pages, hosted on Vercel with the isolated `boards_prototype`
 
 **Earlier live checkpoint, 2026-09-15:** browser build `3dfae8a87229ebf6`. [Verified public release](docs/LIVE-RELEASE-2026-09-15.md) · [Every requested feature and what remains](docs/REQUEST-CHECKLIST-2026-09-15.md).
 
-## Latest public update
+## Current public release — 16 September
+
+Build **`f121ea23096d236d`** now supports separate cloud-space creation/switching and an editable photo-draft workspace with private browser recovery. Automatic photo recognition and the installed Slack app are **not active**. [Exact shipped scope, live tests and screenshots](docs/PHOTO-SPACES-2026-09-16.md). Source is pushed to [Forgejo PR #8](https://git.hyperide.ai/ultrabricks/boards-app/pulls/8); pending remote CI is not represented as a completed main merge.
+
+## Previous public update
 
 Current public build: **`00c85bc1b7ef1a22`**. The unexplained Slack file import is removed. Board, type and shared pages carry noindex directives while read-only cards remain publicly fetchable. Corporate login, spaces, profiles, item history and mail have a separate tested local implementation but are **not activated in production**. [Exact readiness, tests and blockers](docs/ACCOUNTS-RELEASE-GATES.md).
 

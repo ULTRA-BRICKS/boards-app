@@ -1,5 +1,12 @@
 # Boards delivery roadmap
 
+## Current checkpoint — cloud spaces and photo draft UI, September 16
+Live build `f121ea23096d236d`, source `db69eb7`, PR #8. Cloud space creation/switch/return and manual draft persistence verified on public HTTPS with an independent reader. Existing user board inspected without writes. Eight photo/space fixture checks pass in each engine; 270 unit tests pass.
+
+Automatic recognition is not complete: the real provider probe returned an activation-required 403, and the server recognition endpoint is not created following the tool block. Slack still requires actual app-admin authorization and installation. Do not describe a prepared adapter or manual transcription as either integration working.
+
+Next: allowed activation of a vision provider and authorized recognition endpoint; actual Slack installation and corporate account configuration; signed-in space discovery/migration; pending remote CI and main merge. Preserve the existing public capability spaces until authenticated migration is verified. See [current evidence](docs/PHOTO-SPACES-2026-09-16.md). Earlier checkpoints below are historical.
+
 ## Current checkpoint — interruption recovery and account save isolation
 Read [the interruption analysis](docs/INTERRUPTIONS-2026-09-15.md) alongside PROCESS.md. Recovery now has unique per-run receipts, closed stdin and bounded child execution. A delayed settings save is tied to its original space and cannot update the next screen. Latest local checks: 228 unit cases, 18 account-browser checks in each engine, strict types/lint/format. These account changes are not deployed.
 
