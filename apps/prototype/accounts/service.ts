@@ -270,7 +270,8 @@ export class WorkspaceService {
         person = document.people.find((p: any) => p.id === personId);
       if (person?.email && person.email.toLowerCase() !== email)
         throw new AccessError("PERSON_ALREADY_LINKED", 409);
-      if (!person) {
+      const needsDirectoryUpdate = !person || !person.email;
+      if (!person)
         document.people.push({
           id: personId,
           name: input.name.trim(),
@@ -279,6 +280,8 @@ export class WorkspaceService {
           slackUserId: "",
           slackUrl: "",
         });
+      else if (!person.email) person.email = email;
+      if (needsDirectoryUpdate) {
         validateWorkspace(document);
         await db.query(
           "UPDATE boards_accounts.spaces SET document=$2::jsonb,version=version+1 WHERE id=$1",

@@ -26,3 +26,5 @@ CREATE INDEX IF NOT EXISTS batches_open_space ON boards_accounts.batches(space_i
 
 ALTER TABLE boards_accounts.event_receipts ADD COLUMN IF NOT EXISTS attempts integer NOT NULL DEFAULT 0;
 ALTER TABLE boards_accounts.event_receipts ADD COLUMN IF NOT EXISTS lease_token text;
+
+CREATE INDEX IF NOT EXISTS batches_pending_event_keys ON boards_accounts.batches USING gin(events jsonb_path_ops) WHERE kind='assignment' AND state='pending' AND payload IS NULL;

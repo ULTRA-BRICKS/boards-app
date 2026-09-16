@@ -63,8 +63,20 @@ export async function recordChanges(
   if (!removed.size && !additions.length) return;
   const pending = (
     await db.query<Batch>(
-      "SELECT id,recipient_id,due_at,events,state FROM boards_accounts.batches WHERE space_id=$1 AND kind='assignment' AND state='pending' AND payload IS NULL ORDER BY due_at,id FOR UPDATE",
-      [space],
+      `SELECT id,recipient_id,due_at,events,state FROM boards_accounts.batches b
+ WHERE b.space_id=$1 AND b.kind='assignment' AND b.state='pending' AND b.payload IS NULL AND (
+  (b.due_at>$3::timestamptz AND b.recipient_id IN(SELECT m.account_id FROM boards_accounts.members m WHERE m.space_id=$1 AND m.person_id=ANY($2::text[])))
+  OR b.events @> ANY($4::jsonb[])
+ ) ORDER BY b.due_at,b.id FOR UPDATE`,
+      [
+        space,
+        [...new Set(additions.map((entry) => entry.personId))],
+        iso,
+        [...removed].map((key) => {
+          const [boardId, itemId, personId] = JSON.parse(key);
+          return JSON.stringify([{ boardId, itemId, personId }]);
+        }),
+      ],
     )
   ).rows;
   const updates = new Map<string, Batch>();
