@@ -1,3 +1,4 @@
+import { savePhotoAndCleanDraft } from "./save-result";
 import { escapeHTML as esc } from "../lib/html";
 import { icon } from "../lib/paper";
 import { photoDraft, photoErrorMessage, type PhotoDraft } from "./contract";
@@ -7,7 +8,7 @@ export type PhotoScreenOptions = {
   scope: string;
   recognize: (image: string, signal: AbortSignal) => Promise<PhotoDraft>;
   save: (board: PhotoDraft["board"]) => Promise<void>;
-  exit: () => void;
+  exit: (notice?: string) => void;
 };
 export async function openPhotoScreen(host: HTMLElement, options: PhotoScreenOptions) {
   let image = "",
@@ -180,11 +181,17 @@ export async function openPhotoScreen(host: HTMLElement, options: PhotoScreenOpt
       if (!draft.board.columns.some((c) => c.items.some((t) => t.text.trim())))
         throw Error("Write at least one task before adding this page.");
       await persistDraft();
-      await options.save(structuredClone(draft.board));
-      await repository.remove();
+      const result = await savePhotoAndCleanDraft(
+        () => options.save(structuredClone(draft!.board)),
+        () => repository.remove(),
+      );
       disposed = true;
       repository.close();
-      options.exit();
+      options.exit(
+        result.draftRemoved
+          ? undefined
+          : "Saved to cloud. The browser recovery copy could not be removed.",
+      );
     } catch (error) {
       say((error as Error).message || "The page has not finished saving. Your draft is kept here.");
     } finally {
@@ -206,6 +213,7 @@ export async function openPhotoScreen(host: HTMLElement, options: PhotoScreenOpt
     try {
       await persistDraft();
     } catch {
+      say("Your draft could not be backed up. Keep this tab open until it saves.");
       return;
     }
     disposed = true;

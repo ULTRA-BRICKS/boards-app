@@ -1311,12 +1311,12 @@ async function showPhoto() {
       persist();
       await flush();
     },
-    exit: () => {
+    exit: (notice) => {
       photoSessionOpen = false;
       app.onpaste = null;
       status.hidden = false;
       render();
-      say(queue?.paused ? "Resolve the connection to finish saving." : "Saved");
+      say(notice || (queue?.paused ? "Resolve the connection to finish saving." : "Saved"));
     },
   });
 }
