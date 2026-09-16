@@ -2,6 +2,7 @@ import rough from "roughjs";
 const generator = rough.generator(),
   names = {
     pages: "stack-2",
+    camera: "camera",
     search: "search",
     people: "users",
     share: "share-2",

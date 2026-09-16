@@ -47,7 +47,9 @@ const base = await readFile(root + "/apps/board/style.css", "utf8"),
   ui =
     (await readFile(import.meta.dir + "/ui.css", "utf8")) +
     "\n" +
-    (await readFile(import.meta.dir + "/paper-stack.css", "utf8"));
+    (await readFile(import.meta.dir + "/paper-stack.css", "utf8")) +
+    "\n" +
+    (await readFile(import.meta.dir + "/photo/styles.css", "utf8"));
 const cssName = "/assets/paper-" + digest(base + ui) + ".css";
 await writeFile(out + cssName, base + "\n" + ui);
 const typeCSS = await readFile(root + "/apps/type-site/style.css", "utf8"),

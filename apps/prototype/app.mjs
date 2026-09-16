@@ -1,3 +1,6 @@
+import { openPhotoScreen } from "./photo/screen";
+import { PhotoError } from "./photo/contract";
+import { listSpaces, rememberSpace, spaceLocation, keyFromSpaceLink } from "./lib/space-directory";
 import { escapeHTML as escape } from "./lib/html";
 import { shareTokenFromURL, publicShareURL } from "./lib/share-links";
 import { cloudJSON, CloudFailure, pageTitle, hasUnsaved } from "./lib/cloud";
@@ -558,7 +561,7 @@ function render() {
   document.title = pageTitle(b.title);
   updateAddress();
   const sheets = neighboringSheets(ws.boards, boardId, !!shareToken);
-  app.innerHTML = `<div class="notebook-stack" data-stack-size="${sheets.length}">${sheets.length ? `<button class="paper-stack" data-pages aria-label="Show all boards" aria-expanded="false">${makeStack(ws.boards, boardId, !!shareToken)}</button>` : ""}<article class="paper"><button class="paper-options" data-tools aria-label="Page options">${icon("settings")}</button><div class="paper-caption"><span class="board-title draft-title" data-edit="board-title" data-placeholder="Untitled" tabindex="0">${escape(b.title)}</span><span class="tagline">${escape(b.tagline || "")}</span></div><nav class="column-tabs" aria-label="Board columns">${b.columns.map((c) => `<button data-jump="${c.id}" aria-current="${c.id === (columnId || b.columns[0]?.id) ? "true" : "false"}">${escape(c.title || "Untitled")}</button>`).join("")}</nav><div class="columns" style="--cols:${Math.max(1, b.columns.length)}">${b.columns.map((c, i) => `<section class="column" data-col="${c.id}" id="c-${c.id}"><div class="hero">${artSVG(pickArt(c.title))}<div class="scribble" data-edit="note" tabindex="0">${escape(c.note)}</div></div><h1 class="column-title" data-edit="column-title" data-placeholder="Untitled" tabindex="0">${escape(c.title)}</h1><div class="column-subtitle" data-edit="subtitle" tabindex="0">${escape(c.subtitle)}</div><ul class="tasks">${c.items.map((t) => task(t, c)).join("")}</ul>${!shareToken ? '<button class="add-item" data-add>+ Add a thought</button><button class="column-menu" data-column-menu aria-label="Column actions">⋯</button>' : ""}<div class="end-note">${["Smooth pages.\nHappier people.", "Build useful\nthings.", "Tell the\nstory."][i % 3]}</div></section>`).join("")}${!b.columns.length ? '<section class="empty-column"><button data-new-column aria-label="New column">+</button></section>' : ""}</div><div class="paper-footer"><span data-edit="footer" tabindex="0">${escape(b.footer)}</span><span class="after">Small steps. Big progress.</span></div></article></div><nav class="edge-tabs" aria-label="Notebook navigation"><button class="edge-tab" data-pages aria-label="Pages">${icon("pages")}<span>Pages</span></button><button class="edge-tab" data-search aria-label="Search">${icon("search")}<span>Find</span></button>${!shareToken ? '<button class="edge-tab" data-people aria-label="People">' + icon("people") + '<span>People</span></button><button class="edge-tab" data-share aria-label="Share">' + icon("share") + "<span>Share</span></button>" : ""}</nav>`;
+  app.innerHTML = `<div class="notebook-stack" data-stack-size="${sheets.length}">${sheets.length ? `<button class="paper-stack" data-pages aria-label="Show all boards" aria-expanded="false">${makeStack(ws.boards, boardId, !!shareToken)}</button>` : ""}<article class="paper"><button class="paper-options" data-tools aria-label="Page options">${icon("settings")}</button><div class="paper-caption"><span class="board-title draft-title" data-edit="board-title" data-placeholder="Untitled" tabindex="0">${escape(b.title)}</span><span class="tagline">${escape(b.tagline || "")}</span>${!shareToken ? `<button class="space-trigger" data-spaces aria-label="Switch space">${escape(ws.name)} ${icon("down")}</button>` : ""}</div><nav class="column-tabs" aria-label="Board columns">${b.columns.map((c) => `<button data-jump="${c.id}" aria-current="${c.id === (columnId || b.columns[0]?.id) ? "true" : "false"}">${escape(c.title || "Untitled")}</button>`).join("")}</nav><div class="columns" style="--cols:${Math.max(1, b.columns.length)}">${b.columns.map((c, i) => `<section class="column" data-col="${c.id}" id="c-${c.id}"><div class="hero">${artSVG(pickArt(c.title))}<div class="scribble" data-edit="note" tabindex="0">${escape(c.note)}</div></div><h1 class="column-title" data-edit="column-title" data-placeholder="Untitled" tabindex="0">${escape(c.title)}</h1><div class="column-subtitle" data-edit="subtitle" tabindex="0">${escape(c.subtitle)}</div><ul class="tasks">${c.items.map((t) => task(t, c)).join("")}</ul>${!shareToken ? '<button class="add-item" data-add>+ Add a thought</button><button class="column-menu" data-column-menu aria-label="Column actions">⋯</button>' : ""}<div class="end-note">${["Smooth pages.\nHappier people.", "Build useful\nthings.", "Tell the\nstory."][i % 3]}</div></section>`).join("")}${!b.columns.length ? '<section class="empty-column"><button data-new-column aria-label="New column">+</button></section>' : ""}</div><div class="paper-footer"><span data-edit="footer" tabindex="0">${escape(b.footer)}</span><span class="after">Small steps. Big progress.</span></div></article></div><nav class="edge-tabs" aria-label="Notebook navigation"><button class="edge-tab" data-pages aria-label="Pages">${icon("pages")}<span>Pages</span></button><button class="edge-tab" data-search aria-label="Search">${icon("search")}<span>Find</span></button>${!shareToken ? '<button class="edge-tab" data-people aria-label="People">' + icon("people") + '<span>People</span></button><button class="edge-tab" data-share aria-label="Share">' + icon("share") + "<span>Share</span></button>" : ""}</nav>`;
   bind();
   observeNavigation();
   mark("board-render");
@@ -577,6 +580,7 @@ function bind() {
     columnId = col?.id || columnId;
     if (col) syncNavigation();
     if (el.hasAttribute("data-pages")) return pages(el);
+    if (el.hasAttribute("data-spaces")) return spaces();
     if (el.hasAttribute("data-search")) return search();
     if (el.hasAttribute("data-jump")) {
       columnId = el.dataset.jump;
@@ -736,7 +740,7 @@ function pages(trigger = document.activeElement) {
       )
       .join(
         "",
-      )}${!shareToken ? '<button class="page-thumb new" id="new-page" aria-label="New page">+<small>a fresh page</small></button>' : ""}</div>${!shareToken ? '<div class="quick-actions"><button id="new-column">+ a column on this page</button></div>' : ""}`,
+      )}${!shareToken ? '<button class="page-thumb new" id="new-page" aria-label="New page">+<small>a fresh page</small></button><button class="page-thumb new" id="photo-page" aria-label="New page from a photo">' + icon("camera") + "<small>from a photo</small></button>" : ""}</div>${!shareToken ? '<div class="quick-actions"><button id="new-column">+ a column on this page</button></div>' : ""}`,
   );
   $$("[data-pages]").forEach((button) => button.setAttribute("aria-expanded", "true"));
   modalReturnFocus = trigger;
@@ -760,6 +764,9 @@ function pages(trigger = document.activeElement) {
     edit($(".board-title"), b);
   });
   $("#new-column")?.addEventListener("click", addColumn);
+  $("#photo-page")?.addEventListener("click", () => {
+    void showPhoto();
+  });
 }
 function focus(b, id) {
   boardId = b;
@@ -1243,3 +1250,201 @@ const registerShell = () => {
 };
 if (document.readyState === "complete") registerShell();
 else window.addEventListener("load", registerShell, { once: true });
+
+let photoSessionOpen = false;
+async function showPhoto() {
+  if (shareToken || photoSessionOpen) return;
+  photoSessionOpen = true;
+  const launchEpoch = openEpoch;
+  try {
+    await flush();
+  } catch (error) {
+    photoSessionOpen = false;
+    say(error.message);
+    return;
+  }
+  if (launchEpoch !== openEpoch || editor || hasUnsaved(queue)) {
+    photoSessionOpen = false;
+    return;
+  }
+  close();
+  commit();
+  const scope = cacheKey;
+  status.hidden = true;
+  app.onclick = app.onmouseover = app.onmouseout = null;
+  await openPhotoScreen(app, {
+    scope,
+    recognize: async (image, signal) => {
+      const ready = await fetch("/photo/status", { cache: "no-store", signal });
+      if (!ready.ok) throw new PhotoError("VISION_NOT_CONFIGURED", 503);
+      const settings = await ready.json();
+      if (!settings.configured) throw new PhotoError("VISION_NOT_CONFIGURED", 503);
+      const response = await fetch("/photo/read", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + (await token()),
+          "X-Boards-Key": cap,
+        },
+        body: JSON.stringify({ image }),
+        signal,
+      });
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        throw new PhotoError("PROVIDER_UNAVAILABLE", 502);
+      }
+      if (!response.ok)
+        throw new PhotoError(result.code || "PROVIDER_UNAVAILABLE", response.status);
+      return result;
+    },
+    save: async (imported) => {
+      const boards = ws.boards.some((b) => b.id === imported.id)
+        ? ws.boards.map((b) => (b.id === imported.id ? imported : b))
+        : [...ws.boards, imported];
+      const next = validateWorkspace({ ...ws, boards });
+      undo.push(structuredClone(ws));
+      ws = next;
+      boardId = imported.id;
+      queue.change(ws);
+      persist();
+      await flush();
+    },
+    exit: () => {
+      photoSessionOpen = false;
+      app.onpaste = null;
+      status.hidden = false;
+      render();
+      say(queue?.paused ? "Resolve the connection to finish saving." : "Saved");
+    },
+  });
+}
+function spaces() {
+  if (shareToken) return;
+  const remembered = rememberSpace(cap, ws.name);
+  const entries = listSpaces();
+  modal(
+    "Spaces",
+    '<p class="space-explanation">Cloud spaces opened in this browser tab. Each editing link grants access to its own space; account-wide space sync is not enabled yet.</p><div class="space-picker">' +
+      entries
+        .map(
+          (entry, index) =>
+            '<button class="space-option" data-space-index="' +
+            index +
+            '" aria-current="' +
+            (entry.key === cap) +
+            '">' +
+            icon("pages") +
+            "<span>" +
+            escape(entry.name || "Untitled space") +
+            "</span></button>",
+        )
+        .join("") +
+      '</div><form class="space-create" id="new-space-form"><input id="new-space-name" aria-label="New space name" placeholder="Name a new space…" maxlength="120" required><button type="submit">' +
+      icon("plus") +
+      ' New space</button></form><form class="space-create" id="open-space-form"><input id="open-space-link" aria-label="Editing link for another space" type="url" placeholder="Paste another space’s editing link" required><button type="submit">Open space</button></form><p id="space-status" role="status"></p>',
+  );
+  const message = $("#space-status");
+  if (!remembered)
+    message.textContent = "This browser could not remember the space. Keep its editing link.";
+  let busy = false;
+  const pendingKey = cacheKey + ":new-space";
+  let pending = readJSON(pendingKey);
+  if (pending?.value?.name) $("#new-space-name").value = pending.value.name;
+  const sourceKey = cap,
+    sourceName = ws.name,
+    menuEpoch = openEpoch;
+  const leaveSpace = (entry) => {
+    if (!rememberSpace(sourceKey, sourceName) || !rememberSpace(entry.key, entry.name))
+      throw Error(
+        "The space exists, but browser storage is unavailable. Keep this tab open and retry.",
+      );
+    if (menuEpoch !== openEpoch || !message.isConnected) return;
+    if (editor || hasUnsaved(queue) || queue?.running)
+      throw Error("Finish saving your current edits before switching spaces.");
+    location.assign(spaceLocation(location.href, entry.key, entry.name));
+    location.reload();
+  };
+  const navigate = async (entry) => {
+    if (busy) return;
+    busy = true;
+    try {
+      await flush();
+      leaveSpace(entry);
+    } catch (error) {
+      if (message.isConnected) message.textContent = error.message;
+      busy = false;
+    }
+  };
+  $$("[data-space-index]").forEach(
+    (button) =>
+      (button.onclick = () => {
+        void navigate(entries[Number(button.dataset.spaceIndex)]);
+      }),
+  );
+  $("#new-space-form").onsubmit = async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    const name = $("#new-space-name").value.trim();
+    if (!name) return;
+    busy = true;
+    const submit = $("button", event.target);
+    submit.disabled = true;
+    if (!pending) {
+      const value = createWorkspace();
+      value.id = uid();
+      value.people = [];
+      value.boards = [newBoard("")];
+      pending = { key: random(), value };
+    }
+    pending.value.name = name;
+    if (!writeJSON(pendingKey, pending)) {
+      busy = false;
+      submit.disabled = false;
+      message.textContent = "Browser draft storage is unavailable. Keep this tab open.";
+      return;
+    }
+    const key = pending.key,
+      value = structuredClone(pending.value);
+    try {
+      await flush();
+      try {
+        await rpc("notebook", { capability: key, expected_version: 0, document: value });
+      } catch (error) {
+        if (error.status !== 409) throw error;
+        const existing = await rpc("notebook", { capability: key }),
+          current = validateWorkspace(existing.value);
+        // The first request may have succeeded; rename with its current version, never replace its boards.
+        if (current.name !== name)
+          await rpc("notebook", {
+            capability: key,
+            expected_version: existing.version,
+            document: { ...current, name },
+          });
+      }
+      leaveSpace({ key, name });
+      try {
+        sessionStorage.removeItem(pendingKey);
+      } catch {}
+    } catch (error) {
+      if (message.isConnected) message.textContent = error.message;
+      busy = false;
+      if (submit.isConnected) submit.disabled = false;
+    }
+  };
+  $("#open-space-form").onsubmit = async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    try {
+      const key = keyFromSpaceLink($("#open-space-link").value.trim(), location.origin);
+      busy = true;
+      const result = await rpc("notebook", { capability: key });
+      busy = false;
+      await navigate({ key, name: validateWorkspace(result.value).name });
+    } catch (error) {
+      busy = false;
+      if (message.isConnected) message.textContent = error.message;
+    }
+  };
+}
