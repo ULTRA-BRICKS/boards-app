@@ -1,0 +1,145 @@
+{
+  "build": "634694f79261ec34",
+  "mode": "Unmocked public HTTPS; isolated test notebook for writes; provided user notebook only read",
+  "checks": [
+    "Public cloud creation and fifteen seed tasks",
+    "Unicode save and independent-session cloud read",
+    "Multiple assignment picker remains interactive",
+    "Completion strike appears and reopens without a reload",
+    "Public share loads and revocation does not retain stale task data",
+    "Public service worker controls reload; cloud responses not cached",
+    "Real offline repeat load recovers without a false unsaved-edit loop",
+    "Mobile page does not overflow",
+    "Separate font page and service title",
+    "The exact user-provided board opens without edits or recovery loop"
+  ],
+  "cold": {
+    "build": "634694f79261ec34",
+    "measurements": [
+      {
+        "name": "module-ready",
+        "ms": 250
+      },
+      {
+        "name": "board-render",
+        "ms": 254
+      },
+      {
+        "name": "sample-render",
+        "ms": 254
+      },
+      {
+        "name": "board-frame",
+        "ms": 272
+      },
+      {
+        "name": "font-ready",
+        "ms": 340
+      },
+      {
+        "name": "token-ready",
+        "ms": 590
+      },
+      {
+        "name": "cloud-ready",
+        "ms": 866
+      }
+    ],
+    "inp": null,
+    "lcp": 284,
+    "cls": 0.037,
+    "longTasks": [],
+    "navigation": {
+      "ttfb": 141,
+      "dom": 254,
+      "load": 255
+    },
+    "resources": [
+      {
+        "kind": "app-asset",
+        "duration": 61
+      },
+      {
+        "kind": "app-asset",
+        "duration": 91
+      },
+      {
+        "kind": "anonymous-token",
+        "duration": 337
+      },
+      {
+        "kind": "app-asset",
+        "duration": -1
+      },
+      {
+        "kind": "cloud-rpc",
+        "duration": 272
+      }
+    ],
+    "serviceWorker": true
+  },
+  "repeat": {
+    "build": "634694f79261ec34",
+    "measurements": [
+      {
+        "name": "module-ready",
+        "ms": 7
+      },
+      {
+        "name": "board-render",
+        "ms": 8
+      },
+      {
+        "name": "tab-render",
+        "ms": 8
+      },
+      {
+        "name": "board-frame",
+        "ms": 22
+      },
+      {
+        "name": "font-ready",
+        "ms": 63
+      },
+      {
+        "name": "cloud-ready",
+        "ms": 182
+      }
+    ],
+    "inp": null,
+    "lcp": 32,
+    "cls": 0.037,
+    "longTasks": [],
+    "navigation": {
+      "ttfb": 2,
+      "dom": 8,
+      "load": 9
+    },
+    "resources": [
+      {
+        "kind": "app-asset",
+        "duration": 1
+      },
+      {
+        "kind": "app-asset",
+        "duration": 1
+      },
+      {
+        "kind": "cloud-rpc",
+        "duration": 174
+      },
+      {
+        "kind": "app-asset",
+        "duration": -5
+      }
+    ],
+    "serviceWorker": true
+  },
+  "providedBoard": {
+    "tasks": 15,
+    "titleHasService": true,
+    "writes": 0
+  },
+  "errors": [],
+  "timestamp": "2026-09-15T17:32:27.600Z"
+}

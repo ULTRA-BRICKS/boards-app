@@ -5,8 +5,11 @@ Bun.serve({
   port: 5183,
   async fetch(req) {
     const url = new URL(req.url),
-      path = url.pathname === "/" ? "/index.html" : url.pathname;
-    if (!/^\/(?:[\w-]+\.(html|js|json)|assets\/[\w.-]+)$/.test(path))
+      path =
+        url.pathname === "/" || /^\/s\/[a-f0-9]{64}\/?$/.test(url.pathname)
+          ? "/index.html"
+          : url.pathname;
+    if (!/^\/(?:[\w-]+\.(html|js|json|txt)|assets\/[\w.-]+)$/.test(path))
       return new Response("Not found", { status: 404 });
     const file = Bun.file(root + path);
     if (!(await file.exists())) return new Response("Not found", { status: 404 });

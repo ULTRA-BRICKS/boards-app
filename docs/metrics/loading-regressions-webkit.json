@@ -1,0 +1,41 @@
+{
+  "mode": "Native browser with explicit simulated cloud failures",
+  "results": [
+    {
+      "name": "First-load network failure is not mislabeled as unsaved user edits",
+      "passed": true
+    },
+    {
+      "name": "Repeated connection retries recover without duplicate notebook creation",
+      "passed": true
+    },
+    {
+      "name": "Lost creation response is recovered by versioned read, not a second notebook",
+      "passed": true
+    },
+    {
+      "name": "A clean cached page with failed revalidation is not a save conflict",
+      "passed": true
+    },
+    {
+      "name": "Load cloud version after an actual failed save exits the recovery screen",
+      "passed": true
+    },
+    {
+      "name": "Title always names the service after the separator",
+      "passed": true
+    },
+    {
+      "name": "Diagnostics identify failing operation without recording keys or document text",
+      "passed": true
+    },
+    {
+      "name": "Existing link failure keeps its board and never creates a replacement",
+      "passed": true
+    },
+    {
+      "name": "Failed cloud reload preserves the draft until a read succeeds and Undo remains available",
+      "passed": true
+    }
+  ]
+}

@@ -1,5 +1,9 @@
+import { escapeHTML as escape } from "./lib/html";
+import { shareTokenFromURL, publicShareURL } from "./lib/share-links";
+import { cloudJSON, CloudFailure, pageTitle, hasUnsaved } from "./lib/cloud";
+import { diagnose, downloadDiagnostics } from "./lib/diagnostics";
 import { openTaskCounts } from "./lib/people";
-import { stackMarkup as makeStack, animateCards } from "./lib/stack";
+import { stackMarkup as makeStack, animateCards, neighboringSheets } from "./lib/stack";
 /** Isolated cloud prototype; no production account or integration is simulated. */
 import { installFont } from "./lib/font";
 import {
@@ -32,20 +36,13 @@ import {
 import { documents, rank } from "../../packages/core/search.mjs";
 import { uid } from "../../packages/core/model.mjs";
 import { SyncQueue } from "../../packages/core/sync.mjs";
-const API =
-  "https://ep-long-pond-ay3myrkz.apirest.c-5.us-east-2.aws.neon.tech/boards_prototype/rest/v1";
-const AUTH =
-  "https://ep-long-pond-ay3myrkz.neonauth.c-5.us-east-2.aws.neon.tech/boards_prototype/auth";
+const API = "/cloud";
+const AUTH = "/cloud";
 const $ = (q, r = document) => r.querySelector(q),
   $$ = (q, r = document) => [...r.querySelectorAll(q)],
   app = $("#app"),
   overlays = $("#overlays"),
   status = $("#status");
-const escape = (s) =>
-  String(s ?? "").replace(
-    /[&<>"']/g,
-    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
-  );
 const random = () =>
   btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))))
     .replaceAll("+", "-")
@@ -53,7 +50,7 @@ const random = () =>
     .replaceAll("=", "");
 let params = new URLSearchParams(location.hash.slice(1)),
   cap = params.get("key"),
-  shareToken = params.get("share"),
+  shareToken = shareTokenFromURL(location.href),
   ws,
   boardId = params.get("board") || "",
   columnId = "",
@@ -71,7 +68,8 @@ let params = new URLSearchParams(location.hash.slice(1)),
   cacheKey = "",
   verifying = false,
   recoveryUnavailable = false,
-  personColors = new Map();
+  personColors = new Map(),
+  modalReturnFocus = null;
 const board = () => ws.boards.find((b) => b.id === boardId) || ws.boards[0];
 const say = (s) =>
   (status.textContent =
@@ -84,17 +82,18 @@ async function token() {
   if (pendingToken) return pendingToken;
   const cached = readJSON("boards:anonymous-v1");
   if (cached && cached.expires > Date.now() && anonymousExpiry(cached.token) > Date.now()) {
+    diagnose("auth.cached");
     accessToken = cached.token;
     expires = cached.expires;
     return accessToken;
   }
   pendingToken = (async () => {
-    const r = await fetch(AUTH + "/token/anonymous", {
-        credentials: "omit",
-        signal: AbortSignal.timeout(12000),
-      }),
-      value = await r.json();
-    if (!r.ok || typeof value.token !== "string") throw Error("Cloud connection unavailable.");
+    const value = await cloudJSON(
+      AUTH + "/token/anonymous",
+      { signal: AbortSignal.timeout(12000) },
+      "auth",
+    );
+    if (typeof value.token !== "string") throw new CloudFailure("BAD_RESPONSE", "auth");
     accessToken = value.token;
     expires = anonymousExpiry(accessToken) || Date.now() + 60000;
     if (anonymousExpiry(accessToken) > Date.now())
@@ -105,41 +104,50 @@ async function token() {
   return pendingToken;
 }
 async function rpc(name, input, retry = true) {
+  const operation =
+    name === "notebook"
+      ? input.document
+        ? input.expected_version === 0
+          ? "create"
+          : "save"
+        : "read"
+      : name === "read_shared"
+        ? "read-share"
+        : input.revoke_token
+          ? "revoke"
+          : "share";
   const jwt = await token();
-  const r = await fetch(API + "/rpc/" + name, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "Content-Profile": "prototype_api",
-      "Accept-Profile": "prototype_api",
-      Authorization: "Bearer " + jwt,
-    },
-    body: JSON.stringify(input),
-    credentials: "omit",
-    signal: AbortSignal.timeout(20000),
-  });
-  let value;
   try {
-    value = await r.json();
-  } catch {
-    throw Error("The cloud returned an unreadable response.");
+    return await cloudJSON(
+      API + "/rpc/" + name,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "Content-Profile": "prototype_api",
+          "Accept-Profile": "prototype_api",
+          Authorization: "Bearer " + jwt,
+        },
+        body: JSON.stringify(input),
+        signal: AbortSignal.timeout(20000),
+      },
+      operation,
+    );
+  } catch (error) {
+    if (error.status === 401 && retry) {
+      accessToken = "";
+      expires = 0;
+      try {
+        sessionStorage.removeItem("boards:anonymous-v1");
+      } catch {}
+      diagnose("auth.renew");
+      return rpc(name, input, false);
+    }
+    throw error;
   }
-  if (r.status === 401 && retry) {
-    accessToken = "";
-    expires = 0;
-    try {
-      sessionStorage.removeItem("boards:anonymous-v1");
-    } catch {}
-    return rpc(name, input, false);
-  }
-  if (!r.ok)
-    throw Object.assign(Error(value.message || value.error || "Cloud request failed"), {
-      code: value.code,
-      status: r.status,
-    });
-  return value;
 }
+
 function commit() {
   if (!editor) return;
   const e = editor;
@@ -181,8 +189,12 @@ async function flush() {
   throw Error("Still saving. Please retry.");
 }
 function modal(name, html) {
+  const active = document.activeElement;
+  const origin =
+    overlays.children.length && modalReturnFocus?.isConnected ? modalReturnFocus : active;
   commit();
   close();
+  modalReturnFocus = origin?.isConnected ? origin : null;
   openEpoch++;
   overlays.innerHTML = `<div class="backdrop"><section class="dialog wide" role="dialog" aria-modal="true" aria-label="${escape(name)}"><button class="close" aria-label="Close">×</button>${html}</section></div>`;
   $(".close").onclick = close;
@@ -190,12 +202,20 @@ function modal(name, html) {
     if (e.target === e.currentTarget) close();
   };
   app.inert = true;
-  requestAnimationFrame(() => $("input,button:not(.close),[contenteditable]", overlays)?.focus());
+  const focusEpoch = openEpoch;
+  requestAnimationFrame(() => {
+    if (openEpoch === focusEpoch)
+      $("input,button:not(.close),[contenteditable]", overlays)?.focus();
+  });
 }
 function close() {
   openEpoch++;
   overlays.replaceChildren();
   app.inert = false;
+  const previousFocus = modalReturnFocus;
+  modalReturnFocus = null;
+  if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+  $$("[data-pages]").forEach((button) => button.setAttribute("aria-expanded", "false"));
   peek?.remove();
   peek = null;
 }
@@ -209,32 +229,103 @@ function backup() {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+function connectionFailure(error) {
+  close();
+  say("Not connected to cloud");
+  overlays.innerHTML =
+    '<section class="conflict connection-error" role="alertdialog" aria-modal="true" aria-label="Cloud connection unavailable"><h2>Cannot connect to cloud</h2><p>' +
+    escape(error.message) +
+    "</p><p>" +
+    (shareToken
+      ? "This shared page has not been loaded."
+      : ws
+        ? "The page is visible, but the cloud connection is not ready. No edits have been lost."
+        : "Your page could not be loaded. Retrying will use the same link.") +
+    '</p><div class="quick-actions"><button id="retry-connect">Retry connection</button><button id="connection-log">Download diagnostics</button></div></section>';
+  app.inert = true;
+  const button = $("#retry-connect");
+  button.onclick = async () => {
+    if (button.disabled) return;
+    button.disabled = true;
+    diagnose("recovery.retry", { operation: "open" });
+    await open();
+    if (button.isConnected) button.disabled = false;
+  };
+  $("#connection-log").onclick = downloadDiagnostics;
+  button.focus();
+}
 function failSave(message) {
   commit();
+  if (!hasUnsaved(queue)) return connectionFailure(new Error(message));
+  persist();
+  diagnose("save.failed");
   close();
-  overlays.innerHTML = `<section class="conflict" role="alertdialog" aria-modal="true" aria-label="Unsaved changes"><h2>Your last changes are not saved.</h2><p>${escape(message)}</p><p>Your draft is still in this page. It has not been replaced with another session's version.</p><div class="quick-actions"><button id="backup">Export draft</button><button id="retry">Retry save</button><button id="reload">Load the cloud version</button></div></section>`;
+  overlays.innerHTML =
+    '<section class="conflict" role="alertdialog" aria-modal="true" aria-label="Unsaved changes"><h2>Your last changes are not saved.</h2><p>' +
+    escape(message) +
+    '</p><p>Your draft is still in this page. It has not been replaced with another session\'s version.</p><div class="quick-actions"><button id="backup">Export draft</button><button id="retry">Retry save</button>' +
+    (queue?.version > 0 ? '<button id="reload">Load the cloud version</button>' : "") +
+    '<button id="save-log">Download diagnostics</button></div></section>';
   app.inert = true;
   $("#backup").onclick = backup;
+  $("#save-log").onclick = downloadDiagnostics;
   $("#retry").onclick = () => {
+    diagnose("recovery.retry", { operation: queue?.version ? "save" : "create" });
     close();
-    if (!queue.enabled) open();
+    if (!queue.enabled) void open();
     else queue.retry();
   };
-  $("#reload").onclick = async () => {
-    if (!confirm("Discard the unsaved draft? Export it first to keep a copy.")) return;
-    if (cacheKey) {
-      try {
-        sessionStorage.removeItem(cacheKey);
-        sessionStorage.removeItem(cacheKey + ":draft");
-      } catch {}
-    }
-    queue?.dispose();
-    queue = null;
-    ws = null;
-    close();
-    await open();
-  };
+  $("#reload")?.addEventListener("click", () => {
+    void loadCloudVersion();
+  });
+  $("#backup").focus();
 }
+async function loadCloudVersion() {
+  if (
+    !confirm(
+      "Load the cloud version instead? Your current draft will be kept as an undo step. Export it first for a separate backup.",
+    )
+  )
+    return;
+  const button = $("#reload");
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+  diagnose("recovery.cloud", { operation: "read" });
+  try {
+    const result = await rpc("notebook", { capability: cap }),
+      value = validateWorkspace(result.value);
+    if (!Number.isInteger(result.version) || result.version < 1)
+      throw new CloudFailure("BAD_RESPONSE", "read");
+    undo.push(structuredClone(ws));
+    if (undo.length > 40) undo.shift();
+    if (cacheKey)
+      writeJSON(cacheKey + ":before-cloud", {
+        version: queue?.version,
+        value: ws,
+        saved: Date.now(),
+      });
+    queue?.dispose();
+    ws = value;
+    version = result.version;
+    creating = false;
+    editor = null;
+    try {
+      if (cacheKey) sessionStorage.removeItem(cacheKey + ":draft");
+    } catch {}
+    if (!ws.boards.some((b) => b.id === boardId)) boardId = ws.boards[0].id;
+    initQueue(version, true);
+    persist();
+    render();
+    updateAddress();
+    say("Saved");
+    diagnose("open.ready");
+  } catch (error) {
+    failSave(error.message);
+  } finally {
+    if (button?.isConnected) button.disabled = false;
+  }
+}
+
 function persist() {
   if (cacheKey && queue && !shareToken) {
     recoveryUnavailable = !saveSnapshot(cacheKey, queue.version, ws, queue.sequence > queue.ack);
@@ -243,6 +334,7 @@ function persist() {
 }
 function updateAddress() {
   if (!ws) return;
+  document.title = pageTitle(board().title);
   const p = new URLSearchParams(location.hash.slice(1));
   p.set("board", boardId);
   p.set("title", board().title || "Untitled");
@@ -259,6 +351,7 @@ function initQueue(v, enabled) {
         persist();
         say("Saved");
         mark("save-complete");
+        diagnose("save.ready");
       } else if (s.kind === "saving") say("Saving\u2026");
       else if (s.kind === "pending" || s.kind === "local")
         say(verifying ? "Syncing your changes\u2026" : "Saving\u2026");
@@ -286,7 +379,26 @@ function restoreScratch() {
   obj[key] = draft.value;
   return true;
 }
-async function open() {
+let openingPromise;
+function open() {
+  if (openingPromise) return openingPromise;
+  openingPromise = loadNotebook().finally(() => {
+    openingPromise = null;
+  });
+  return openingPromise;
+}
+async function loadNotebook() {
+  commit();
+  const memory =
+    ws && hasUnsaved(queue)
+      ? {
+          version: queue.version,
+          value: structuredClone(ws),
+          pending: true,
+          creating: queue.version === 0,
+        }
+      : null;
+  diagnose("open.started", { operation: "open" });
   verifying = true;
   let cached = null;
   try {
@@ -297,7 +409,7 @@ async function open() {
     void token().catch(() => {});
     if (!shareToken) {
       cacheKey = await notebookCacheKey(cap);
-      cached = readSnapshot(cacheKey);
+      cached = memory || readSnapshot(cacheKey);
       if (cached) {
         try {
           ws = validateWorkspace(cached.value);
@@ -312,6 +424,7 @@ async function open() {
           if (cached.pending || scratch) queue.change(ws);
           render();
           mark("tab-render");
+          diagnose("open.cached");
           say("Checking for changes\u2026");
         }
       }
@@ -361,22 +474,19 @@ async function open() {
     } else queue.configure({ enabled: true, version: result.version });
     verifying = false;
     mark("cloud-ready");
+    diagnose("open.ready");
     persist();
     updateAddress();
     say(shareToken ? "Read-only view" : dirty ? "Saving your recovered changes\u2026" : "Saved");
   } catch (e) {
     verifying = false;
-    if (ws && queue && !shareToken) {
+    diagnose("open.failed", { operation: e?.operation || "open", code: e.code || "UNKNOWN" });
+    if (queue && !shareToken) {
       queue.enabled = false;
       queue.paused = true;
-      failSave(e.message);
-      return;
     }
-    app.innerHTML =
-      '<section class="gate"><h1>Unable to connect</h1><p>' +
-      escape(e.message) +
-      '</p><button id="connect-again" class="primary">Try again</button></section>';
-    $("#connect-again").onclick = () => open();
+    if (hasUnsaved(queue) && !shareToken) failSave(e.message);
+    else connectionFailure(e);
   }
 }
 
@@ -445,9 +555,10 @@ function render() {
   if (!ws) return;
   const b = board();
   personColors = colors(ws.people);
-  document.title = b.title || "Untitled";
+  document.title = pageTitle(b.title);
   updateAddress();
-  app.innerHTML = `<article class="paper"><button class="paper-stack" data-pages aria-label="Show all boards" aria-expanded="false">${makeStack(ws.boards, boardId)}</button><button class="paper-options" data-tools aria-label="Page options">${icon("settings")}</button><div class="paper-caption"><span class="board-title draft-title" data-edit="board-title" data-placeholder="Untitled" tabindex="0">${escape(b.title)}</span><span class="tagline">${escape(b.tagline || "")}</span></div><nav class="column-tabs" aria-label="Board columns">${b.columns.map((c) => `<button data-jump="${c.id}" aria-current="${c.id === (columnId || b.columns[0]?.id) ? "true" : "false"}">${escape(c.title || "Untitled")}</button>`).join("")}</nav><div class="columns" style="--cols:${Math.max(1, b.columns.length)}">${b.columns.map((c, i) => `<section class="column" data-col="${c.id}" id="c-${c.id}"><div class="hero">${artSVG(pickArt(c.title))}<div class="scribble" data-edit="note" tabindex="0">${escape(c.note)}</div></div><h1 class="column-title" data-edit="column-title" data-placeholder="Untitled" tabindex="0">${escape(c.title)}</h1><div class="column-subtitle" data-edit="subtitle" tabindex="0">${escape(c.subtitle)}</div><ul class="tasks">${c.items.map((t) => task(t, c)).join("")}</ul>${!shareToken ? '<button class="add-item" data-add>+ Add a thought</button><button class="column-menu" data-column-menu aria-label="Column actions">⋯</button>' : ""}<div class="end-note">${["Smooth pages.\nHappier people.", "Build useful\nthings.", "Tell the\nstory."][i % 3]}</div></section>`).join("")}${!b.columns.length ? '<section class="empty-column"><button data-new-column aria-label="New column">+</button></section>' : ""}</div><div class="paper-footer"><span data-edit="footer" tabindex="0">${escape(b.footer)}</span><span class="after">Small steps. Big progress.</span></div></article><nav class="edge-tabs" aria-label="Notebook navigation"><button class="edge-tab" data-pages aria-label="Pages">${icon("pages")}<span>Pages</span></button><button class="edge-tab" data-search aria-label="Search">${icon("search")}<span>Find</span></button>${!shareToken ? '<button class="edge-tab" data-people aria-label="People">' + icon("people") + '<span>People</span></button><button class="edge-tab" data-share aria-label="Share">' + icon("share") + "<span>Share</span></button>" : ""}</nav>`;
+  const sheets = neighboringSheets(ws.boards, boardId, !!shareToken);
+  app.innerHTML = `<div class="notebook-stack" data-stack-size="${sheets.length}">${sheets.length ? `<button class="paper-stack" data-pages aria-label="Show all boards" aria-expanded="false">${makeStack(ws.boards, boardId, !!shareToken)}</button>` : ""}<article class="paper"><button class="paper-options" data-tools aria-label="Page options">${icon("settings")}</button><div class="paper-caption"><span class="board-title draft-title" data-edit="board-title" data-placeholder="Untitled" tabindex="0">${escape(b.title)}</span><span class="tagline">${escape(b.tagline || "")}</span></div><nav class="column-tabs" aria-label="Board columns">${b.columns.map((c) => `<button data-jump="${c.id}" aria-current="${c.id === (columnId || b.columns[0]?.id) ? "true" : "false"}">${escape(c.title || "Untitled")}</button>`).join("")}</nav><div class="columns" style="--cols:${Math.max(1, b.columns.length)}">${b.columns.map((c, i) => `<section class="column" data-col="${c.id}" id="c-${c.id}"><div class="hero">${artSVG(pickArt(c.title))}<div class="scribble" data-edit="note" tabindex="0">${escape(c.note)}</div></div><h1 class="column-title" data-edit="column-title" data-placeholder="Untitled" tabindex="0">${escape(c.title)}</h1><div class="column-subtitle" data-edit="subtitle" tabindex="0">${escape(c.subtitle)}</div><ul class="tasks">${c.items.map((t) => task(t, c)).join("")}</ul>${!shareToken ? '<button class="add-item" data-add>+ Add a thought</button><button class="column-menu" data-column-menu aria-label="Column actions">⋯</button>' : ""}<div class="end-note">${["Smooth pages.\nHappier people.", "Build useful\nthings.", "Tell the\nstory."][i % 3]}</div></section>`).join("")}${!b.columns.length ? '<section class="empty-column"><button data-new-column aria-label="New column">+</button></section>' : ""}</div><div class="paper-footer"><span data-edit="footer" tabindex="0">${escape(b.footer)}</span><span class="after">Small steps. Big progress.</span></div></article></div><nav class="edge-tabs" aria-label="Notebook navigation"><button class="edge-tab" data-pages aria-label="Pages">${icon("pages")}<span>Pages</span></button><button class="edge-tab" data-search aria-label="Search">${icon("search")}<span>Find</span></button>${!shareToken ? '<button class="edge-tab" data-people aria-label="People">' + icon("people") + '<span>People</span></button><button class="edge-tab" data-share aria-label="Share">' + icon("share") + "<span>Share</span></button>" : ""}</nav>`;
   bind();
   observeNavigation();
   mark("board-render");
@@ -465,7 +576,7 @@ function bind() {
       t = col?.items.find((t) => t.id === row?.dataset.item);
     columnId = col?.id || columnId;
     if (col) syncNavigation();
-    if (el.hasAttribute("data-pages")) return pages();
+    if (el.hasAttribute("data-pages")) return pages(el);
     if (el.hasAttribute("data-search")) return search();
     if (el.hasAttribute("data-jump")) {
       columnId = el.dataset.jump;
@@ -478,7 +589,7 @@ function bind() {
       });
       return;
     }
-    if (el.hasAttribute("data-people")) return people();
+    if (el.hasAttribute("data-people")) return people(el);
     if (el.hasAttribute("data-person")) return person(el.dataset.person, row, el);
     if (shareToken) return;
     if (el.hasAttribute("data-edit")) return edit(el, t || col || board());
@@ -605,13 +716,13 @@ function addColumn() {
   change(() => board().columns.push(c));
   edit($("#c-" + c.id + " h1"), c);
 }
-function pages() {
+function pages(trigger = document.activeElement) {
   modal(
     "Pages",
     `<div class="page-grid">${ws.boards
       .map(
         (b) =>
-          `<button class="page-thumb" data-page="${b.id}"><strong>${escape(b.title || "Untitled")}</strong><small>${b.columns
+          `<button class="page-thumb" data-page="${b.id}" aria-current="${b.id === boardId}"><strong>${escape(b.title || "Untitled")}</strong><small>${b.columns
             .map(
               (c) =>
                 escape(c.title) +
@@ -627,6 +738,8 @@ function pages() {
         "",
       )}${!shareToken ? '<button class="page-thumb new" id="new-page" aria-label="New page">+<small>a fresh page</small></button>' : ""}</div>${!shareToken ? '<div class="quick-actions"><button id="new-column">+ a column on this page</button></div>' : ""}`,
   );
+  $$("[data-pages]").forEach((button) => button.setAttribute("aria-expanded", "true"));
+  modalReturnFocus = trigger;
   $(".dialog").classList.add("sheet-shelf");
   animateCards($(".dialog"));
   $$("[data-page]").forEach(
@@ -879,7 +992,7 @@ function scheduleClosePreview() {
     }
   }, 180);
 }
-function people() {
+function people(trigger = document.activeElement) {
   const openCounts = openTaskCounts(ws);
   modal(
     "People",
@@ -898,47 +1011,13 @@ function people() {
             " open tasks</small></button>",
         )
         .join("") +
-      "</div>" +
-      (!shareToken
-        ? '<label class="import-people">Import Slack people<input type="file" id="people-file" accept="application/json"></label>'
-        : ""),
+      "</div>",
   );
-  $$("[data-show-person]").forEach((b) => (b.onclick = () => person(b.dataset.showPerson)));
-  $("#people-file")?.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file || file.size > 1000000) return say("Choose a people export below 1 MB.");
-    try {
-      const incoming = JSON.parse(await file.text());
-      if (!Array.isArray(incoming) || incoming.length > 200) throw Error("Invalid people export");
-      change(() => {
-        for (const value of incoming) {
-          const p = ws.people.find(
-            (p) => p.id === value.id || p.name.toLowerCase() === String(value.name).toLowerCase(),
-          );
-          if (p) {
-            if (
-              !p.avatar &&
-              /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value.avatar || "")
-            )
-              p.avatar = value.avatar;
-          } else
-            ws.people.push({
-              id: uid(),
-              name: String(value.name).slice(0, 120),
-              email: "",
-              avatar: value.avatar || "",
-              slackUserId: "",
-              slackUrl: "",
-            });
-        }
-      });
-      say("People imported");
-    } catch (e) {
-      say(e.message);
-    }
-  });
+  modalReturnFocus = trigger;
+  $$("[data-show-person]").forEach(
+    (button) => (button.onclick = () => person(button.dataset.showPerson)),
+  );
 }
-
 function itemTools(t, c) {
   modal(
     "Item actions",
@@ -1012,6 +1091,10 @@ function tools() {
     setSound(!soundEnabled());
     tools();
   };
+  const exportLog = document.createElement("button");
+  exportLog.textContent = "Download diagnostics";
+  exportLog.onclick = downloadDiagnostics;
+  $(".options-list").append(exportLog);
   $("#metrics").onclick = () => {
     const data = report();
     modal(
@@ -1057,8 +1140,7 @@ async function share(kind) {
           await rpc("share_notebook", { capability: cap, revoke_token: r.token });
           return;
         }
-        const link = new URL(location.href);
-        link.hash = "share=" + r.token;
+        const link = new URL(publicShareURL(location.href, r.token));
         $("#share-result").innerHTML =
           `<label>Read-only link<input readonly id="share-url" value="${escape(link.href)}"></label><div class="quick-actions"><button id="copy-share">Copy</button><button id="revoke-share">Revoke</button><a id="open-share" target="_blank" rel="noopener noreferrer" href="${escape(link.href)}">Open ↗</a></div>`;
         $("#copy-share").onclick = () =>

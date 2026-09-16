@@ -1,0 +1,6 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": {"browser": true, "node": true, "es2024": true, "worker": true},
+  "globals": {"Bun": "readonly", "FONT_WORKER": "readonly"},
+  "rules": {"no-undef": "error", "no-eval": "error", "no-new-func": "error"}
+}

@@ -1,0 +1,15 @@
+{
+  "scope": "Local PostgreSQL fixture, counted SQL round trips, not production latency",
+  "bulkAssignment": {
+    "items": 40,
+    "before": 164,
+    "after": 8
+  },
+  "weeklyDigest": {
+    "recipients": 33,
+    "before": 34,
+    "after": 2
+  },
+  "beforeSource": "Reproduced by review-hotpaths.test.ts before fix",
+  "allRowsAtomic": true
+}

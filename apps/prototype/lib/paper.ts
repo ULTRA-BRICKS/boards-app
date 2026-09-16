@@ -1,9 +1,6 @@
+import { escapeHTML as esc } from "./html";
 import { ICONS } from "./icons";
-export const esc = (value: unknown) =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
-  );
+export { esc };
 export function hash(text: string) {
   let h = 2166136261;
   for (const c of text) h = Math.imul(h ^ c.codePointAt(0)!, 16777619);

@@ -1,0 +1,46 @@
+{
+  "build": "634694f79261ec34",
+  "mode": "Unmocked public HTTPS; freshly created isolated notebook, no supplied user data modified",
+  "checks": [
+    {
+      "scope": "board",
+      "metadata": true,
+      "image": "1200x630",
+      "revokedHTML": 404,
+      "revokedImage": 404,
+      "latestStateChecked": false
+    },
+    {
+      "scope": "column",
+      "metadata": true,
+      "image": "1200x630",
+      "revokedHTML": 404,
+      "revokedImage": 404,
+      "latestStateChecked": false
+    },
+    {
+      "scope": "item",
+      "metadata": true,
+      "image": "1200x630",
+      "revokedHTML": 404,
+      "revokedImage": 404,
+      "latestStateChecked": true
+    },
+    {
+      "scope": "items",
+      "metadata": true,
+      "image": "1200x630",
+      "revokedHTML": 404,
+      "revokedImage": 404,
+      "latestStateChecked": false
+    },
+    {
+      "scope": "space",
+      "metadata": true,
+      "image": "1200x630",
+      "revokedHTML": 404,
+      "revokedImage": 404,
+      "latestStateChecked": false
+    }
+  ]
+}

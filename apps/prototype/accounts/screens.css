@@ -1,0 +1,163 @@
+.account-sheet {
+  max-width: 900px;
+  margin: 24px auto 80px;
+  background: var(--paper, #f8f6f0);
+  border: 1px solid #c2c8cc;
+  border-radius: 18px 22px 17px 23px;
+  padding: 30px;
+  color: #293f5e;
+  font-family: "Conloca Sans", Georgia, serif;
+  box-sizing: border-box;
+}
+.account-sheet nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  font-size: 16px;
+}
+.account-sheet nav a {
+  color: inherit;
+}
+.account-sheet h1 {
+  font-size: 44px;
+  line-height: 1.25;
+  margin: 28px 0;
+}
+.account-sheet h2 {
+  font-size: 26px;
+}
+.account-sheet p {
+  font-size: 20px;
+  line-height: 1.5;
+}
+.account-sheet button {
+  font: inherit;
+  color: inherit;
+  min-height: 44px;
+  border: 1px solid #acb9c6;
+  background: #eef0e9;
+  border-radius: 7px 9px 8px 6px;
+  padding: 8px 15px;
+  cursor: pointer;
+}
+.account-sheet button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.account-sheet input {
+  font: inherit;
+  color: inherit;
+  border: 1px solid #b3bfca;
+  border-radius: 6px;
+  background: #fffef9;
+  padding: 10px;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+.account-sheet input:not([type="checkbox"]) {
+  width: 100%;
+  font-size: 21px;
+  min-height: 44px;
+}
+.account-sheet form {
+  display: grid;
+  gap: 18px;
+  max-width: 560px;
+  margin: 24px 0;
+}
+.account-sheet label {
+  display: grid;
+  gap: 8px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.account-sheet label:has([type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.account-sheet input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.account-sheet fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+.space-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+}
+.space-cards button {
+  text-align: left;
+  min-height: 110px;
+  display: grid;
+  gap: 12px;
+  background: #fdfcf7;
+}
+.space-cards strong {
+  font-size: 27px;
+}
+.space-cards small {
+  font-size: 16px;
+}
+.account-sheet .people-list section {
+  border-bottom: 1px solid #c4cbd1;
+  padding: 15px 0;
+}
+.account-sheet [role="status"] {
+  min-height: 22px;
+  color: #77571b;
+  font-size: 17px;
+  overflow-wrap: anywhere;
+}
+.account-sheet #history-list {
+  list-style: none;
+  margin: 24px 0;
+  padding: 0;
+}
+.account-sheet #history-list li {
+  border-left: 2px solid #b9c6d3;
+  padding: 0 0 18px 18px;
+  margin: 20px 0;
+  line-height: 1.5;
+}
+.account-sheet time {
+  display: block;
+  font:
+    14px/1.6 Arial,
+    sans-serif;
+  color: #556a80;
+}
+.account-sheet :focus-visible {
+  outline: 2px solid #536f8f;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  .account-sheet {
+    margin: 12px 10px 80px;
+    padding: 20px 17px;
+  }
+  .account-sheet h1 {
+    font-size: 36px;
+  }
+  .account-sheet nav {
+    gap: 8px;
+  }
+  .account-sheet nav button {
+    padding: 6px 10px;
+    font-size: 15px;
+  }
+  .space-cards {
+    grid-template-columns: 1fr;
+  }
+  .account-sheet p {
+    font-size: 18px;
+  }
+}

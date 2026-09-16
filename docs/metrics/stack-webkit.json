@@ -1,0 +1,34 @@
+{
+  "engine": "webkit",
+  "scope": "Native browser, fixture data; checks physical sheet overlap, hit testing, count and keyboard",
+  "results": [
+    {
+      "pages": 1,
+      "widths": 7,
+      "layering": true,
+      "keyboard": true,
+      "errors": []
+    },
+    {
+      "pages": 2,
+      "widths": 7,
+      "layering": true,
+      "keyboard": true,
+      "errors": []
+    },
+    {
+      "pages": 3,
+      "widths": 7,
+      "layering": true,
+      "keyboard": true,
+      "errors": []
+    },
+    {
+      "pages": 6,
+      "widths": 7,
+      "layering": true,
+      "keyboard": true,
+      "errors": []
+    }
+  ]
+}

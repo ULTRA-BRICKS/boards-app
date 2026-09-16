@@ -1,6 +1,6 @@
 {
   "scope": "All board and independent type-site browser assets",
-  "gzipBytes": 57696,
+  "gzipBytes": 60677,
   "budget": 100000,
   "assets": [
     {
@@ -9,24 +9,24 @@
       "gzip": 9406
     },
     {
-      "file": "paper-7da9052c9e65.css",
-      "bytes": 29192,
-      "gzip": 7935
-    },
-    {
       "file": "type-63f7c52f5b7a.css",
       "bytes": 2272,
       "gzip": 1015
     },
     {
-      "file": "app-qwbqjqy4.js",
-      "bytes": 76290,
-      "gzip": 30327
+      "file": "app-v18f02dm.js",
+      "bytes": 82453,
+      "gzip": 32703
     },
     {
       "file": "font-worker-jje3nyen.js",
       "bytes": 19134,
       "gzip": 9013
+    },
+    {
+      "file": "paper-81b2c51e8902.css",
+      "bytes": 31647,
+      "gzip": 8540
     }
   ]
 }

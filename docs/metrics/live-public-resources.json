@@ -1,0 +1,12 @@
+{
+  "build": "3dfae8a87229ebf6",
+  "timestamp": "2026-09-15T11:44:39.803Z",
+  "checks": [
+    "Public HTML",
+    "Manifest and HTML are one generation",
+    "All immutable assets and JavaScript MIME",
+    "Type site and service worker",
+    "Cloud CORS allows actual deployment origin"
+  ],
+  "scope": "Unmocked public resources and CORS only. No mutation, token logging or persistence claim."
+}

@@ -1,0 +1,28 @@
+/* Real layers: the active, opaque sheet covers the continuation of neighboring sheets. */
+.notebook-stack { position:relative; isolation:isolate; margin:96px 50px 104px 28px; --stack-peek:66px; }
+.notebook-stack[data-stack-size="1"] { margin-top:74px; --stack-peek:44px; }
+.notebook-stack[data-stack-size="0"] { margin-top:30px; --stack-peek:0px; }
+.notebook-stack > .paper { position:relative; z-index:2; isolation:auto; margin:0; background:var(--paper); box-shadow:0 -3px 10px #24395208; }
+.notebook-stack > .paper-stack { z-index:1; inset:auto 0 auto 0; top:calc(-1 * var(--stack-peek)); height:calc(var(--stack-peek) + 88px); width:100%; }
+.notebook-stack .stack-sheet { bottom:0; border-radius:18px 20px 19px 17px; box-shadow:0 -2px 8px #283f6006; }
+.notebook-stack .stack-sheet.near { z-index:2; top:22px; left:18px; right:19px; padding:10px 25px; transform:rotate(-.2deg); background:#f1efe6; }
+.notebook-stack .stack-sheet.far { z-index:1; top:0; left:40px; right:42px; padding:7px 24px; transform:rotate(.25deg); font-size:12px; background:#eae9e1; color:#4f6076; }
+.notebook-stack[data-stack-size="1"] .stack-sheet.near { top:0; }
+.notebook-stack .stack-sheet.near > span { font-size:18px; line-height:25px; max-width:calc(100% - 44px); }
+.notebook-stack .stack-sheet i { right:22px; top:11px; }
+.notebook-stack .paper-stack:hover .near { transform:translateY(-2px) rotate(-.2deg); }
+.notebook-stack .paper-stack:focus-visible { outline:2px solid #526c89; outline-offset:4px; border-radius:18px; }
+@media(min-width:1800px) { .notebook-stack { max-width:1750px; margin-left:auto; margin-right:auto; } }
+@media(max-width:700px) {
+ .notebook-stack { margin:86px 10px 99px; --stack-peek:62px; }
+ .notebook-stack[data-stack-size="1"] { margin-top:66px; --stack-peek:42px; }
+ .notebook-stack[data-stack-size="0"] { margin-top:16px; }
+ .notebook-stack > .paper { margin:0; padding:21px 16px; }
+ .notebook-stack .stack-sheet.near { left:11px; right:12px; padding:9px 18px; }
+ .notebook-stack .stack-sheet.near > span { font-size:16px; line-height:24px; }
+ .notebook-stack .stack-sheet.far { left:27px; right:29px; padding:6px 19px; font-size:11px; }
+}
+@media print { .notebook-stack { margin:0; } .paper-stack { display:none; } }
+/* The button owns only the exposed strip; decorative paper continues behind the front. */
+.notebook-stack > .paper-stack { height:var(--stack-peek); }
+.notebook-stack .stack-sheet { bottom:-88px; pointer-events:none; }

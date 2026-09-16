@@ -1,22 +1,111 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-09-13",
+  "updated": "2026-09-15",
   "precedence": "Latest explicit user request overrides older requests and assistant assumptions.",
   "rules": [
-    {"id":"process-memory","date":"2026-09-13","requirement":"Classify observed failures, persist their evidence and countermeasures, update roadmap, and continue real work. Re-read the process documents on each request."},
-    {"id":"delivery","date":"2026-09-13","requirement":"Review, fix, test, merge and publish working changes. Put the verified service URL here in chat and at the top of README. Maintain actual browser screenshots."},
-    {"id":"runtime","requirement":"Bun for everything feasible, Oxc/Oxfmt extensively, TypeScript tooling and Nx. No Docker Compose or Python prerequisite for the application."},
-    {"id":"performance","date":"2026-09-13","requirement":"Measure with agent-browser, track cold/reload/render/cloud/interaction metrics, implement public service-worker app shell and stale-while-revalidate, show a specific board title when known."},
-    {"id":"data-safety","requirement":"Never lose entered data or silently pretend local-only storage is cloud-saved. Handle offline, concurrent writes and interrupted saves explicitly; protect private capabilities."},
-    {"id":"assignments","date":"2026-09-13","requirement":"Allow changing, adding and removing multiple assignees. Avatars overlap sequentially at the right; hover/focus lifts the selected avatar."},
-    {"id":"avatar-fallback","date":"2026-09-13","requirement":"Use real approved Slack photos when available; otherwise first letter on distinct non-repeating color backgrounds. This supersedes older image-silhouette fallback requests."},
-    {"id":"person-list","date":"2026-09-13","requirement":"Label other tasks assigned to the person. N=3: lengths 0–5 show all; lengths 6+ initially show 3 with an explicit expansion action."},
-    {"id":"paper-navigation","date":"2026-09-13","requirement":"No application masthead or logo. Active-column navigation follows position. Layered paper stack exposes neighboring titles and expands to page thumbnails with animation."},
-    {"id":"creation","requirement":"New pages/columns and photo drafts are edited on the actual sheet, not formal creation dialogs or JSON wizards."},
-    {"id":"drawing","date":"2026-09-13","requirement":"Consistent extensive hand-drawn icon system; restrained animated jitter/thickness strike-through with gentle completion sound; reduced-motion and mute support."},
-    {"id":"bottom-menu","date":"2026-09-13","requirement":"Share replaces trailing ellipsis. Remove technical prototype disclaimers from action menus; keep accurate permissions/privacy explanations where relevant."},
-    {"id":"remaining-features","requirement":"Track real OAuth/account linking, confirmed avatar proposals, email, Slack/Linear/GitHub tickets and backlinks, semantic duplicate/art matching, image generation, photo import and deterministic scoped link previews as separate unfinished gates."},
-    {"id":"quality","requirement":"2000+ meaningful test cases for full project, explicit 80%+ coverage scope, many independent CI checks for format/lint/types/tests/security/bundles/loading/accessibility; actual adverse browser testing."},
-    {"id":"local-work","requirement":"Authorized work is under ~/xp on the Mac. Preserve other changes. CLI GitHub/Vercel access is available; retry transient failures with backoff, not repetitive speculative reconnect requests."}
+    {
+      "id": "process-memory",
+      "date": "2026-09-15",
+      "requirement": "Classify interruptions by observed layer/evidence, keep uncertain causes explicit, read PROCESS and the current HANDOFF every request. Preserve process receipts with start/PID/runId/terminal result; never reuse an older success or repeat ambiguous writes without readback. Respect safety blocks, reviewer quotas and existing hooks; continue independent bounded work."
+    },
+    {
+      "id": "delivery",
+      "date": "2026-09-13",
+      "requirement": "Review, fix, test, merge and publish working changes. Put the verified service URL here in chat and at the top of README. Maintain actual browser screenshots."
+    },
+    {
+      "id": "runtime",
+      "requirement": "Bun for everything feasible, Oxc/Oxfmt extensively, TypeScript tooling and Nx. No Docker Compose or Python prerequisite for the application."
+    },
+    {
+      "id": "performance",
+      "date": "2026-09-13",
+      "requirement": "Measure with agent-browser, track cold/reload/render/cloud/interaction metrics, implement public service-worker app shell and stale-while-revalidate, show a specific board title when known."
+    },
+    {
+      "id": "data-safety",
+      "requirement": "Never lose entered data or silently pretend local-only storage is cloud-saved. Handle offline, concurrent writes and interrupted saves explicitly; protect private capabilities."
+    },
+    {
+      "id": "assignments",
+      "date": "2026-09-13",
+      "requirement": "Allow changing, adding and removing multiple assignees. Avatars overlap sequentially at the right; hover/focus lifts the selected avatar."
+    },
+    {
+      "id": "avatar-fallback",
+      "date": "2026-09-13",
+      "requirement": "Use real approved Slack photos when available; otherwise first letter on distinct non-repeating color backgrounds. This supersedes older image-silhouette fallback requests."
+    },
+    {
+      "id": "person-list",
+      "date": "2026-09-13",
+      "requirement": "Label other tasks assigned to the person. N=3: lengths 0–5 show all; lengths 6+ initially show 3 with an explicit expansion action."
+    },
+    {
+      "id": "paper-navigation",
+      "date": "2026-09-13",
+      "requirement": "No application masthead or logo. Active-column navigation follows position. Layered paper stack exposes neighboring titles and expands to page thumbnails with animation."
+    },
+    {
+      "id": "creation",
+      "requirement": "New pages/columns and photo drafts are edited on the actual sheet, not formal creation dialogs or JSON wizards."
+    },
+    {
+      "id": "drawing",
+      "date": "2026-09-13",
+      "requirement": "Consistent extensive hand-drawn icon system; restrained animated jitter/thickness strike-through with gentle completion sound; reduced-motion and mute support."
+    },
+    {
+      "id": "bottom-menu",
+      "date": "2026-09-13",
+      "requirement": "Share replaces trailing ellipsis. Remove technical prototype disclaimers from action menus; keep accurate permissions/privacy explanations where relevant."
+    },
+    {
+      "id": "remaining-features",
+      "requirement": "Track real OAuth/account linking, confirmed avatar proposals, email, Slack/Linear/GitHub tickets and backlinks, semantic duplicate/art matching, image generation, photo import and deterministic scoped link previews as separate unfinished gates."
+    },
+    {
+      "id": "quality",
+      "requirement": "2000+ meaningful test cases for full project, explicit 80%+ coverage scope, many independent CI checks for format/lint/types/tests/security/bundles/loading/accessibility; actual adverse browser testing."
+    },
+    {
+      "id": "local-work",
+      "requirement": "Authorized work is under ~/xp on the Mac. Preserve other changes. CLI GitHub/Vercel access is available; retry transient failures with backoff, not repetitive speculative reconnect requests."
+    },
+    {
+      "id": "paper-depth-0915",
+      "date": "2026-09-15",
+      "requirement": "Neighboring sheets must be visually behind the active opaque sheet, not over it. When no other pages exist show only one fresh-page affordance; do not pad a real single neighbor with a second fake sheet."
+    },
+    {
+      "date": "2026-09-15",
+      "id": "accounts-corporate-login",
+      "requirement": "Primary sign-in must verify an approved corporate email. Slack is a workspace integration, not the required identity provider. Explicit approved domains and the first owner email must not be inferred from unrelated accounts."
+    },
+    {
+      "date": "2026-09-15",
+      "id": "trusted-item-history",
+      "requirement": "Each item must expose who changed it, when and what changed. Server-verified actor and server timestamps; paginated history; no fabricated legacy history."
+    },
+    {
+      "date": "2026-09-15",
+      "id": "assignment-notifications",
+      "requirement": "Use Resend for a five-minute aggregate when another user assigns tasks; exclude self-assignments, honor opt-outs, suppress withdrawn assignments and prevent duplicate delivery. Also send a weekly digest."
+    },
+    {
+      "date": "2026-09-15",
+      "id": "account-screen-coverage",
+      "requirement": "Implement and exercise spaces, settings, profiles and history with browser, keyboard, mobile and adverse tests; distinguish local coverage from deployed availability."
+    },
+    {
+      "date": "2026-09-15",
+      "id": "slack-native-integration",
+      "requirement": "Finish authorized Slack installation and synchronization. Remove file-upload UI from People. Do not silently link account identities merely from matching names."
+    },
+    {
+      "date": "2026-09-15",
+      "id": "public-sharing-noindex",
+      "requirement": "Read-only share links must open without login and retain informative previews. Use noindex headers and metadata without blocking the crawlers that need to read those directives. Never claim this is access control."
+    }
   ]
 }

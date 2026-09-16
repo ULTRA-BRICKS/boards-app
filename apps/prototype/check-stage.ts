@@ -1,5 +1,4 @@
-import { mkdir } from "node:fs/promises";
-import { openSync, closeSync } from "node:fs";
+import { runStage, logTail } from "./tooling/stage-runner";
 const commands: Record<string, string[]> = {
   unit: ["bun", "run", "test"],
   lint: ["bun", "run", "lint"],
@@ -7,37 +6,23 @@ const commands: Record<string, string[]> = {
   build: ["bun", "run", "build"],
   chromium: ["bun", "tests/ui.ts"],
   webkit: ["bun", "tests/ui.ts"],
+  "accounts-types": ["bun", "run", "typecheck:accounts"],
+  "accounts-chromium": ["bun", "tests/account-screens.ts"],
+  "accounts-webkit": ["bun", "tests/account-screens.ts"],
+  "loading-chromium": ["bun", "tests/loading-regressions.ts"],
+  "loading-webkit": ["bun", "tests/loading-regressions.ts"],
 };
 const stage = process.argv[2];
 if (!Object.hasOwn(commands, stage))
-  throw Error("Choose unit, lint, format, build, chromium or webkit.");
+  throw Error("Unknown stage; choose " + Object.keys(commands).join(", "));
 process.chdir(import.meta.dir);
-const logDir = "../../.private/stages";
-await mkdir(logDir, { recursive: true });
-const started = new Date().toISOString(),
-  begin = performance.now();
-const fd = openSync(`${logDir}/${stage}.log`, "w", 0o600);
-let exitCode = 1;
-try {
-  const child = Bun.spawn(commands[stage], {
-    stdout: fd,
-    stderr: fd,
-    env: { ...process.env, ...(stage === "webkit" ? { BROWSER: "webkit" } : {}) },
-  });
-  const timeout = setTimeout(() => child.kill(), 180000);
-  exitCode = await child.exited;
-  clearTimeout(timeout);
-} finally {
-  closeSync(fd);
-}
-const report = {
+const result = await runStage({
   stage,
-  started,
-  durationMs: Math.round(performance.now() - begin),
-  exitCode,
-  success: exitCode === 0,
-};
-await Bun.write(`${logDir}/${stage}.json`, JSON.stringify(report, null, 2));
-console.log(JSON.stringify(report));
-console.log((await Bun.file(`${logDir}/${stage}.log`).text()).split("\n").slice(-16).join("\n"));
-process.exit(exitCode);
+  logDir: "../../.private/stages",
+  command: commands[stage],
+  timeoutMs: 180000,
+  env: { ...process.env, BROWSER: stage.endsWith("webkit") ? "webkit" : "chromium" },
+});
+console.log(JSON.stringify(result));
+console.log(await logTail(result.logPath).catch(() => "No log: executable did not start."));
+process.exit(result.exitCode ?? 1);

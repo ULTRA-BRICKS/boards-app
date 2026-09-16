@@ -23,6 +23,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun check-stage.ts unit
       - run: bun check-stage.ts lint
+      - run: bun run typecheck:accounts
       - run: bun check-stage.ts format
       - run: bun check-stage.ts build
       - run: bun budget.ts
@@ -64,6 +65,9 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for n in {1..30}; do curl -fsS http://127.0.0.1:5183/build.json >/dev/null && break; sleep 1; done
           bun check-stage.ts "$ENGINE"
+          BROWSER="$ENGINE" bun tests/loading-regressions.ts
+          BROWSER="$ENGINE" bun tests/account-screens.ts
+          BROWSER="$ENGINE" bun tests/stack-browser.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -71,6 +75,28 @@ jobs:
           path: |
             docs/screenshots/boards-*.png
             docs/metrics/prototype-ui-*.json
+            docs/metrics/accounts-screens-*.json
+            docs/metrics/loading-regressions-*.json
+            docs/metrics/stack-*.json
             docs/metrics/accessibility.json
             .private/stages/
+          retention-days: 14
+  live-http:
+    if: github.repository == 'ultrabricks/boards-app' && github.event_name != 'pull_request'
+    needs: [core, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.2'
+      - name: Actual public site, generation, assets and CORS
+        working-directory: apps/prototype
+        run: bun tests/public-assets.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prototype-live-http
+          path: docs/metrics/live-public-resources.json
           retention-days: 14

@@ -1,0 +1,3 @@
+# Pages send X-Robots-Tag and meta noindex. Crawlers must fetch to observe it.
+User-agent: *
+Allow: /

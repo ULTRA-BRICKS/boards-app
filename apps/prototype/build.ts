@@ -44,7 +44,10 @@ const type = await Bun.build({
 if (!type.success) throw new AggregateError(type.logs, "Type site build failed");
 const digest = (value: string) => createHash("sha256").update(value).digest("hex").slice(0, 12);
 const base = await readFile(root + "/apps/board/style.css", "utf8"),
-  ui = await readFile(import.meta.dir + "/ui.css", "utf8");
+  ui =
+    (await readFile(import.meta.dir + "/ui.css", "utf8")) +
+    "\n" +
+    (await readFile(import.meta.dir + "/paper-stack.css", "utf8"));
 const cssName = "/assets/paper-" + digest(base + ui) + ".css";
 await writeFile(out + cssName, base + "\n" + ui);
 const typeCSS = await readFile(root + "/apps/type-site/style.css", "utf8"),
@@ -58,7 +61,16 @@ let typeHTML = await readFile(root + "/apps/type-site/index.html", "utf8");
 typeHTML = typeHTML
   .replace("/style.css", typeCSSName)
   .replace("/type.mjs", "/assets/" + basename(type.outputs[0].path));
+typeHTML = typeHTML.replace(
+  typeHTML.slice(typeHTML.indexOf("<title>"), typeHTML.indexOf("</title>") + 8),
+  "<title>Conloca Sans | Boards</title>",
+);
+typeHTML = typeHTML.replace(
+  "</head>",
+  () => '<meta name="robots" content="noindex, nofollow, noarchive"></head>',
+);
 await writeFile(out + "/type.html", typeHTML);
+await copyFile(import.meta.dir + "/robots.txt", out + "/robots.txt");
 const assets = (await readdir(out + "/assets")).map((p) => "/assets/" + p).sort();
 const hash = createHash("sha256").update(html);
 for (const file of assets) hash.update(await readFile(out + file));
@@ -71,4 +83,43 @@ const sw = (await readFile(import.meta.dir + "/sw.js", "utf8"))
 await writeFile(out + "/sw.js", sw);
 await writeFile(out + "/build.json", JSON.stringify({ version, assets }));
 await copyFile(import.meta.dir + "/vercel.json", out + "/vercel.json");
+await mkdir(out + "/api", { recursive: true });
+await copyFile(import.meta.dir + "/api/cloud.ts", out + "/api/cloud.ts");
+await writeFile(
+  out + "/package.json",
+  JSON.stringify({
+    name: "boards-release",
+    private: true,
+    type: "module",
+    packageManager: "bun@1.4.2",
+  }),
+);
 console.log(JSON.stringify({ version, assets: assets.length, out }));
+
+await copyFile(import.meta.dir + "/.vercelignore", out + "/.vercelignore");
+await writeFile(
+  out + "/tsconfig.json",
+  JSON.stringify({
+    compilerOptions: {
+      target: "ES2022",
+      lib: ["ES2022", "DOM", "DOM.Iterable"],
+      module: "ESNext",
+      moduleResolution: "Bundler",
+      strict: true,
+      noEmit: true,
+      skipLibCheck: true,
+    },
+    include: ["api/**/*.ts"],
+  }),
+);
+
+const preview = await Bun.build({
+  entrypoints: [import.meta.dir + "/api/share.ts"],
+  outdir: out,
+  target: "bun",
+  format: "esm",
+  minify: true,
+  naming: "api/share.js",
+  define: { __BOARD_HTML__: JSON.stringify(html) },
+});
+if (!preview.success) throw new AggregateError(preview.logs, "Share preview build failed");

@@ -1,9 +1,23 @@
 import { esc, icon } from "./paper";
-export function stackMarkup(boards: { id: string; title: string }[], currentId: string) {
-  const other = boards.filter((board) => board.id !== currentId);
-  const far = esc(other[1]?.title || "A fresh page");
-  const near = esc(other[0]?.title || "A fresh page");
-  return `<span class="stack-sheet far"><span>${far}</span></span><span class="stack-sheet near"><span>${near}</span><i>${icon("pages")}</i></span>`;
+type Page = { id: string; title: string };
+export function neighboringSheets(boards: Page[], currentId: string, readonly = false) {
+  const neighbors = boards.filter((board) => board.id !== currentId).slice(0, 2);
+  if (neighbors.length)
+    return neighbors.map((board) => ({
+      id: board.id,
+      title: board.title.trim() || "Untitled",
+      fresh: false,
+    }));
+  return readonly ? [] : [{ id: "", title: "A fresh page", fresh: true }];
+}
+export function stackMarkup(boards: Page[], currentId: string, readonly = false) {
+  return neighboringSheets(boards, currentId, readonly)
+    .map(
+      (sheet, index) =>
+        `<span class="stack-sheet ${index === 0 ? "near" : "far"}" data-fresh="${sheet.fresh}"><span>${esc(sheet.title)}</span>${index === 0 ? `<i>${icon("pages")}</i>` : ""}</span>`,
+    )
+    .reverse()
+    .join("");
 }
 export function animateCards(root: HTMLElement) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;

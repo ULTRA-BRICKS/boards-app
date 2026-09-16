@@ -16,7 +16,7 @@ let state: any = null,
   delay = 900,
   failSave = false;
 const shares = new Map<string, any>();
-await ctx.route("**/*.neon.tech/**", async (route) => {
+await ctx.route(/\.neon\.tech\/|\/cloud\//, async (route) => {
   const request = route.request(),
     url = request.url();
   if (url.includes("/token/anonymous")) {
@@ -44,7 +44,7 @@ await ctx.route("**/*.neon.tech/**", async (route) => {
       shares.delete(p.revoke_token);
       return route.fulfill({ json: { revoked: true } });
     }
-    const token = "viewfixture";
+    const token = "ab".repeat(32);
     shares.set(token, p.scope);
     return route.fulfill({ json: { token } });
   }
@@ -287,6 +287,21 @@ try {
       assert.deepEqual(errors, []);
     },
   );
+  await check("People-to-profile dialog chain restores the original keyboard focus", async () => {
+    const opener = page.getByRole("button", { name: "People", exact: true });
+    await opener.focus();
+    await page.keyboard.press("Enter");
+    await page.locator('[data-show-person="danny"]').focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.getByRole("dialog", { name: "Danny", exact: true }).count(), 1);
+    await page.keyboard.press("Escape");
+    assert.equal(await page.getByRole("dialog").count(), 0);
+    assert(await opener.evaluate((el) => document.activeElement === el));
+    await opener.click();
+    await page.locator('[data-show-person="niko"]').click();
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    assert(await opener.evaluate((el) => document.activeElement === el));
+  });
   state = createWorkspace();
   state.boards.push(newBoard("Next week"), newBoard("Ideas for later"));
   version++;

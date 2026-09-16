@@ -1,0 +1,24 @@
+{
+  "engine": "webkit",
+  "mode": "Local HTTPS server with a self-signed test certificate (fixture-only TLS exception), in-memory PostgreSQL and real application HTTP handlers; mail transport is a fixture, not delivered through Resend; these account screens are NOT deployed",
+  "checks": [
+    "Missing configuration displays setup, not a fake successful login",
+    "Setup: four widths and no serious/critical automated accessibility violations",
+    "Corporate email: four widths and no serious/critical automated accessibility violations",
+    "Email verification: four widths and no serious/critical automated accessibility violations",
+    "Spaces: four widths and no serious/critical automated accessibility violations",
+    "Corporate login and code verification use real HTTP handlers and PostgreSQL fixture",
+    "Unsubmitted profile input survives screen navigation",
+    "Profile: four widths and no serious/critical automated accessibility violations",
+    "Profile edits persist through authenticated API",
+    "Space settings and individual notification preferences persist",
+    "Settings: four widths and no serious/critical automated accessibility violations",
+    "People screen has no Slack JSON upload",
+    "People: four widths and no serious/critical automated accessibility violations",
+    "Item history shows persisted actor, server time and changed text",
+    "History: four widths and no serious/critical automated accessibility violations",
+    "Logout ends the server session",
+    "Account screens use the actual handwritten font and have no horizontal overflow at 320–1080px"
+  ],
+  "errors": []
+}

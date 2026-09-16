@@ -5,8 +5,104 @@
   "installCommand": null,
   "outputDirectory": ".",
   "headers": [
-    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
-    { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }, { "key": "Service-Worker-Allowed", "value": "/" }] },
-    { "source": "/(.*)", "headers": [{ "key": "X-Content-Type-Options", "value": "nosniff" }, { "key": "Referrer-Policy", "value": "no-referrer" }, { "key": "X-Frame-Options", "value": "DENY" }] }
-  ]
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/cloud/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "CDN-Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "Vercel-CDN-Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "x-vercel-enable-rewrite-caching",
+          "value": "0"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/cloud/token/anonymous",
+      "destination": "/api/cloud?operation=auth"
+    },
+    {
+      "source": "/cloud/rpc/notebook",
+      "destination": "/api/cloud?operation=notebook"
+    },
+    {
+      "source": "/cloud/rpc/share_notebook",
+      "destination": "/api/cloud?operation=share_notebook"
+    },
+    {
+      "source": "/cloud/rpc/read_shared",
+      "destination": "/api/cloud?operation=read_shared"
+    },
+    {
+      "source": "/s/:token/og.png",
+      "destination": "/api/share?token=:token&image=1"
+    },
+    {
+      "source": "/s/:token",
+      "destination": "/api/share?token=:token"
+    }
+  ],
+  "bunVersion": "1.x",
+  "functions": {
+    "api/cloud.ts": {
+      "maxDuration": 30
+    },
+    "api/share.js": {
+      "maxDuration": 30
+    }
+  }
 }

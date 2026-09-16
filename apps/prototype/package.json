@@ -6,14 +6,18 @@
   "scripts": {
     "build": "bun build.ts",
     "test": "bun build-icons.ts && bun test tests",
-    "lint": "oxlint app.mjs lib tests build.ts build-icons.ts serve.ts slack-export.ts --deny-warnings",
+    "lint": "oxlint app.mjs lib api accounts tooling tests check-stage.ts build.ts build-icons.ts serve.ts slack-export.ts --deny-warnings && oxlint -c .oxlint-browser.json app.mjs --deny-warnings",
     "format": "oxfmt --write app.mjs lib tests build.ts",
     "test:browser": "bun tests/ui.ts",
     "test:webkit": "BROWSER=webkit bun tests/ui.ts",
-    "format:check": "oxfmt --check app.mjs lib tests build.ts build-icons.ts serve.ts slack-export.ts"
+    "format:check": "oxfmt --check app.mjs lib api accounts tooling tests check-stage.ts build.ts build-icons.ts serve.ts slack-export.ts",
+    "test:loading": "bun tests/loading-regressions.ts",
+    "test:accounts-ui": "bun tests/account-screens.ts",
+    "typecheck:accounts": "tsc -p tsconfig.accounts.json"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
+    "@electric-sql/pglite": "0.5.8",
     "@playwright/test": "1.63.0",
     "@tabler/icons": "3.46.0",
     "@types/bun": "1.4.2",
@@ -21,6 +25,7 @@
     "oxlint": "1.82.0",
     "roughjs": "4.6.6",
     "sharp": "0.35.4",
+    "typescript": "7.0.2",
     "web-vitals": "6.2.1"
   }
 }
