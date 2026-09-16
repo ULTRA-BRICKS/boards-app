@@ -1,6 +1,8 @@
+import { fileURLToPath } from "node:url";
 import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
+process.chdir(fileURLToPath(new URL("..", import.meta.url)));
 const origin = "https://boards-app-gamma.vercel.app";
 if (process.env.BOARDS_LIVE_WRITE !== "1")
   throw Error("Enable isolated test-space creation with BOARDS_LIVE_WRITE=1.");

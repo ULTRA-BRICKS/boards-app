@@ -1254,6 +1254,10 @@ else window.addEventListener("load", registerShell, { once: true });
 let photoSessionOpen = false;
 async function showPhoto() {
   if (shareToken || photoSessionOpen) return;
+  if (verifying || !queue?.enabled) {
+    say("Wait for this space to connect before opening a photo draft.");
+    return;
+  }
   photoSessionOpen = true;
   const launchEpoch = openEpoch;
   try {
@@ -1300,6 +1304,8 @@ async function showPhoto() {
       return result;
     },
     save: async (imported) => {
+      if (!queue?.enabled || queue.paused)
+        throw Error("Reconnect this space before saving the page. Your photo draft is kept here.");
       const boards = ws.boards.some((b) => b.id === imported.id)
         ? ws.boards.map((b) => (b.id === imported.id ? imported : b))
         : [...ws.boards, imported];
