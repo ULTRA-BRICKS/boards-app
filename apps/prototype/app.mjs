@@ -1,3 +1,4 @@
+import { confirmedCache } from "./lib/confirmed-cache";
 import { openPhotoScreen } from "./photo/screen";
 import { PhotoError } from "./photo/contract";
 import { listSpaces, rememberSpace, spaceLocation, keyFromSpaceLink } from "./lib/space-directory";
@@ -69,6 +70,7 @@ let params = new URLSearchParams(location.hash.slice(1)),
   peek,
   openEpoch = 0,
   cacheKey = "",
+  deviceCache = null,
   verifying = false,
   recoveryUnavailable = false,
   personColors = new Map(),
@@ -80,16 +82,19 @@ const say = (s) =>
     (recoveryUnavailable && queue && queue.sequence > queue.ack
       ? " · Browser draft backup is unavailable; keep this tab open or export a backup."
       : ""));
-async function token() {
-  if (accessToken && Date.now() < expires) return accessToken;
-  if (pendingToken) return pendingToken;
+function restoreCachedAuthorization() {
+  const now = Date.now();
+  if (accessToken && now < expires) return true;
   const cached = readJSON("boards:anonymous-v1");
-  if (cached && cached.expires > Date.now() && anonymousExpiry(cached.token) > Date.now()) {
-    diagnose("auth.cached");
-    accessToken = cached.token;
-    expires = cached.expires;
-    return accessToken;
-  }
+  if (!cached || cached.expires <= now || anonymousExpiry(cached.token) <= now) return false;
+  diagnose("auth.cached");
+  accessToken = cached.token;
+  expires = cached.expires;
+  return true;
+}
+async function token() {
+  if (restoreCachedAuthorization()) return accessToken;
+  if (pendingToken) return pendingToken;
   pendingToken = (async () => {
     const value = await cloudJSON(
       AUTH + "/token/anonymous",
@@ -149,6 +154,28 @@ async function rpc(name, input, retry = true) {
     }
     throw error;
   }
+}
+
+async function readNotebook() {
+  if (restoreCachedAuthorization()) return rpc("notebook", { capability: cap });
+  const result = await cloudJSON(
+    "/cloud/open",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ capability: cap }),
+      signal: AbortSignal.timeout(20000),
+    },
+    "read",
+  );
+  const lifetime = anonymousExpiry(result.token);
+  if (lifetime > Date.now()) {
+    accessToken = result.token;
+    expires = lifetime;
+    writeJSON("boards:anonymous-v1", { token: accessToken, expires });
+    mark("token-ready");
+  }
+  return result;
 }
 
 function commit() {
@@ -308,6 +335,13 @@ async function loadCloudVersion() {
         saved: Date.now(),
       });
     queue?.dispose();
+    if (deviceCache)
+      void deviceCache
+        .write(result.version, value, Date.now())
+        .then((saved) => {
+          if (saved) mark("device-cache-saved");
+        })
+        .catch(() => {});
     ws = value;
     version = result.version;
     creating = false;
@@ -346,8 +380,23 @@ function updateAddress() {
 function initQueue(v, enabled) {
   queue?.dispose();
   queue = new SyncQueue({
-    send: async ({ document, version }) =>
-      rpc("notebook", { capability: cap, expected_version: version, document }),
+    send: async ({ document, version }) => {
+      const cache = deviceCache,
+        started = Date.now();
+      const response = await rpc("notebook", {
+        capability: cap,
+        expected_version: version,
+        document,
+      });
+      if (Number.isInteger(response.version) && response.version > version && cache)
+        void cache
+          .write(response.version, document, started)
+          .then((saved) => {
+            if (saved) mark("device-cache-saved");
+          })
+          .catch(() => {});
+      return response;
+    },
     onState: (s) => {
       if (s.kind === "pending" && s.version !== undefined) persist();
       if (s.kind === "saved") {
@@ -403,16 +452,26 @@ async function loadNotebook() {
       : null;
   diagnose("open.started", { operation: "open" });
   verifying = true;
-  let cached = null;
+  const readStarted = Date.now();
+  let cached = null,
+    deviceRestored = false;
   try {
     if (!cap && !shareToken) {
       cap = random();
       history.replaceState({}, "", location.pathname + location.search + "#key=" + cap);
     }
-    void token().catch(() => {});
+    if (creating || shareToken) void token().catch(() => {});
     if (!shareToken) {
       cacheKey = await notebookCacheKey(cap);
+      deviceCache = confirmedCache(cacheKey, cap);
       cached = memory || readSnapshot(cacheKey);
+      if (!cached) {
+        try {
+          cached = await deviceCache.read();
+          deviceRestored = !!cached;
+        } catch {}
+      }
+
       if (cached) {
         try {
           ws = validateWorkspace(cached.value);
@@ -426,7 +485,7 @@ async function loadNotebook() {
           const scratch = restoreScratch();
           if (cached.pending || scratch) queue.change(ws);
           render();
-          mark("tab-render");
+          mark(deviceRestored ? "device-render" : "tab-render");
           diagnose("open.cached");
           say("Checking for changes\u2026");
         }
@@ -457,7 +516,20 @@ async function loadNotebook() {
         result = await rpc("notebook", { capability: cap });
       }
       creating = false;
-    } else result = await rpc("notebook", { capability: cap });
+    } else result = await readNotebook();
+    if (
+      !shareToken &&
+      deviceCache &&
+      result.value &&
+      Number.isInteger(result.version) &&
+      result.version > 0
+    )
+      void deviceCache
+        .write(result.version, result.value, readStarted)
+        .then((saved) => {
+          if (saved) mark("device-cache-saved");
+        })
+        .catch(() => {});
     if (editor) commit();
     const dirty = !shareToken && queue && queue.sequence > queue.ack;
     if (dirty && (freshCreation ? result.version > 1 : result.version !== cached?.version)) {
@@ -484,6 +556,19 @@ async function loadNotebook() {
   } catch (e) {
     verifying = false;
     diagnose("open.failed", { operation: e?.operation || "open", code: e.code || "UNKNOWN" });
+    if (!shareToken && deviceCache && [401, 403, 404].includes(e.status)) {
+      try {
+        await deviceCache.invalidate();
+        mark("device-cache-cleared");
+      } catch {}
+      if (!hasUnsaved(queue)) {
+        ws = null;
+        app.replaceChildren();
+        try {
+          sessionStorage.removeItem(cacheKey);
+        } catch {}
+      }
+    }
     if (queue && !shareToken) {
       queue.enabled = false;
       queue.paused = true;
@@ -1102,6 +1187,23 @@ function tools() {
   exportLog.textContent = "Download diagnostics";
   exportLog.onclick = downloadDiagnostics;
   $(".options-list").append(exportLog);
+  if (deviceCache && !shareToken) {
+    const button = document.createElement("button");
+    button.textContent = "Clear saved page cache";
+    button.onclick = async () => {
+      button.disabled = true;
+      try {
+        await deviceCache.invalidate();
+        say("Saved page cache cleared. Your current tab and drafts are unchanged.");
+        close();
+      } catch {
+        say("Unable to clear the page cache. Your current edits are unchanged.");
+      } finally {
+        if (button.isConnected) button.disabled = false;
+      }
+    };
+    $(".options-list").append(button);
+  }
   $("#metrics").onclick = () => {
     const data = report();
     modal(
@@ -1246,7 +1348,8 @@ document.addEventListener(
   true,
 );
 const registerShell = () => {
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  if ("serviceWorker" in navigator)
+    navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {});
 };
 if (document.readyState === "complete") registerShell();
 else window.addEventListener("load", registerShell, { once: true });

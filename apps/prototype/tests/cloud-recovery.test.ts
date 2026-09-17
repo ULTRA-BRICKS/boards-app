@@ -76,11 +76,12 @@ test("Only four fixed same-origin cloud routes are exposed and none can be cache
     "/cloud/rpc/notebook",
     "/cloud/rpc/share_notebook",
     "/cloud/rpc/read_shared",
+    "/cloud/open",
   ]);
   for (const r of config.rewrites.filter((r: any) => r.source.startsWith("/cloud/"))) {
     expect(r.source).not.toContain("*");
     expect(r.destination).toMatch(
-      /^\/api\/cloud\?operation=(auth|notebook|share_notebook|read_shared)$/,
+      /^\/api\/cloud\?operation=(auth|notebook|share_notebook|read_shared|open)$/,
     );
   }
   const h = config.headers.find((r: any) => r.source === "/cloud/:path*").headers;

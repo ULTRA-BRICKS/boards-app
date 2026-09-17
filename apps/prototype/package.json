@@ -6,16 +6,17 @@
   "scripts": {
     "build": "bun build.ts",
     "test": "bun build-icons.ts && bun test tests",
-    "lint": "oxlint app.mjs lib api accounts photo tooling tests check-stage.ts build.ts build-icons.ts serve.ts slack-export.ts --deny-warnings && oxlint -c .oxlint-browser.json app.mjs --deny-warnings",
+    "lint": "oxlint app.mjs lib api accounts photo tooling tests check-stage.ts boot-guard.js build.ts build-icons.ts serve.ts slack-export.ts --deny-warnings && oxlint -c .oxlint-browser.json app.mjs --deny-warnings",
     "format": "oxfmt --write app.mjs lib tests build.ts",
     "test:browser": "bun tests/ui.ts",
     "test:webkit": "BROWSER=webkit bun tests/ui.ts",
-    "format:check": "oxfmt --check app.mjs lib api accounts photo tooling tests check-stage.ts build.ts build-icons.ts serve.ts slack-export.ts",
+    "format:check": "oxfmt --check app.mjs lib api accounts photo tooling tests check-stage.ts boot-guard.js build.ts build-icons.ts serve.ts slack-export.ts",
     "test:loading": "bun tests/loading-regressions.ts",
     "test:accounts-ui": "bun tests/account-screens.ts",
     "typecheck:accounts": "tsc -p tsconfig.accounts.json",
     "typecheck:photo": "tsc -p tsconfig.photo.json",
-    "test:photo-ui": "bun tests/photo-space-browser.ts"
+    "test:photo-ui": "bun tests/photo-space-browser.ts",
+    "typecheck:cache": "tsc -p tsconfig.cache.json"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

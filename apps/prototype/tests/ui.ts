@@ -28,7 +28,7 @@ await ctx.route(/\.neon\.tech\/|\/cloud\//, async (route) => {
   }
   await new Promise((r) => setTimeout(r, delay));
   const p = request.postDataJSON();
-  if (url.includes("/rpc/notebook")) {
+  if (url.includes("/rpc/notebook") || url.endsWith("/open")) {
     if (p.document) {
       if (failSave) return route.fulfill({ status: 503, json: { message: "Fixture save outage" } });
       if (p.expected_version !== version)

@@ -34,6 +34,7 @@ async function fixture(run: (f: any) => Promise<void>) {
         },
       });
     }
+    if (r.url().endsWith("/open") && f.authFail) return route.abort();
     const p = r.postDataJSON();
     f.calls.push(p.document ? (p.expected_version === 0 ? "create" : "save") : "read");
     if ((!p.document && f.readFail) || (p.document && f.writeFail)) return route.abort();

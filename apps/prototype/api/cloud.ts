@@ -27,6 +27,8 @@ export async function relay(request: Request, transport: typeof fetch = fetch): 
     operation =
       paths[url.pathname] ||
       (url.pathname === "/api/cloud" ? url.searchParams.get("operation") : "");
+  if (url.pathname === "/cloud/open" || operation === "open")
+    return openNotebook(request, transport);
   const target =
     operation && Object.prototype.hasOwnProperty.call(targets, operation)
       ? targets[operation]
@@ -120,3 +122,69 @@ export async function relay(request: Request, transport: typeof fetch = fetch): 
   }
 }
 export default { fetch: (request: Request) => relay(request) };
+
+const OPEN_BODY_LIMIT = 256,
+  OPEN_TIMEOUT_MS = 18000;
+async function openNotebook(request: Request, transport: typeof fetch): Promise<Response> {
+  const reject = (status: number, code: string) =>
+    Response.json({ code }, { status, headers: NO_STORE });
+  if (request.method !== "POST") return reject(405, "METHOD_NOT_ALLOWED");
+  if (request.headers.get("content-type")?.split(";")[0].trim() !== "application/json")
+    return reject(415, "JSON_REQUIRED");
+  if (Number(request.headers.get("content-length")) > OPEN_BODY_LIMIT)
+    return reject(413, "PAYLOAD_TOO_LARGE");
+  const reader = request.body?.getReader();
+  let text = "",
+    bytes = 0;
+  if (reader)
+    try {
+      for (;;) {
+        const part = await reader.read();
+        if (part.done) break;
+        bytes += part.value.byteLength;
+        if (bytes > OPEN_BODY_LIMIT) {
+          await reader.cancel();
+          return reject(413, "PAYLOAD_TOO_LARGE");
+        }
+        text += new TextDecoder().decode(part.value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+  let input;
+  try {
+    input = JSON.parse(text);
+  } catch {
+    return reject(400, "INVALID_INPUT");
+  }
+  if (
+    !input ||
+    typeof input !== "object" ||
+    Object.keys(input).length !== 1 ||
+    !/^[A-Za-z0-9_-]{43}$/.test(input.capability || "")
+  )
+    return reject(400, "INVALID_INPUT");
+  const budget = AbortSignal.timeout(OPEN_TIMEOUT_MS),
+    call = ((url: RequestInfo | URL, init: RequestInit = {}) =>
+      transport(url, {
+        ...init,
+        signal: AbortSignal.any([budget, request.signal, ...(init.signal ? [init.signal] : [])]),
+      })) as typeof fetch;
+  const auth = await relay(new Request(new URL("/cloud/token/anonymous", request.url)), call);
+  if (!auth.ok) return auth;
+  const identity = await auth.json();
+  if (typeof identity.token !== "string" || !/^[A-Za-z0-9_.-]{3,12000}$/.test(identity.token))
+    return reject(502, "BAD_RESPONSE");
+  // This path can only read. Caller-supplied documents and version fields were rejected above.
+  const response = await relay(
+    new Request(new URL("/cloud/rpc/notebook", request.url), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + identity.token },
+      body: JSON.stringify({ capability: input.capability }),
+    }),
+    call,
+  );
+  if (!response.ok) return response;
+  const data = await response.json();
+  return Response.json({ ...data, token: identity.token }, { headers: NO_STORE });
+}

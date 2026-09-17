@@ -55,10 +55,12 @@ await writeFile(out + cssName, base + "\n" + ui);
 const typeCSS = await readFile(root + "/apps/type-site/style.css", "utf8"),
   typeCSSName = "/assets/type-" + digest(typeCSS) + ".css";
 await writeFile(out + typeCSSName, typeCSS);
+const bootGuard = await readFile(import.meta.dir + "/boot-guard.js", "utf8");
 let html = await readFile(import.meta.dir + "/shell.html", "utf8");
 html = html
   .replace("__STYLE__", cssName)
-  .replace("__SCRIPT__", "/assets/" + basename(result.outputs[0].path));
+  .replaceAll("__SCRIPT__", "/assets/" + basename(result.outputs[0].path));
+html = html.replace("__BOOT_GUARD__", () => bootGuard);
 let typeHTML = await readFile(root + "/apps/type-site/index.html", "utf8");
 typeHTML = typeHTML
   .replace("/style.css", typeCSSName)

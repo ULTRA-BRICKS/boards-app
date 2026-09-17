@@ -25,6 +25,7 @@ jobs:
       - run: bun check-stage.ts lint
       - run: bun run typecheck:accounts
       - run: bun run typecheck:photo
+      - run: bun run typecheck:cache
       - run: bun check-stage.ts format
       - run: bun check-stage.ts build
       - run: bun budget.ts
@@ -67,6 +68,9 @@ jobs:
           for n in {1..30}; do curl -fsS http://127.0.0.1:5183/build.json >/dev/null && break; sleep 1; done
           bun check-stage.ts "$ENGINE"
           BROWSER="$ENGINE" bun tests/loading-regressions.ts
+          BROWSER="$ENGINE" bun tests/boot-recovery.ts
+          BROWSER="$ENGINE" bun tests/device-loading.ts
+          BROWSER="$ENGINE" bun tests/confirmed-cache-browser.ts
           BROWSER="$ENGINE" bun tests/account-screens.ts
           BROWSER="$ENGINE" bun tests/photo-space-browser.ts
           BROWSER="$ENGINE" bun tests/stack-browser.ts
@@ -77,6 +81,8 @@ jobs:
           path: |
             docs/screenshots/boards-*.png
             docs/metrics/prototype-ui-*.json
+            docs/metrics/device-loading-*.json
+            docs/metrics/confirmed-cache-*.json
             docs/metrics/accounts-screens-*.json
             docs/metrics/loading-regressions-*.json
             docs/metrics/stack-*.json

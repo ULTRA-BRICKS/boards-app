@@ -94,6 +94,10 @@
     {
       "source": "/s/:token",
       "destination": "/api/share?token=:token"
+    },
+    {
+      "source": "/cloud/open",
+      "destination": "/api/cloud?operation=open"
     }
   ],
   "bunVersion": "1.x",

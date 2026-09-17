@@ -42,6 +42,7 @@ async function worker(version = "a") {
     URL,
     Request,
     Response,
+    AbortSignal,
     caches,
     fetch: () => {
       calls++;
@@ -59,7 +60,11 @@ async function worker(version = "a") {
       },
     },
   });
-  async function event(name: string, request?: { url: string; method: string; mode: string }) {
+  async function event(
+    name: string,
+    request?: { url: string; method: string; mode: string },
+    waitForBackground = true,
+  ) {
     const wait: Promise<unknown>[] = [];
     let response: Promise<Response> | undefined;
     listeners[name]!({
@@ -72,7 +77,8 @@ async function worker(version = "a") {
       },
     });
     const result = response ? await response : undefined;
-    await Promise.all(wait);
+    if (waitForBackground) await Promise.all(wait);
+    else void Promise.all(wait).catch(() => {});
     return result;
   }
   const request = (path: string, method = "GET", navigate = false) => ({
@@ -157,4 +163,49 @@ test("activation removes only old board shells and leaves unrelated caches alone
   await w.event("activate");
   expect(await w.caches.keys()).toEqual(["unrelated", "boards-public-a"]);
   expect(w.claimed).toBeTrue();
+});
+test("same-build version link uses the cached shell instead of bypassing SWR", async () => {
+  const w = await worker("a");
+  await w.event("install");
+  w.setNext(async () => {
+    throw Error("Offline");
+  });
+  const response = await w.event("fetch", w.request("/?__boards_build=a", "GET", true));
+  expect(response?.status).toBe(200);
+  expect(await response!.text()).toBe(html("a"));
+});
+test("old-version and credential queries are not normalized into public HTML cache", async () => {
+  const w = await worker("a");
+  await w.event("install");
+  for (const query of [
+    "?__boards_build=b",
+    "?__boards_build=a&key=private",
+    "?__boards_build=a&__boards_build=b",
+  ])
+    expect(await w.event("fetch", w.request("/" + query, "GET", true))).toBeUndefined();
+  expect(w.calls).toBe(0);
+});
+test("cached navigation resolves while revalidation is still waiting on the network", async () => {
+  const w = await worker("a");
+  await w.event("install");
+  let finish: (r: Response) => void = () => {};
+  w.setNext(() => new Promise((resolve) => (finish = resolve)));
+  const response = await Promise.race([
+    w.event("fetch", w.request("/?__boards_build=a", "GET", true), false),
+    Bun.sleep(150).then(() => null),
+  ]);
+  finish(new Response(html("a")));
+  expect(response?.status).toBe(200);
+  expect(await response!.text()).toBe(html("a"));
+});
+test("CacheStorage failure falls back to the network, not a failed response", async () => {
+  const w = await worker("a");
+  await w.event("install");
+  w.caches.open = async () => {
+    throw Error("Cache unavailable");
+  };
+  w.setNext(async () => new Response(html("a")));
+  const response = await w.event("fetch", w.request("/", "GET", true));
+  expect(response?.status).toBe(200);
+  expect(await response!.text()).toBe(html("a"));
 });
