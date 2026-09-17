@@ -6,7 +6,11 @@ Paper-like editable pages, hosted on Vercel with the isolated `boards_prototype`
 
 **Earlier live checkpoint, 2026-09-15:** browser build `3dfae8a87229ebf6`. [Verified public release](docs/LIVE-RELEASE-2026-09-15.md) · [Every requested feature and what remains](docs/REQUEST-CHECKLIST-2026-09-15.md).
 
-## Current public release — 16 September
+## Current public release — confirmed-data cache
+
+Live build **`c7f90940134b739c`**: an encrypted, acknowledged board cache now restores known boards across tabs while the cloud revalidates. New-tab data rendered in 16 ms in Chromium / 20 ms in WebKit in the live sample. Same-build version links use the public SWR shell. [Measured result, limits and remaining cold-read issue](docs/CACHE-RELEASE-2026-09-18.md). Slack installation, corporate-account activation and real photo recognition are not implied by this release.
+
+## Previous public release — 16 September
 
 Build **`f121ea23096d236d`** now supports separate cloud-space creation/switching and an editable photo-draft workspace with private browser recovery. Automatic photo recognition and the installed Slack app are **not active**. [Exact shipped scope, live tests and screenshots](docs/PHOTO-SPACES-2026-09-16.md). Source is pushed to [Forgejo PR #8](https://git.hyperide.ai/ultrabricks/boards-app/pulls/8); pending remote CI is not represented as a completed main merge.
 

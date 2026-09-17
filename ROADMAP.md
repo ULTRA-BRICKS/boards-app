@@ -1,5 +1,10 @@
 # Boards delivery roadmap
 
+## Current checkpoint — confirmed-data cache, September 18
+Public build `c7f90940134b739c`, source `031ec6d`, PR #8. Encrypted confirmed board state restores across tabs without waiting for cloud verification; unsent tab drafts and public share views stay separate. Live new-tab data render: Chromium16ms, WebKit20ms. Full results and limits: [CACHE-RELEASE-2026-09-18.md](docs/CACHE-RELEASE-2026-09-18.md).
+
+Remaining: investigate the uncached initial upstream read (one9.1s call observed); real Boards Slack installation and backend credentials; approved corporate domains/initial owner and signed-in editor migration; actual vision provider/endpoint activation; Resend scheduler; remote CI failures and main merge; full-product feature/coverage gates. Neither adapters nor locally tested account screens count as production integrations. Earlier checkpoints below are historical.
+
 ## Current checkpoint — cloud spaces and photo draft UI, September 16
 Live build `f121ea23096d236d`, source `db69eb7`, PR #8. Cloud space creation/switch/return and manual draft persistence verified on public HTTPS with an independent reader. Existing user board inspected without writes. Eight photo/space fixture checks pass in each engine; 270 unit tests pass.
 
