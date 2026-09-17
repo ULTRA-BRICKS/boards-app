@@ -321,6 +321,8 @@ async function loadCloudVersion() {
   if (button?.disabled) return;
   if (button) button.disabled = true;
   diagnose("recovery.cloud", { operation: "read" });
+  const targetCache = deviceCache,
+    started = Date.now();
   try {
     const result = await rpc("notebook", { capability: cap }),
       value = validateWorkspace(result.value);
@@ -335,13 +337,7 @@ async function loadCloudVersion() {
         saved: Date.now(),
       });
     queue?.dispose();
-    if (deviceCache)
-      void deviceCache
-        .write(result.version, value, Date.now())
-        .then((saved) => {
-          if (saved) mark("device-cache-saved");
-        })
-        .catch(() => {});
+    saveConfirmed(targetCache, result.version, value, started);
     ws = value;
     version = result.version;
     creating = false;
@@ -377,24 +373,29 @@ function updateAddress() {
   p.set("title", board().title || "Untitled");
   history.replaceState({}, "", location.pathname + location.search + "#" + p);
 }
+function saveConfirmed(cache, v, value, started) {
+  if (cache)
+    void cache
+      .write(v, value, started)
+      .then((saved) => {
+        if (saved) mark("device-cache-saved");
+      })
+      .catch(() => {});
+}
 function initQueue(v, enabled) {
   queue?.dispose();
+  const targetCache = deviceCache,
+    targetCapability = cap;
   queue = new SyncQueue({
     send: async ({ document, version }) => {
-      const cache = deviceCache,
-        started = Date.now();
+      const started = Date.now();
       const response = await rpc("notebook", {
-        capability: cap,
+        capability: targetCapability,
         expected_version: version,
         document,
       });
-      if (Number.isInteger(response.version) && response.version > version && cache)
-        void cache
-          .write(response.version, document, started)
-          .then((saved) => {
-            if (saved) mark("device-cache-saved");
-          })
-          .catch(() => {});
+      if (Number.isInteger(response.version) && response.version > version)
+        saveConfirmed(targetCache, response.version, document, started);
       return response;
     },
     onState: (s) => {
@@ -453,6 +454,7 @@ async function loadNotebook() {
   diagnose("open.started", { operation: "open" });
   verifying = true;
   const readStarted = Date.now();
+  let openedCache = null;
   let cached = null,
     deviceRestored = false;
   try {
@@ -463,11 +465,11 @@ async function loadNotebook() {
     if (creating || shareToken) void token().catch(() => {});
     if (!shareToken) {
       cacheKey = await notebookCacheKey(cap);
-      deviceCache = confirmedCache(cacheKey, cap);
+      openedCache = deviceCache = confirmedCache(cacheKey, cap);
       cached = memory || readSnapshot(cacheKey);
       if (!cached) {
         try {
-          cached = await deviceCache.read();
+          cached = await openedCache.read();
           deviceRestored = !!cached;
         } catch {}
       }
@@ -517,19 +519,8 @@ async function loadNotebook() {
       }
       creating = false;
     } else result = await readNotebook();
-    if (
-      !shareToken &&
-      deviceCache &&
-      result.value &&
-      Number.isInteger(result.version) &&
-      result.version > 0
-    )
-      void deviceCache
-        .write(result.version, result.value, readStarted)
-        .then((saved) => {
-          if (saved) mark("device-cache-saved");
-        })
-        .catch(() => {});
+    if (!shareToken && result.value && Number.isInteger(result.version) && result.version > 0)
+      saveConfirmed(openedCache, result.version, result.value, readStarted);
     if (editor) commit();
     const dirty = !shareToken && queue && queue.sequence > queue.ack;
     if (dirty && (freshCreation ? result.version > 1 : result.version !== cached?.version)) {
@@ -556,9 +547,9 @@ async function loadNotebook() {
   } catch (e) {
     verifying = false;
     diagnose("open.failed", { operation: e?.operation || "open", code: e.code || "UNKNOWN" });
-    if (!shareToken && deviceCache && [401, 403, 404].includes(e.status)) {
+    if (!shareToken && openedCache && [401, 403, 404].includes(e.status)) {
       try {
-        await deviceCache.invalidate();
+        await openedCache.invalidate();
         mark("device-cache-cleared");
       } catch {}
       if (!hasUnsaved(queue)) {

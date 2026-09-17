@@ -46,7 +46,7 @@ export type CacheRecord = {
 };
 const DB = "boards-confirmed-cache-v1",
   STORE = "snapshots";
-function database(): Promise<IDBDatabase> {
+function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     let settled = false;
     const request = indexedDB.open(DB, 2);
@@ -80,6 +80,22 @@ function database(): Promise<IDBDatabase> {
     };
   });
 }
+let sharedConnection: Promise<IDBDatabase> | null = null;
+function database(): Promise<IDBDatabase> {
+  return (sharedConnection ??= openDatabase().then(
+    (db) => {
+      db.onversionchange = () => {
+        db.close();
+        sharedConnection = null;
+      };
+      return db;
+    },
+    (error) => {
+      sharedConnection = null;
+      throw error;
+    },
+  ));
+}
 function prune(store: IDBObjectStore, now: number) {
   if (!store.indexNames.contains("saved")) return;
   const count = store.count();
@@ -89,6 +105,7 @@ function prune(store: IDBObjectStore, now: number) {
     cursor.onsuccess = () => {
       const row = cursor.result;
       if (!row) return;
+      // The index is oldest-first: once an entry is kept, newer entries need no scan.
       if (Number(row.key) < now - CONFIRMED_TTL || remaining > 24) {
         store.delete(row.primaryKey);
         remaining--;
@@ -106,18 +123,16 @@ export function confirmedCache(scope: string, capability: string) {
     .then((key) => crypto.subtle.importKey("raw", key, "AES-GCM", false, ["encrypt", "decrypt"]));
   const aad = (version: number, saved: number) =>
     new TextEncoder().encode(JSON.stringify([scope, version, saved]));
+  let lastPrune = 0;
   async function read(): Promise<Confirmed | null> {
     const db = await database();
     let record: CacheRecord | undefined;
-    try {
-      record = await new Promise((resolve, reject) => {
-        const request = db.transaction(STORE).objectStore(STORE).get(scope);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-    } finally {
-      db.close();
-    }
+    record = await new Promise((resolve, reject) => {
+      const request = db.transaction(STORE).objectStore(STORE).get(scope);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+
     if (
       !record ||
       record.version < 1 ||
@@ -161,43 +176,39 @@ export function confirmedCache(scope: string, capability: string) {
         encoded,
       );
     const db = await database();
-    try {
-      return await new Promise((resolve, reject) => {
-        const tx = db.transaction(STORE, "readwrite"),
-          store = tx.objectStore(STORE),
-          get = store.get(scope);
-        let written = false;
-        get.onsuccess = () => {
-          const old = get.result as CacheRecord | undefined;
-          if (old && (old.version > version || (old.invalidatedAt || 0) >= requestStarted)) return;
-          store.put({ version, saved: snapshot.saved, iv, ciphertext }, scope);
-          written = true;
-          prune(store, Date.now());
-        };
-        tx.oncomplete = () => resolve(written);
-        tx.onerror = () => reject(tx.error);
-        tx.onabort = () => reject(tx.error);
-      });
-    } finally {
-      db.close();
-    }
+    return await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite"),
+        store = tx.objectStore(STORE),
+        get = store.get(scope);
+      let written = false;
+      get.onsuccess = () => {
+        const old = get.result as CacheRecord | undefined;
+        if (old && (old.version > version || (old.invalidatedAt || 0) >= requestStarted)) return;
+        store.put({ version, saved: snapshot.saved, iv, ciphertext }, scope);
+        written = true;
+        const now = Date.now();
+        if (!old || now - lastPrune > 60000) {
+          prune(store, now);
+          lastPrune = now;
+        }
+      };
+      tx.oncomplete = () => resolve(written);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
   }
   async function invalidate(): Promise<void> {
     const db = await database();
-    try {
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction(STORE, "readwrite");
-        tx.objectStore(STORE).put(
-          { version: 0, saved: Date.now(), invalidatedAt: Date.now() },
-          scope,
-        );
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-        tx.onabort = () => reject(tx.error);
-      });
-    } finally {
-      db.close();
-    }
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).put(
+        { version: 0, saved: Date.now(), invalidatedAt: Date.now() },
+        scope,
+      );
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
   }
   return { read, write, invalidate };
 }

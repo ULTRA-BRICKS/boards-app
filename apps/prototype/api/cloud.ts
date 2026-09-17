@@ -133,7 +133,8 @@ async function openNotebook(request: Request, transport: typeof fetch): Promise<
     return reject(415, "JSON_REQUIRED");
   if (Number(request.headers.get("content-length")) > OPEN_BODY_LIMIT)
     return reject(413, "PAYLOAD_TOO_LARGE");
-  const reader = request.body?.getReader();
+  const reader = request.body?.getReader(),
+    decoder = new TextDecoder();
   let text = "",
     bytes = 0;
   if (reader)
@@ -146,11 +147,12 @@ async function openNotebook(request: Request, transport: typeof fetch): Promise<
           await reader.cancel();
           return reject(413, "PAYLOAD_TOO_LARGE");
         }
-        text += new TextDecoder().decode(part.value);
+        text += decoder.decode(part.value, { stream: true });
       }
     } finally {
       reader.releaseLock();
     }
+  text += decoder.decode();
   let input;
   try {
     input = JSON.parse(text);

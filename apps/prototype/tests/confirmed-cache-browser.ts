@@ -22,6 +22,21 @@ await context.route("**/cache-sandbox", (route) =>
 const key = "x".repeat(43),
   value = createWorkspace();
 try {
+  await page.addInitScript(() => {
+    let opens = 0,
+      scans = 0;
+    Object.defineProperty(window, "cacheIO", { get: () => ({ opens, scans }) });
+    const open = indexedDB.open.bind(indexedDB);
+    indexedDB.open = ((...args: Parameters<IDBFactory["open"]>) => {
+      opens++;
+      return open(...args);
+    }) as IDBFactory["open"];
+    const cursor = IDBIndex.prototype.openKeyCursor;
+    IDBIndex.prototype.openKeyCursor = function (...args) {
+      scans++;
+      return cursor.apply(this, args);
+    };
+  });
   await page.goto("http://127.0.0.1:5183/cache-sandbox");
   const results = await page.evaluate(
     async ({ key, value }) => {
@@ -63,6 +78,28 @@ try {
       checks.inflightCannotRepopulate = (await cache.write(5, value, started)) === false;
       await new Promise((r) => setTimeout(r, 4));
       checks.reauthorizedReadCanCache = await cache.write(5, value, Date.now());
+      const before = (window as any).cacheIO;
+      for (let version = 6; version <= 10; version++) await cache.write(version, value, Date.now());
+      const after = (window as any).cacheIO;
+      checks.autosavesReuseConnection = after.opens === before.opens;
+      checks.autosavesSkipUnnecessaryPruning = after.scans === before.scans;
+      for (let n = 0; n < 30; n++) {
+        const other = "boards:tab:" + n.toString(16).padStart(64, "0");
+        await module.confirmedCache(other, key).write(1, value, Date.now());
+      }
+      const count = await new Promise<number>((resolve, reject) => {
+        const r = indexedDB.open("boards-confirmed-cache-v1");
+        r.onsuccess = () => {
+          const db = r.result,
+            q = db.transaction("snapshots").objectStore("snapshots").count();
+          q.onsuccess = () => {
+            db.close();
+            resolve(q.result);
+          };
+          q.onerror = () => reject(q.error);
+        };
+      });
+      checks.boundedTo24Snapshots = count <= 24;
       return checks;
     },
     { key, value },
