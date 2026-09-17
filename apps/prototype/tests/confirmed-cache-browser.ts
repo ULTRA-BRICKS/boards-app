@@ -100,6 +100,28 @@ try {
         };
       });
       checks.boundedTo24Snapshots = count <= 24;
+      const original = IDBDatabase.prototype.transaction;
+      const failed = new WeakSet<IDBDatabase>();
+      let marked = false;
+      IDBDatabase.prototype.transaction = function (...args: any[]) {
+        if (this.name === "boards-confirmed-cache-v1" && !marked) {
+          failed.add(this);
+          marked = true;
+        }
+        if (failed.has(this)) throw new DOMException("Closed test connection", "InvalidStateError");
+        return original.apply(this, args as any);
+      };
+      try {
+        await cache.write(40, value, Date.now());
+      } catch {}
+      try {
+        checks.closedConnectionRecovers = await cache.write(41, value, Date.now());
+      } catch {
+        checks.closedConnectionRecovers = false;
+      } finally {
+        IDBDatabase.prototype.transaction = original;
+      }
+
       return checks;
     },
     { key, value },

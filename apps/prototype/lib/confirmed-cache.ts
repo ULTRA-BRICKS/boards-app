@@ -80,14 +80,21 @@ function openDatabase(): Promise<IDBDatabase> {
     };
   });
 }
-let sharedConnection: Promise<IDBDatabase> | null = null;
+let sharedConnection: Promise<IDBDatabase> | null = null,
+  activeConnection: IDBDatabase | null = null;
+function discardConnection(db: IDBDatabase) {
+  db.close();
+  if (activeConnection === db) {
+    activeConnection = null;
+    sharedConnection = null;
+  }
+}
 function database(): Promise<IDBDatabase> {
   return (sharedConnection ??= openDatabase().then(
     (db) => {
-      db.onversionchange = () => {
-        db.close();
-        sharedConnection = null;
-      };
+      activeConnection = db;
+      db.onversionchange = () => discardConnection(db);
+      db.onclose = () => discardConnection(db);
       return db;
     },
     (error) => {
@@ -127,10 +134,13 @@ export function confirmedCache(scope: string, capability: string) {
   async function read(): Promise<Confirmed | null> {
     const db = await database();
     let record: CacheRecord | undefined;
-    record = await new Promise((resolve, reject) => {
+    record = await new Promise<CacheRecord | undefined>((resolve, reject) => {
       const request = db.transaction(STORE).objectStore(STORE).get(scope);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
+    }).catch((error) => {
+      discardConnection(db);
+      throw error;
     });
 
     if (
@@ -176,7 +186,7 @@ export function confirmedCache(scope: string, capability: string) {
         encoded,
       );
     const db = await database();
-    return await new Promise((resolve, reject) => {
+    return await new Promise<boolean>((resolve, reject) => {
       const tx = db.transaction(STORE, "readwrite"),
         store = tx.objectStore(STORE),
         get = store.get(scope);
@@ -195,6 +205,9 @@ export function confirmedCache(scope: string, capability: string) {
       tx.oncomplete = () => resolve(written);
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error);
+    }).catch((error) => {
+      discardConnection(db);
+      throw error;
     });
   }
   async function invalidate(): Promise<void> {
@@ -208,6 +221,9 @@ export function confirmedCache(scope: string, capability: string) {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
       tx.onabort = () => reject(tx.error);
+    }).catch((error) => {
+      discardConnection(db);
+      throw error;
     });
   }
   return { read, write, invalidate };
