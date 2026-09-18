@@ -1,45 +1,25 @@
 # boards-app × state-lib — отчёт, 18 сентября 2026
 
-## Граница версии
-Ветка: `pilot/state-lib-HYP-1464`; проверенный base main: `0dd04bec91785511028a6a00da7c2e4e49a489c8`. Начальный HEAD этого прохода: `aba95e81c4a0d342bb7389d0e3b001db25537e0a`. Основная и незавершённая Bun-ветки приложения не изменялись.
+## Опубликованная версия
+Ветка: `pilot/state-lib-HYP-1464`; PR: https://git.hyperide.ai/ultrabricks/boards-app/pulls/9 . Исходная база: `0dd04bec91785511028a6a00da7c2e4e49a489c8`. Новая реализация и тесты опубликованы коммитом **`8909dbcc83bc4bcf743e40409e4f3621653a830d`**; remote SHA проверен через `git ls-remote`. Main, production и отдельная Bun-ветка не изменены.
 
-В реально работающем UI state-lib управляет загрузкой workspace/state + people через Runtime/latestTask: отмена, устаревшие ответы, очистка private result. `?stateBackend=baseline` выбирает исходную epoch-реализацию, default — state-lib. Это уже существовавший пилот, а не заново созданное приложение.
+## Что реально использует state-lib
+В интерфейсе Runtime/latestTask управляют загрузкой workspace/state + people: отменой, устаревшими результатами/ошибками и очисткой private result. Default — state-lib; `?stateBackend=baseline` выбирает исходную epoch-реализацию. Документ, команды редактирования и SyncQueue в UI пока остаются прежними.
 
-## Добавлено в этом проходе
-`packages/core/document-store.mjs`: Runtime-backed документ и bounded Undo/Redo; одна транзакционная публикация документа и истории, immutable snapshots, rollback при исключении, запрет async mutator, изоляция входных объектов и escaped draft. `document-store-baseline.mjs` сохраняет исходную mutable snapshot-политику для независимого сравнения.
+## Что подготовлено, но ещё не подключено
+`packages/core/document-store.mjs` реализует документ и ограниченную историю Undo/Redo на одном Runtime: coherent snapshot, атомарная публикация данных/истории, rollback ошибки mutator, immutable snapshots, изоляция входных объектов/escaped draft, запрет async mutator и lifecycle guards. **Модуль импортируется тестами, но НЕ подключён к `apps/board/app.mjs` и НЕ включён в browser build.** Запись этой интеграции была отклонена инструментом; она не выполнена другим способом. Сравнительный `document-store-baseline.mjs` сохраняет исходную mutable политику, включая её небезопасные свойства.
 
-**Новый document-store пока НЕ подключён к `apps/board/app.mjs` и НЕ входит в production bundle.** Команда интеграции была отклонена инструментом до выполнения; обхода отклонения не предпринималось. Фактические mutations/undo/SyncQueue в UI остаются прежними. Тест модуля нельзя выдавать за тест мигрированного UI.
+## Проверки на опубликованных исходниках
+- **117/117 тестов**: `node --test tests/*.test.mjs`; в том числе **19 контрактов document-store** и сравнение **240 операций** с независимым baseline. Повторный запуск перед commit прошёл.
+- **Обе сборки прошли**: `node scripts/build.mjs` и `node scripts/build.mjs --type`. Сборки подтверждают существующий loader-пилот, не неподключённый document-store.
+- **4/4 browser-комбинации**: baseline/state-lib × Chromium/WebKit; synthetic sign-in, edit/save response, Undo, reload, mobile overflow, logout; page exceptions отсутствуют. Четыре desktop/mobile A/B-пары имеют **0 отличающихся пикселей**. Это эквивалентность этих сцен, не полная поведенческая эквивалентность.
 
-## Исполненные проверки
-`node --test tests/state-lib-document.test.mjs`: сначала RED на извлечённом baseline, затем **9/9 PASS** на новом адаптере. Проверены rollback данных/истории; неизменяемость старого snapshot; внешние/escaped ссылки; coherent cross-column move; Undo/Redo; очистка истории при замене; async rejection; closure-based commands; limit/disposal; **240 последовательных операций против baseline**.
+## Review → fix → verify
+Несколько независимых review-cli проходов и RED→GREEN тесты исправили проверки limit/disposal, циклических данных и реальную ошибку dispose из listener: `closed` теперь выставляется только после успешного `runtime.dispose()`. Финальное полное staged review завершилось; подтверждённых функциональных дефектов в принятом объёме не осталось. Замечания по читаемости и возможным будущим расширениям не выдаются за реализованные функции. Обычные commit hooks и push прошли; review stamps вручную не создавались.
 
-Полная текущая suite `node --test tests/*.test.mjs`: **107 passed, 0 failed**. `node scripts/build.mjs` и `node scripts/build.mjs --type`: оба exit 0. Эти сборки содержат старый подключённый loader, не новый document-store.
+Ошибка mutator откатывается; ошибка subscriber происходит **после commit**, runtime сообщает `committed=true`. Запись/dispose из listener запрещены Runtime. `getSnapshot()` показывает committed state, `read()` внутри команды — working draft. Эти границы покрыты тестами. Baseline намеренно не даёт новых гарантий immutability/async safety.
 
-## Цена и ограничения
-Адаптер копирует весь JSON-документ до команды и ещё раз при commit, затем замораживает результат. Это не structural sharing, не normalized entity store и не доказательство ускорения. Undo локальный, snapshot-based; remote replacement очищает историю. Совместное редактирование, сохранение чужих правок при Undo и серверные гарантии не реализуются этим модулем.
+## Ограничения и задачи
+Адаптер дважды копирует весь JSON-документ и замораживает результат: это **не structural sharing, не normalized store, не remote-safe collaborative undo и не доказанное ускорение**. Данные должны быть валидированным ациклическим workspace-объектом или null. Remote replacement очищает локальную историю. Пакет `@ultrabricks/state-lib@0.1.0-pilot.1` одинаков у обоих приложений; четыре runtime JS сверены побайтно. Provenance отмечает uncommitted source candidate, npm/stable release не заявляется.
 
-Оба приложения используют private `@ultrabricks/state-lib@0.1.0-pilot.1`. `PROVENANCE.json` честно отмечает uncommitted source candidate; это не npm-релиз или stable API. Vendor dist не редактировался.
-
-## Задачи и продолжение
-В tasks-app создан проект `state-lib` (`57a446dc-14e2-4959-9a67-2000dc6d1d4b`) и **HYP-1497**, дочерняя к **HYP-1464**. В HYP-1497 перечислены реальные недостающие UI/domain-интеграции и acceptance gates. Попытка дополнительно создать четыре библиотечные задачи была отклонена до выполнения: они НЕ зарегистрированы. Рекомендации: normalized immutable store/structural sharing; command/patch history с remote-safe undo; reusable React lifecycle scopes; воспроизводимый пакет из закреплённого commit.
-
-Полные локальные логи: соседняя директория `../state-app-migrations-20260918/`. Никакого merge в main, deployment, изменения пользовательской базы или production workspace в этом проходе не выполнялось.
-
-## Browser readback этого прохода
-`PILOT_EVIDENCE=../state-app-migrations-20260918/boards-browser node tests/state-lib-browser.mjs`: exit 0. Все **4 сочетания** baseline/state-lib × Chromium/WebKit прошли synthetic sign-in, изменение задачи с реальным save response, Undo, reload, mobile overflow и logout; page exceptions отсутствуют. Это проверка подключённого workspace-loader и старого редактора, НЕ нового document-store. Production не затронут.
-
-HYP-1464 также привязан к новому проекту state-lib с сохранением остальных полей; новая HYP-1497 остаётся его дочерней задачей.
-
-## Исправления после предварительного ревью
-Ещё один RED→GREEN цикл воспроизвёл и исправил асимметричную проверку limit/backend, ошибки чтения после dispose и неинформативную рекурсию при циклическом документе. Все public readers/writers теперь одинаково отвергают доступ к закрытому адаптеру; invalid limit проверяется до dispatch. JSON snapshots явно ограничены ациклическими данными, не Map/Set/Date. Исходники и тесты отформатированы Oxfmt.
-
-Добавлены контракты nested commands, write-from-listener, listener failure after commit, replace/clear, unsubscribe. Важно: исключение mutator откатывает данные/историю; ошибка subscriber происходит ПОСЛЕ commit и помечается runtime как `committed=true`. Runtime запрещает синхронные записи из listeners и доставляет остальные уведомления при ошибке одного listener; baseline сохраняет исходную recursive/fail-fast семантику. Эти исключительные сценарии теперь явно различены и протестированы, а не скрыты под обещанием полной A/B-эквивалентности.
-
-Актуальный результат: **16 document-contract tests**, полная suite **114 passed / 0 failed**, обе сборки exit 0. Первоначальные 9/107 выше относятся к предыдущему этапу. UI-интеграция по-прежнему не выполнена. Четыре browser screenshot-пары baseline/state-lib дали 0 отличающихся пикселей; все 4 исполняемых runtime JS совпадают с tasks-app.
-
-Предварительное review-cli завершено, замечания воспроизведены/исправлены или явно ограничены контрактом. Полный staged review запускается отдельно; ручные gate markers/stamps не создаются.
-
-## Второй цикл ревью: lifecycle
-Полное staged review обнаружило реальную ошибку dispose из listener: runtime отвергал освобождение во время notification, но adapter уже выставлял closed. Новый RED воспроизвёл это; теперь closed выставляется только после успешного runtime.dispose, и scope остаётся доступен для последующего корректного освобождения. Добавлены explicit-контракты committed getSnapshot против working read, а также legacy input aliasing/async/non-JSON hazards baseline. Последние намеренно сохраняют старое поведение, не обещаются эквивалентными защитам state-lib и должны быть учтены перед UI-подключением. Входная граница — прошедший schema validation объект workspace или null, не primitive root.
-
-Актуальные подтверждённые показатели: **19 document tests; 117 общих тестов; обе сборки exit 0**. Новый финальный staged review запускается на исправленном индексе; предыдущий review не используется для сертификации новых байтов.
+В tasks-app: проект **state-lib**, действующая **HYP-1464** и новая дочерняя **HYP-1497** со статусом In Progress. HYP-1497 содержит acceptance незавершённой миграции. Четыре дополнительные библиотечные карточки не созданы: batch-запись была отклонена. Направления для дальнейшей декомпозиции: normalized immutable store; command/patch history поверх внешних правок; React lifecycle scopes; воспроизводимый пакет из закреплённого commit. Подробные логи и снимки: `../state-app-migrations-20260918/` на рабочем Mac.
