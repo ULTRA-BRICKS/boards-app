@@ -1,0 +1,218 @@
+{
+  "measuredAt": "2026-09-18",
+  "machine": {
+    "cpu": "Apple M4 Pro",
+    "ramBytes": 25769803776,
+    "node": "v26.7.0",
+    "bun": "1.4.2"
+  },
+  "scope": "real Boards document/history integration and Tasks issue-editor/persistence integration; not a complete normalized/Wasm/server-cache replacement",
+  "verification": {
+    "boardsUnit": {
+      "passed": 117,
+      "failed": 0
+    },
+    "boardsRealBrowserCombinations": 4,
+    "tasksUnit": {
+      "passed": 209,
+      "failed": 1
+    },
+    "tasksCommonBrowser": {
+      "state-libPassed": 40,
+      "baselinePassed": 40
+    },
+    "tasksPersistenceBrowserPassed": 4,
+    "tasksBenchmarkRuns": {
+      "baselinePassed": 9,
+      "state-libPassed": 9
+    }
+  },
+  "controller": [
+    {
+      "count": 30,
+      "backend": "baseline",
+      "sampleCount": 21,
+      "operationsPerSample": 80,
+      "editMedianMs": 0.014380737499999973,
+      "editBatchMeanP95Ms": 0.01641509999999986,
+      "undoRedoMedianMs": 0.01695416250000008,
+      "undoRedoBatchMeanP95Ms": 0.017686462499999944,
+      "retainedHeapMedianBytes": 66416
+    },
+    {
+      "count": 30,
+      "backend": "state-lib",
+      "sampleCount": 21,
+      "operationsPerSample": 80,
+      "editMedianMs": 0.047376562499999955,
+      "editBatchMeanP95Ms": 0.04933593750000007,
+      "undoRedoMedianMs": 0.000527600000000028,
+      "undoRedoBatchMeanP95Ms": 0.0010135375000000836,
+      "retainedHeapMedianBytes": 35680
+    },
+    {
+      "count": 300,
+      "backend": "baseline",
+      "sampleCount": 21,
+      "operationsPerSample": 80,
+      "editMedianMs": 0.12990728750000075,
+      "editBatchMeanP95Ms": 0.14114062499999988,
+      "undoRedoMedianMs": 0.1463921875000011,
+      "undoRedoBatchMeanP95Ms": 0.15461041249999993,
+      "retainedHeapMedianBytes": 1529760
+    },
+    {
+      "count": 300,
+      "backend": "state-lib",
+      "sampleCount": 21,
+      "operationsPerSample": 80,
+      "editMedianMs": 0.38640832500000216,
+      "editBatchMeanP95Ms": 0.40039062499999856,
+      "undoRedoMedianMs": 0.0007775999999978467,
+      "undoRedoBatchMeanP95Ms": 0.000902087500000448,
+      "retainedHeapMedianBytes": 1551048
+    },
+    {
+      "count": 1200,
+      "backend": "baseline",
+      "sampleCount": 21,
+      "operationsPerSample": 80,
+      "editMedianMs": 0.5130854125000042,
+      "editBatchMeanP95Ms": 0.5290953124999987,
+      "undoRedoMedianMs": 0.5948661499999958,
+      "undoRedoBatchMeanP95Ms": 0.6154614625000022,
+      "retainedHeapMedianBytes": 7103936
+    },
+    {
+      "count": 1200,
+      "backend": "state-lib",
+      "sampleCount": 21,
+      "operationsPerSample": 80,
+      "editMedianMs": 1.5457229125000027,
+      "editBatchMeanP95Ms": 1.5846822875000044,
+      "undoRedoMedianMs": 0.0008401000000048953,
+      "undoRedoBatchMeanP95Ms": 0.0009192750000011074,
+      "retainedHeapMedianBytes": 7339328
+    }
+  ],
+  "browser": [
+    {
+      "count": 30,
+      "backend": "baseline",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 109.39999997615814,
+      "firstDOMP95Ms": 118.40000000596046,
+      "handlerDOMMedianMs": 0.5,
+      "handlerDOMP95Ms": 0.699999988079071,
+      "nextFrameMedianMs": 16.599999994039536,
+      "nextFrameP95Ms": 31.900000005960464,
+      "usedJSHeapMedianBytes": 2671680
+    },
+    {
+      "count": 30,
+      "backend": "state-lib",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 108.2999999821186,
+      "firstDOMP95Ms": 118.09999999403954,
+      "handlerDOMMedianMs": 0.5999999940395355,
+      "handlerDOMP95Ms": 0.7999999821186066,
+      "nextFrameMedianMs": 16.5,
+      "nextFrameP95Ms": 18.400000005960464,
+      "usedJSHeapMedianBytes": 2754180
+    },
+    {
+      "count": 300,
+      "backend": "baseline",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 119.5,
+      "firstDOMP95Ms": 120.2000000178814,
+      "handlerDOMMedianMs": 2.300000011920929,
+      "handlerDOMP95Ms": 3.0999999940395355,
+      "nextFrameMedianMs": 16.80000001192093,
+      "nextFrameP95Ms": 41.400000005960464,
+      "usedJSHeapMedianBytes": 3177336
+    },
+    {
+      "count": 300,
+      "backend": "state-lib",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 119.09999999403954,
+      "firstDOMP95Ms": 124.69999998807907,
+      "handlerDOMMedianMs": 2.5,
+      "handlerDOMP95Ms": 3.4000000059604645,
+      "nextFrameMedianMs": 17.100000023841858,
+      "nextFrameP95Ms": 31.900000005960464,
+      "usedJSHeapMedianBytes": 3196784
+    },
+    {
+      "count": 1200,
+      "backend": "baseline",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 109.2999999821186,
+      "firstDOMP95Ms": 113.19999998807907,
+      "handlerDOMMedianMs": 8.700000017881393,
+      "handlerDOMP95Ms": 11.800000011920929,
+      "nextFrameMedianMs": 68.19999998807907,
+      "nextFrameP95Ms": 80.59999999403954,
+      "usedJSHeapMedianBytes": 4741408
+    },
+    {
+      "count": 1200,
+      "backend": "state-lib",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 109.60000002384186,
+      "firstDOMP95Ms": 113.2999999821186,
+      "handlerDOMMedianMs": 9.800000011920929,
+      "handlerDOMP95Ms": 12.800000011920929,
+      "nextFrameMedianMs": 68.90000000596046,
+      "nextFrameP95Ms": 79.60000002384186,
+      "usedJSHeapMedianBytes": 4650868
+    }
+  ],
+  "build": [
+    {
+      "variant": "baseline",
+      "head": "0dd04bec91785511028a6a00da7c2e4e49a489c8",
+      "javascript": {
+        "files": 11,
+        "rawBytes": 95681,
+        "gzipBytesSum": 36564
+      },
+      "css": {
+        "files": 2,
+        "rawBytes": 20702,
+        "gzipBytesSum": 6389
+      },
+      "html": {
+        "files": 1,
+        "rawBytes": 628,
+        "gzipBytesSum": 374
+      }
+    },
+    {
+      "variant": "state-lib",
+      "head": "90859a8f5647503e106e1c1f830dc604168b3a02",
+      "javascript": {
+        "files": 18,
+        "rawBytes": 128747,
+        "gzipBytesSum": 46183
+      },
+      "css": {
+        "files": 2,
+        "rawBytes": 20702,
+        "gzipBytesSum": 6389
+      },
+      "html": {
+        "files": 1,
+        "rawBytes": 628,
+        "gzipBytesSum": 374
+      }
+    }
+  ]
+}
