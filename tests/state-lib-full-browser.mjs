@@ -12,7 +12,7 @@ const saved=page=>page.waitForResponse(r=>r.url()===base+'/api/state'&&r.request
 async function settle(page){ await page.waitForFunction(()=>document.querySelector('.save-state')?.textContent===''); }
 async function more(page,action){await page.getByRole('button',{name:'Notebook settings and profile',exact:true}).click(); const response=saved(page); await page.getByRole('button',{name:action,exact:true}).click(); await response; await settle(page);}
 for(const [engine,type] of [['chromium',chromium],['webkit',webkit]]){
- for(const backend of ['baseline','state-lib']){
+ for(const backend of ['baseline','state-lib','state-lib-cow']){
   const log=openSync(`${output}/${engine}-${backend}-server.log`,'w');
   const server=spawn(process.execPath,['scripts/dev.mjs'],{env:{PATH:process.env.PATH,HOME:process.env.HOME,TMPDIR:process.env.TMPDIR,LOCAL_TEST_MODE:'1',LOCAL_DATABASE_PATH:':memory:',PORT:String(port),APP_ORIGIN:base,AUTH_SECRET:'isolated-board-evaluation-not-a-real-secret'},stdio:['ignore',log,log]});
   let browser;
@@ -68,4 +68,4 @@ for(const [engine,type] of [['chromium',chromium],['webkit',webkit]]){
   }
  }
 }
-assert.equal(results.length,4);
+assert.equal(results.length,6);

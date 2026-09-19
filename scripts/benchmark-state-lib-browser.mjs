@@ -6,6 +6,8 @@ import {resolve} from 'node:path';
 import {chromium} from 'playwright';
 const output=resolve(process.env.PILOT_EVIDENCE||'test-results/state-lib-evaluation');mkdirSync(output,{recursive:true});
 const variants=[{name:'baseline',root:resolve(process.env.BASELINE_ROOT||'../boards-app-baseline-evaluation'),port:6581},{name:'state-lib',root:process.cwd(),port:6582}];
+if(process.env.STATE_COW==='1')variants.push({name:'state-lib-cow',root:process.cwd(),port:6583});
+if(process.env.EVAL_BASE_PORT)variants.forEach((variant,index)=>{variant.port=Number(process.env.EVAL_BASE_PORT)+index;});
 const samples=[],servers=[],logs=[];let browser;
 const quantile=(values,q)=>[...values].sort((a,b)=>a-b)[Math.min(values.length-1,Math.ceil(values.length*q)-1)];
 try{
@@ -21,11 +23,11 @@ try{
     const context=await browser.newContext({viewport:{width:1280,height:900}});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
     const cdp=await context.newCDPSession(page);await cdp.send('Network.enable');await cdp.send('Network.setCacheDisabled',{cacheDisabled:true});
     await page.addInitScript(()=>{window.__firstBoardDOM=null;new MutationObserver((_,observer)=>{if(document.querySelector('.paper')){window.__firstBoardDOM=performance.now();observer.disconnect();}}).observe(document,{childList:true,subtree:true});});
-    await page.goto(variant.base+'/');await page.getByRole('button',{name:'Open local test workspace',exact:true}).click();await page.locator('.paper').waitFor();
+    await page.goto(variant.base+'/?stateBackend='+variant.name);await page.getByRole('button',{name:'Open local test workspace',exact:true}).click();await page.locator('.paper').waitFor();
     const initial=await (await page.request.get(variant.base+'/api/state')).json();const value=structuredClone(initial.value), template=value.boards[0], column=template.columns[0];
     template.columns=Array.from({length:Math.ceil(count/200)},(_,i)=>({...column,id:`bench-column-${i}`,title:`Column ${i}`,items:Array.from({length:Math.min(200,count-i*200)},(_,j)=>({id:`bench-${i*200+j}`,text:`Synthetic task ${i*200+j}`,tag:'',assignees:[],done:false}))}));value.boards=[template];
     const seeded=await page.request.put(variant.base+'/api/state',{headers:{origin:variant.base},data:{version:initial.version,value}});assert.equal(seeded.status(),200,await seeded.text());
-    await page.reload();await page.locator('.paper').waitFor();assert.equal(await page.locator('.task').count(),count);await page.evaluate(()=>document.fonts.ready);
+    await page.reload();await page.locator('.paper').waitFor();assert.equal(await page.locator('.task').count(),count);if(variant.name!=='baseline')assert.equal(await page.locator('html').getAttribute('data-document-backend'),variant.name);await page.evaluate(()=>document.fonts.ready);
     const firstDOM=await page.evaluate(()=>window.__firstBoardDOM);
     const timings=await page.evaluate(async()=>{
      const values=[];for(let operation=0;operation<12;operation++){
@@ -43,7 +45,7 @@ try{
   console.info('Measured',count,'tasks on both pinned implementations');
  }
  const summary=[];
- for(const count of [30,300,1200])for(const backend of ['baseline','state-lib']){
+ for(const count of [30,300,1200])for(const backend of variants.map(v=>v.name)){
   const group=samples.filter(x=>x.count===count&&x.backend===backend),timings=group.flatMap(x=>x.timings);
   summary.push({count,backend,pageSamples:group.length,eventSamples:timings.length,firstDOMMedianMs:quantile(group.map(x=>x.firstBoardDOMMs),.5),firstDOMP95Ms:quantile(group.map(x=>x.firstBoardDOMMs),.95),handlerDOMMedianMs:quantile(timings.map(x=>x.syncHandlerAndDOMMs),.5),handlerDOMP95Ms:quantile(timings.map(x=>x.syncHandlerAndDOMMs),.95),nextFrameMedianMs:quantile(timings.map(x=>x.eventToNextFrameMs),.5),nextFrameP95Ms:quantile(timings.map(x=>x.eventToNextFrameMs),.95),usedJSHeapMedianBytes:quantile(group.map(x=>x.usedJSHeapBytes),.5)});
  }

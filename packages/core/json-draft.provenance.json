@@ -1,0 +1,9 @@
+{
+  "sourceRepository": "hyperide/hyper-saas",
+  "sourcePath": "packages/state-lib/experiments/2026-09-19-cow/json-draft.mjs",
+  "sourceBranch": "research/state-build-20260918",
+  "sourceStatus": "committed research candidate; not qualified for promotion",
+  "sha256": "881648a34760b068b52a5d8c7827170c755ff5c7afcf9e6014e77d91bcaf5559",
+  "qualification": "rejected: HYP-1505 and incomplete per-case non-regression",
+  "sourceCommit": "5ffc93b95e7a79abb5f2225fb7a38fa8e4946ed3"
+}

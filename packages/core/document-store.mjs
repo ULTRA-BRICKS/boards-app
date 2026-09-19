@@ -1,5 +1,6 @@
 import { Runtime, toExternalStore } from "../state-lib/dist/index.js";
 import { createBaselineDocumentStore } from "./document-store-baseline.mjs";
+import { ownJson, beginJsonDraft } from "./json-draft.mjs";
 
 // This application adapter deliberately copies whole JSON documents. It is not
 // state-lib's planned normalized/structural-sharing store or collaborative undo.
@@ -54,11 +55,13 @@ function cloneFrozen(value) {
  */
 
 export function createDocumentStore({ backend = "state-lib", initial = null, limit = 40 } = {}) {
-  if (!["baseline", "state-lib"].includes(backend)) throw TypeError("Unknown document backend");
+  if (!["baseline", "state-lib", "state-lib-cow"].includes(backend)) throw TypeError("Unknown document backend");
   if (!Number.isSafeInteger(limit) || limit < 1) throw TypeError("History limit must be positive");
   if (backend === "baseline") return createBaselineDocumentStore({ initial, limit });
+  const copyOnWrite = backend === "state-lib-cow";
+  const importDocument = copyOnWrite ? ownJson : cloneFrozen;
   const runtime = new Runtime();
-  const document = runtime.signal(cloneFrozen(initial));
+  const document = runtime.signal(importDocument(initial));
   const history = runtime.signal({ past: [], future: [] });
   const snapshot = runtime.derive(() =>
     Object.freeze({
@@ -106,13 +109,14 @@ export function createDocumentStore({ backend = "state-lib", initial = null, lim
     },
     replace(value) {
       assertIdle();
-      publish(cloneFrozen(value), { past: [], future: [] });
+      publish(importDocument(value), { past: [], future: [] });
     },
     change(mutate) {
       assertIdle();
       const before = document.get();
       if (!before) return false;
-      working = structuredClone(before);
+      const draft = copyOnWrite ? beginJsonDraft(before) : null;
+      working = draft ? draft.draft : structuredClone(before);
       mutating = true;
       let next;
       try {
@@ -122,8 +126,9 @@ export function createDocumentStore({ backend = "state-lib", initial = null, lim
           Promise.resolve(result).catch(() => {});
           throw TypeError("Document changes must be synchronous");
         }
-        next = cloneFrozen(working);
+        next = draft ? draft.finish() : cloneFrozen(working);
       } finally {
+        draft?.abort();
         working = undefined;
         mutating = false;
       }

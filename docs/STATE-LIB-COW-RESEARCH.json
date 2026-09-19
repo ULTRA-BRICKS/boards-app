@@ -1,0 +1,1081 @@
+{
+  "date": "2026-09-19",
+  "status": "research-only; rejected for promotion",
+  "libraryBranch": "research/state-build-20260918",
+  "boardsBranch": "research/state-cow-HYP-1500",
+  "boardsBase": "a312a2d17cf7898fe0d7f7e155d22f6a2016b3a5",
+  "tasksVerifiedHead": "a4ae80b1aae42293674f091c14ab9b59b37609e0",
+  "tasksLifecycleIssue": "HYP-1499 Done; focused12 tests rerun successfully in this turn",
+  "candidateIssue": "HYP-1505",
+  "conformance": {
+    "passed": 15,
+    "failed": 3,
+    "originalAppContracts": 19,
+    "defaultAppUnitTests": 117,
+    "commonBrowserCombinations": 6
+  },
+  "controllerMethod": "17 alternating batches after 3 warmups per condition. Means per operation, not individual interaction percentiles. Factory/import and DOM/network excluded; actual public document/history controller used. All outcomes compared after each trial. Baseline lacks immutability guarantees; state-lib full-copy is the stronger semantic comparator.",
+  "controller": [
+    {
+      "count": 30,
+      "operation": "root",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.013000000000000077,
+      "p95BatchMeanMs": 0.01666406250000012,
+      "minBatchMeanMs": 0.012455725000000051,
+      "maxBatchMeanMs": 0.01666406250000012
+    },
+    {
+      "count": 30,
+      "operation": "root",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.040314062499999984,
+      "p95BatchMeanMs": 0.04559999999999995,
+      "minBatchMeanMs": 0.03779218750000002,
+      "maxBatchMeanMs": 0.04559999999999995
+    },
+    {
+      "count": 30,
+      "operation": "root",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.001678125000000108,
+      "p95BatchMeanMs": 0.0029463500000000307,
+      "minBatchMeanMs": 0.0010145874999999195,
+      "maxBatchMeanMs": 0.0029463500000000307
+    },
+    {
+      "count": 30,
+      "operation": "item",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.013194275000000033,
+      "p95BatchMeanMs": 0.024516662499999953,
+      "minBatchMeanMs": 0.012468225000000287,
+      "maxBatchMeanMs": 0.024516662499999953
+    },
+    {
+      "count": 30,
+      "operation": "item",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.04029634999999985,
+      "p95BatchMeanMs": 0.043547399999999924,
+      "minBatchMeanMs": 0.038569799999999786,
+      "maxBatchMeanMs": 0.043547399999999924
+    },
+    {
+      "count": 30,
+      "operation": "item",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.007381762500000022,
+      "p95BatchMeanMs": 0.030696362499999807,
+      "minBatchMeanMs": 0.0062255249999999766,
+      "maxBatchMeanMs": 0.030696362499999807
+    },
+    {
+      "count": 30,
+      "operation": "sparse",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.013454162500000422,
+      "p95BatchMeanMs": 0.04410365000000027,
+      "minBatchMeanMs": 0.012484899999999754,
+      "maxBatchMeanMs": 0.04410365000000027
+    },
+    {
+      "count": 30,
+      "operation": "sparse",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.04049114999999972,
+      "p95BatchMeanMs": 0.07119843750000002,
+      "minBatchMeanMs": 0.03831355000000016,
+      "maxBatchMeanMs": 0.07119843750000002
+    },
+    {
+      "count": 30,
+      "operation": "sparse",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.009186975000000075,
+      "p95BatchMeanMs": 0.04005728750000017,
+      "minBatchMeanMs": 0.008215624999999704,
+      "maxBatchMeanMs": 0.04005728750000017
+    },
+    {
+      "count": 30,
+      "operation": "all",
+      "backend": "baseline",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 0.013649999999998386,
+      "p95BatchMeanMs": 0.19018540000000145,
+      "minBatchMeanMs": 0.012870849999998768,
+      "maxBatchMeanMs": 0.19018540000000145
+    },
+    {
+      "count": 30,
+      "operation": "all",
+      "backend": "state-lib",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 0.04107500000000073,
+      "p95BatchMeanMs": 0.11586250000000006,
+      "minBatchMeanMs": 0.038070849999999726,
+      "maxBatchMeanMs": 0.11586250000000006
+    },
+    {
+      "count": 30,
+      "operation": "all",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 0.03346455000000219,
+      "p95BatchMeanMs": 0.037000000000000456,
+      "minBatchMeanMs": 0.028329150000001847,
+      "maxBatchMeanMs": 0.037000000000000456
+    },
+    {
+      "count": 30,
+      "operation": "move",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.013420837500000005,
+      "p95BatchMeanMs": 0.01568541250000024,
+      "minBatchMeanMs": 0.012919787500000269,
+      "maxBatchMeanMs": 0.01568541250000024
+    },
+    {
+      "count": 30,
+      "operation": "move",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.04022134999999949,
+      "p95BatchMeanMs": 0.043874999999999886,
+      "minBatchMeanMs": 0.038492187500000344,
+      "maxBatchMeanMs": 0.043874999999999886
+    },
+    {
+      "count": 30,
+      "operation": "move",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.03210051249999992,
+      "p95BatchMeanMs": 0.06563644999999951,
+      "minBatchMeanMs": 0.028151037499999632,
+      "maxBatchMeanMs": 0.06563644999999951
+    },
+    {
+      "count": 30,
+      "operation": "noop",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.013243750000000887,
+      "p95BatchMeanMs": 0.0275651124999996,
+      "minBatchMeanMs": 0.01249218749999983,
+      "maxBatchMeanMs": 0.0275651124999996
+    },
+    {
+      "count": 30,
+      "operation": "noop",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.04020521249999973,
+      "p95BatchMeanMs": 0.050205200000000616,
+      "minBatchMeanMs": 0.03796667499999984,
+      "maxBatchMeanMs": 0.050205200000000616
+    },
+    {
+      "count": 30,
+      "operation": "noop",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.0010312499999997726,
+      "p95BatchMeanMs": 0.0013906250000005117,
+      "minBatchMeanMs": 0.0009656249999991928,
+      "maxBatchMeanMs": 0.0013906250000005117
+    },
+    {
+      "count": 30,
+      "operation": "history",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.03099843749999991,
+      "p95BatchMeanMs": 0.0395671875000005,
+      "minBatchMeanMs": 0.029569787500000187,
+      "maxBatchMeanMs": 0.0395671875000005
+    },
+    {
+      "count": 30,
+      "operation": "history",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.00042916249999933596,
+      "p95BatchMeanMs": 0.0007213500000005979,
+      "minBatchMeanMs": 0.00040988749999968375,
+      "maxBatchMeanMs": 0.0007213500000005979
+    },
+    {
+      "count": 30,
+      "operation": "history",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.00042864999999920884,
+      "p95BatchMeanMs": 0.0007307250000010868,
+      "minBatchMeanMs": 0.00041302500000028886,
+      "maxBatchMeanMs": 0.0007307250000010868
+    },
+    {
+      "count": 300,
+      "operation": "root",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.11540885000000004,
+      "p95BatchMeanMs": 0.12502031249999987,
+      "minBatchMeanMs": 0.11149636250000014,
+      "maxBatchMeanMs": 0.12502031249999987
+    },
+    {
+      "count": 300,
+      "operation": "root",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.34078072499999906,
+      "p95BatchMeanMs": 0.3637999999999991,
+      "minBatchMeanMs": 0.33300676249999983,
+      "maxBatchMeanMs": 0.3637999999999991
+    },
+    {
+      "count": 300,
+      "operation": "root",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.0014510500000000093,
+      "p95BatchMeanMs": 0.002070825000001264,
+      "minBatchMeanMs": 0.0011927124999999705,
+      "maxBatchMeanMs": 0.002070825000001264
+    },
+    {
+      "count": 300,
+      "operation": "item",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.1162224000000009,
+      "p95BatchMeanMs": 0.12738853749999918,
+      "minBatchMeanMs": 0.11221302499999979,
+      "maxBatchMeanMs": 0.12738853749999918
+    },
+    {
+      "count": 300,
+      "operation": "item",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.3466224000000011,
+      "p95BatchMeanMs": 0.3671796874999984,
+      "minBatchMeanMs": 0.33470677499999796,
+      "maxBatchMeanMs": 0.3671796874999984
+    },
+    {
+      "count": 300,
+      "operation": "item",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.011556250000001,
+      "p95BatchMeanMs": 0.021813025000000152,
+      "minBatchMeanMs": 0.010354162500001962,
+      "maxBatchMeanMs": 0.021813025000000152
+    },
+    {
+      "count": 300,
+      "operation": "sparse",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.11944478749999803,
+      "p95BatchMeanMs": 0.1410718750000001,
+      "minBatchMeanMs": 0.11529531249999536,
+      "maxBatchMeanMs": 0.1410718750000001
+    },
+    {
+      "count": 300,
+      "operation": "sparse",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.3564328124999975,
+      "p95BatchMeanMs": 0.3789661375000037,
+      "minBatchMeanMs": 0.3402890624999998,
+      "maxBatchMeanMs": 0.3789661375000037
+    },
+    {
+      "count": 300,
+      "operation": "sparse",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.04707656249999559,
+      "p95BatchMeanMs": 0.0670744749999983,
+      "minBatchMeanMs": 0.03632343749999904,
+      "maxBatchMeanMs": 0.0670744749999983
+    },
+    {
+      "count": 300,
+      "operation": "all",
+      "backend": "baseline",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 0.12339580000000297,
+      "p95BatchMeanMs": 0.338829150000015,
+      "minBatchMeanMs": 0.11851460000000316,
+      "maxBatchMeanMs": 0.338829150000015
+    },
+    {
+      "count": 300,
+      "operation": "all",
+      "backend": "state-lib",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 0.35333959999998116,
+      "p95BatchMeanMs": 0.5075333499999942,
+      "minBatchMeanMs": 0.33905414999999267,
+      "maxBatchMeanMs": 0.5075333499999942
+    },
+    {
+      "count": 300,
+      "operation": "all",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 0.3272354499999892,
+      "p95BatchMeanMs": 0.5730604000000085,
+      "minBatchMeanMs": 0.2187646000000086,
+      "maxBatchMeanMs": 0.5730604000000085
+    },
+    {
+      "count": 300,
+      "operation": "move",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.12724375000000238,
+      "p95BatchMeanMs": 0.15816822499999716,
+      "minBatchMeanMs": 0.11480884999999716,
+      "maxBatchMeanMs": 0.15816822499999716
+    },
+    {
+      "count": 300,
+      "operation": "move",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.37340103750000253,
+      "p95BatchMeanMs": 0.4294599000000005,
+      "minBatchMeanMs": 0.3436999999999898,
+      "maxBatchMeanMs": 0.4294599000000005
+    },
+    {
+      "count": 300,
+      "operation": "move",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.20023073749999867,
+      "p95BatchMeanMs": 0.26842812499999696,
+      "minBatchMeanMs": 0.1753255249999995,
+      "maxBatchMeanMs": 0.26842812499999696
+    },
+    {
+      "count": 300,
+      "operation": "noop",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.11766146249999565,
+      "p95BatchMeanMs": 0.12614322499999844,
+      "minBatchMeanMs": 0.11382865000000493,
+      "maxBatchMeanMs": 0.12614322499999844
+    },
+    {
+      "count": 300,
+      "operation": "noop",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.34603958750000174,
+      "p95BatchMeanMs": 0.36445364999999585,
+      "minBatchMeanMs": 0.3362541749999991,
+      "maxBatchMeanMs": 0.36445364999999585
+    },
+    {
+      "count": 300,
+      "operation": "noop",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.001079687499998272,
+      "p95BatchMeanMs": 0.0017802125000002888,
+      "minBatchMeanMs": 0.000922400000001744,
+      "maxBatchMeanMs": 0.0017802125000002888
+    },
+    {
+      "count": 300,
+      "operation": "history",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.2702296875000002,
+      "p95BatchMeanMs": 0.2797489625000026,
+      "minBatchMeanMs": 0.26216769999999767,
+      "maxBatchMeanMs": 0.2797489625000026
+    },
+    {
+      "count": 300,
+      "operation": "history",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.0005713499999956184,
+      "p95BatchMeanMs": 0.0008484374999966349,
+      "minBatchMeanMs": 0.0005223999999998341,
+      "maxBatchMeanMs": 0.0008484374999966349
+    },
+    {
+      "count": 300,
+      "operation": "history",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.0005265624999992724,
+      "p95BatchMeanMs": 0.0006546874999912688,
+      "minBatchMeanMs": 0.0005109374999960892,
+      "maxBatchMeanMs": 0.0006546874999912688
+    },
+    {
+      "count": 1200,
+      "operation": "root",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.4685718749999978,
+      "p95BatchMeanMs": 0.49294375000001767,
+      "minBatchMeanMs": 0.4594812499999989,
+      "maxBatchMeanMs": 0.49294375000001767
+    },
+    {
+      "count": 1200,
+      "operation": "root",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 1.3610114625000052,
+      "p95BatchMeanMs": 1.4040291750000051,
+      "minBatchMeanMs": 1.3451130124999964,
+      "maxBatchMeanMs": 1.4040291750000051
+    },
+    {
+      "count": 1200,
+      "operation": "root",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.001587500000005093,
+      "p95BatchMeanMs": 0.013267700000005789,
+      "minBatchMeanMs": 0.001215100000001712,
+      "maxBatchMeanMs": 0.013267700000005789
+    },
+    {
+      "count": 1200,
+      "operation": "item",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.4694953124999984,
+      "p95BatchMeanMs": 0.504496362499981,
+      "minBatchMeanMs": 0.4635765624999976,
+      "maxBatchMeanMs": 0.504496362499981
+    },
+    {
+      "count": 1200,
+      "operation": "item",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 1.3702541624999867,
+      "p95BatchMeanMs": 1.4103234375000056,
+      "minBatchMeanMs": 1.340313537499992,
+      "maxBatchMeanMs": 1.4103234375000056
+    },
+    {
+      "count": 1200,
+      "operation": "item",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.011990624999998544,
+      "p95BatchMeanMs": 0.022659887500003605,
+      "minBatchMeanMs": 0.011116137500016521,
+      "maxBatchMeanMs": 0.022659887500003605
+    },
+    {
+      "count": 1200,
+      "operation": "sparse",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.4779083375000027,
+      "p95BatchMeanMs": 0.49212812499999925,
+      "minBatchMeanMs": 0.4639781250000169,
+      "maxBatchMeanMs": 0.49212812499999925
+    },
+    {
+      "count": 1200,
+      "operation": "sparse",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 1.4006796874999963,
+      "p95BatchMeanMs": 1.4824276000000054,
+      "minBatchMeanMs": 1.372456249999982,
+      "maxBatchMeanMs": 1.4824276000000054
+    },
+    {
+      "count": 1200,
+      "operation": "sparse",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.21263750000000528,
+      "p95BatchMeanMs": 0.24477187499999217,
+      "minBatchMeanMs": 0.13969322499999634,
+      "maxBatchMeanMs": 0.24477187499999217
+    },
+    {
+      "count": 1200,
+      "operation": "all",
+      "backend": "baseline",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 0.485583299999962,
+      "p95BatchMeanMs": 0.5209625000000415,
+      "minBatchMeanMs": 0.46281249999992724,
+      "maxBatchMeanMs": 0.5209625000000415
+    },
+    {
+      "count": 1200,
+      "operation": "all",
+      "backend": "state-lib",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 1.3881771000000298,
+      "p95BatchMeanMs": 1.706291699999929,
+      "minBatchMeanMs": 1.3386395499999708,
+      "maxBatchMeanMs": 1.706291699999929
+    },
+    {
+      "count": 1200,
+      "operation": "all",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 20,
+      "trials": 17,
+      "medianBatchMeanMs": 1.420268749999923,
+      "p95BatchMeanMs": 1.7655958499999542,
+      "minBatchMeanMs": 1.003760400000101,
+      "maxBatchMeanMs": 1.7655958499999542
+    },
+    {
+      "count": 1200,
+      "operation": "move",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.46971197499997286,
+      "p95BatchMeanMs": 0.4870656250000138,
+      "minBatchMeanMs": 0.4602312500000153,
+      "maxBatchMeanMs": 0.4870656250000138
+    },
+    {
+      "count": 1200,
+      "operation": "move",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 1.3774489625000115,
+      "p95BatchMeanMs": 1.4283854249999877,
+      "minBatchMeanMs": 1.3580088624999918,
+      "maxBatchMeanMs": 1.4283854249999877
+    },
+    {
+      "count": 1200,
+      "operation": "move",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.5395442749999801,
+      "p95BatchMeanMs": 0.580119787500007,
+      "minBatchMeanMs": 0.5151072999999997,
+      "maxBatchMeanMs": 0.580119787500007
+    },
+    {
+      "count": 1200,
+      "operation": "noop",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.4749145750000025,
+      "p95BatchMeanMs": 0.5122192750000067,
+      "minBatchMeanMs": 0.466796875,
+      "maxBatchMeanMs": 0.5122192750000067
+    },
+    {
+      "count": 1200,
+      "operation": "noop",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 1.3749015625000083,
+      "p95BatchMeanMs": 1.4072229124999922,
+      "minBatchMeanMs": 1.3570911374999923,
+      "maxBatchMeanMs": 1.4072229124999922
+    },
+    {
+      "count": 1200,
+      "operation": "noop",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.001304687499987267,
+      "p95BatchMeanMs": 0.013748437499998545,
+      "minBatchMeanMs": 0.0011026000000128988,
+      "maxBatchMeanMs": 0.013748437499998545
+    },
+    {
+      "count": 1200,
+      "operation": "history",
+      "backend": "baseline",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 1.0871932375000142,
+      "p95BatchMeanMs": 1.116489587499973,
+      "minBatchMeanMs": 1.0651302124999802,
+      "maxBatchMeanMs": 1.116489587499973
+    },
+    {
+      "count": 1200,
+      "operation": "history",
+      "backend": "state-lib",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.0006072874999972555,
+      "p95BatchMeanMs": 0.0033817624999755934,
+      "minBatchMeanMs": 0.0005369750000227214,
+      "maxBatchMeanMs": 0.0033817624999755934
+    },
+    {
+      "count": 1200,
+      "operation": "history",
+      "backend": "state-lib-cow",
+      "iterationsPerTrial": 80,
+      "trials": 17,
+      "medianBatchMeanMs": 0.0005536499999834632,
+      "p95BatchMeanMs": 0.004933337500006019,
+      "minBatchMeanMs": 0.0005447999999887542,
+      "maxBatchMeanMs": 0.004933337500006019
+    }
+  ],
+  "promotionCells": [
+    {
+      "count": 30,
+      "operation": "root",
+      "medianRatio": 0.129086538461546,
+      "strictSampleGate": true
+    },
+    {
+      "count": 30,
+      "operation": "item",
+      "medianRatio": 0.5594670794719683,
+      "strictSampleGate": false
+    },
+    {
+      "count": 30,
+      "operation": "sparse",
+      "medianRatio": 0.6828351448854425,
+      "strictSampleGate": false
+    },
+    {
+      "count": 30,
+      "operation": "all",
+      "medianRatio": 2.451615384615835,
+      "strictSampleGate": false
+    },
+    {
+      "count": 30,
+      "operation": "move",
+      "medianRatio": 2.391841231964839,
+      "strictSampleGate": false
+    },
+    {
+      "count": 30,
+      "operation": "noop",
+      "medianRatio": 0.07786691835769352,
+      "strictSampleGate": true
+    },
+    {
+      "count": 30,
+      "operation": "history",
+      "medianRatio": 0.013828116336483414,
+      "strictSampleGate": true
+    },
+    {
+      "count": 300,
+      "operation": "root",
+      "medianRatio": 0.01257312589112541,
+      "strictSampleGate": true
+    },
+    {
+      "count": 300,
+      "operation": "item",
+      "medianRatio": 0.09943220928152327,
+      "strictSampleGate": true
+    },
+    {
+      "count": 300,
+      "operation": "sparse",
+      "medianRatio": 0.39412822849215057,
+      "strictSampleGate": true
+    },
+    {
+      "count": 300,
+      "operation": "all",
+      "medianRatio": 2.6519172451573017,
+      "strictSampleGate": false
+    },
+    {
+      "count": 300,
+      "operation": "move",
+      "medianRatio": 1.5735997838793256,
+      "strictSampleGate": false
+    },
+    {
+      "count": 300,
+      "operation": "noop",
+      "medianRatio": 0.009176220293864798,
+      "strictSampleGate": true
+    },
+    {
+      "count": 300,
+      "operation": "history",
+      "medianRatio": 0.0019485738405380496,
+      "strictSampleGate": true
+    },
+    {
+      "count": 1200,
+      "operation": "root",
+      "medianRatio": 0.003387954089231456,
+      "strictSampleGate": true
+    },
+    {
+      "count": 1200,
+      "operation": "item",
+      "medianRatio": 0.02553939236613483,
+      "strictSampleGate": true
+    },
+    {
+      "count": 1200,
+      "operation": "sparse",
+      "medianRatio": 0.4449336479717809,
+      "strictSampleGate": true
+    },
+    {
+      "count": 1200,
+      "operation": "all",
+      "medianRatio": 2.924871489608547,
+      "strictSampleGate": false
+    },
+    {
+      "count": 1200,
+      "operation": "move",
+      "medianRatio": 1.1486704698129344,
+      "strictSampleGate": false
+    },
+    {
+      "count": 1200,
+      "operation": "noop",
+      "medianRatio": 0.002747204589345905,
+      "strictSampleGate": true
+    },
+    {
+      "count": 1200,
+      "operation": "history",
+      "medianRatio": 0.0005092470969158838,
+      "strictSampleGate": true
+    }
+  ],
+  "promotionPassCount": 13,
+  "promotionCellCount": 21,
+  "uiMethod": [
+    "Local synthetic SQLite APIs, no production data.",
+    "Original baseline source, not a baseline branch that already loads the new runtime.",
+    "9 recorded pages after 2 warmups per size/backend, alternating order; 12 real DOM clicks per page.",
+    "First DOM is not FCP/LCP; next frame is not field INP. CDP heap excludes native DOM memory."
+  ],
+  "ui": [
+    {
+      "count": 30,
+      "backend": "baseline",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 105.69999998807907,
+      "firstDOMP95Ms": 113,
+      "handlerDOMMedianMs": 0.5,
+      "handlerDOMP95Ms": 0.6000000238418579,
+      "nextFrameMedianMs": 16.600000023841858,
+      "nextFrameP95Ms": 33.39999997615814,
+      "usedJSHeapMedianBytes": 2671680
+    },
+    {
+      "count": 30,
+      "backend": "state-lib",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 104.20000004768372,
+      "firstDOMP95Ms": 118,
+      "handlerDOMMedianMs": 0.5,
+      "handlerDOMP95Ms": 0.7999999523162842,
+      "nextFrameMedianMs": 16.599999964237213,
+      "nextFrameP95Ms": 18.200000047683716,
+      "usedJSHeapMedianBytes": 2769124
+    },
+    {
+      "count": 30,
+      "backend": "state-lib-cow",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 108.19999998807907,
+      "firstDOMP95Ms": 115.19999998807907,
+      "handlerDOMMedianMs": 0.5,
+      "handlerDOMP95Ms": 1,
+      "nextFrameMedianMs": 16.600000023841858,
+      "nextFrameP95Ms": 18.5,
+      "usedJSHeapMedianBytes": 2764208
+    },
+    {
+      "count": 300,
+      "backend": "baseline",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 114.5,
+      "firstDOMP95Ms": 118.5,
+      "handlerDOMMedianMs": 2.199999988079071,
+      "handlerDOMP95Ms": 3.100000023841858,
+      "nextFrameMedianMs": 16.69999998807907,
+      "nextFrameP95Ms": 42.799999952316284,
+      "usedJSHeapMedianBytes": 3177432
+    },
+    {
+      "count": 300,
+      "backend": "state-lib",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 116.69999998807907,
+      "firstDOMP95Ms": 120.30000001192093,
+      "handlerDOMMedianMs": 2.5,
+      "handlerDOMP95Ms": 3.5,
+      "nextFrameMedianMs": 17,
+      "nextFrameP95Ms": 31.900000035762787,
+      "usedJSHeapMedianBytes": 3240012
+    },
+    {
+      "count": 300,
+      "backend": "state-lib-cow",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 116.89999997615814,
+      "firstDOMP95Ms": 123,
+      "handlerDOMMedianMs": 2.300000011920929,
+      "handlerDOMP95Ms": 3.600000023841858,
+      "nextFrameMedianMs": 17,
+      "nextFrameP95Ms": 29.100000023841858,
+      "usedJSHeapMedianBytes": 2911628
+    },
+    {
+      "count": 1200,
+      "backend": "baseline",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 105.5,
+      "firstDOMP95Ms": 109.5,
+      "handlerDOMMedianMs": 8.199999988079071,
+      "handlerDOMP95Ms": 11.300000011920929,
+      "nextFrameMedianMs": 64,
+      "nextFrameP95Ms": 76.09999996423721,
+      "usedJSHeapMedianBytes": 4741272
+    },
+    {
+      "count": 1200,
+      "backend": "state-lib",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 107.79999995231628,
+      "firstDOMP95Ms": 111.19999998807907,
+      "handlerDOMMedianMs": 9.199999988079071,
+      "handlerDOMP95Ms": 12.5,
+      "nextFrameMedianMs": 64.89999997615814,
+      "nextFrameP95Ms": 77.30000001192093,
+      "usedJSHeapMedianBytes": 4665956
+    },
+    {
+      "count": 1200,
+      "backend": "state-lib-cow",
+      "pageSamples": 9,
+      "eventSamples": 108,
+      "firstDOMMedianMs": 107.80000001192093,
+      "firstDOMP95Ms": 110.89999997615814,
+      "handlerDOMMedianMs": 8.100000023841858,
+      "handlerDOMP95Ms": 10.399999976158142,
+      "nextFrameMedianMs": 63.80000001192093,
+      "nextFrameP95Ms": 75,
+      "usedJSHeapMedianBytes": 3235104
+    }
+  ],
+  "uiBrowser": "153.0.8010.12",
+  "node": "v26.7.0",
+  "build": {
+    "previousStateLib": {
+      "raw": 128747,
+      "gzipSum": 46183,
+      "files": 18
+    },
+    "researchCandidate": {
+      "raw": 137960,
+      "gzipSum": 48757,
+      "files": 19
+    }
+  },
+  "source": [
+    {
+      "file": "experiments/2026-09-19-cow/json-draft.mjs",
+      "bytes": 8753,
+      "linesIncludingComments": 257,
+      "sha256": "881648a34760b068b52a5d8c7827170c755ff5c7afcf9e6014e77d91bcaf5559"
+    },
+    {
+      "file": "experiments/2026-09-19-cow/json-draft.test.mjs",
+      "bytes": 8404,
+      "linesIncludingComments": 242,
+      "sha256": "67f3d32742330eda3162c00c892bca4ca5e95279ffb9ac67e094ee304f40876c"
+    },
+    {
+      "file": "experiments/2026-09-19-cow/verify-selection.mjs",
+      "bytes": 5731,
+      "linesIncludingComments": 139,
+      "sha256": "effc846e26a7ab8bcd29be99e13af86a112ab5f69c0e196952a09b13928313e2"
+    },
+    {
+      "file": "boards-app/packages/core/document-store.mjs",
+      "bytes": 6117,
+      "linesIncludingComments": 170,
+      "sha256": "568d90919e6faeb2723774a43ec73641996f1e6508b3532fd16c9a681cdb064e"
+    },
+    {
+      "file": "boards-app/scripts/benchmark-state-cow.mjs",
+      "bytes": 5422,
+      "linesIncludingComments": 157,
+      "sha256": "5456deaf99aa06aef6495f17b64460a05f8e61d203717948969c1dfb6282d836"
+    }
+  ],
+  "compilerGate": {
+    "candidateAccepted": false,
+    "autoEqualsBaseline": true,
+    "emitted": {
+      "baseline": {
+        "raw": 11408,
+        "gzip": 4288
+      },
+      "selected": {
+        "raw": 11408,
+        "gzip": 4288
+      },
+      "sourceMap": true,
+      "runtimeDispatcher": false
+    },
+    "baselineHash": "07789e06abc6515e203bdd25827ef88fb27e8ac5681238e92cd8898e0bd523fc",
+    "profileSourceHash": "84b318c6e37d9e145dcdf3cd2b9c389684e713b636b6bd8122c381d2e9f600ea",
+    "candidateDiagnostic": {
+      "eligible": false,
+      "observedCells": 42,
+      "reasons": [
+        "No passing, identified correctness run for node26-m4pro",
+        "Regression node26-m4pro/30/item/pre-library-budget-ms: max candidate 0.030696362499999807 > min baseline 0.012468225000000287",
+        "Regression node26-m4pro/30/sparse/current-runtime-ms: max candidate 0.04005728750000017 > min baseline 0.03831355000000016",
+        "Regression node26-m4pro/30/sparse/pre-library-budget-ms: max candidate 0.04005728750000017 > min baseline 0.012484899999999754",
+        "Regression node26-m4pro/30/all/pre-library-budget-ms: max candidate 0.037000000000000456 > min baseline 0.012870849999998768",
+        "Regression node26-m4pro/30/move/current-runtime-ms: max candidate 0.06563644999999951 > min baseline 0.038492187500000344",
+        "Regression node26-m4pro/30/move/pre-library-budget-ms: max candidate 0.06563644999999951 > min baseline 0.012919787500000267",
+        "Regression node26-m4pro/30/history/current-runtime-ms: max candidate 0.0007307250000010868 > min baseline 0.00040988749999968375",
+        "Regression node26-m4pro/300/all/current-runtime-ms: max candidate 0.5730604000000085 > min baseline 0.33905414999999267",
+        "Regression node26-m4pro/300/all/pre-library-budget-ms: max candidate 0.5730604000000085 > min baseline 0.11851460000000316",
+        "Regression node26-m4pro/300/move/pre-library-budget-ms: max candidate 0.26842812499999696 > min baseline 0.11480884999999716",
+        "Regression node26-m4pro/300/history/current-runtime-ms: max candidate 0.0006546874999912688 > min baseline 0.0005223999999998341",
+        "Regression node26-m4pro/1200/all/current-runtime-ms: max candidate 1.7655958499999542 > min baseline 1.3386395499999708",
+        "Regression node26-m4pro/1200/all/pre-library-budget-ms: max candidate 1.7655958499999542 > min baseline 0.4628124999999272",
+        "Regression node26-m4pro/1200/move/pre-library-budget-ms: max candidate 0.580119787500007 > min baseline 0.4602312500000153",
+        "Regression node26-m4pro/1200/history/current-runtime-ms: max candidate 0.004933337500006019 > min baseline 0.0005369750000227214"
+      ],
+      "variant": "cow",
+      "worstObservedRatio": 9.18727594356771,
+      "worstObservedRatioUnbounded": false
+    }
+  },
+  "limits": [
+    "Controller timings exclude factory/import, DOM and network. A changed array is still shallow-copied; not O(1) for arbitrary array lengths.",
+    "Common UI tests are not full COW conformance. All three failing historical-reference cases remain active.",
+    "UI frame metrics are laboratory timings, not field INP; heap excludes native DOM and RSS.",
+    "COW was not promoted or made default. Compile-time fallback preserves the current full-copy Runtime bundle, not a claim that the original pre-library app already meets all new guarantees.",
+    "A correction attempt was rejected before execution; the underlying historical-reference bug is unresolved."
+  ],
+  "rawArchive": {
+    "file": "raw-results.zip",
+    "bytes": 44064,
+    "sha256": "a19c7c3c067ae3b4c00f7cd8d19996e39ca3b6832e81fd63b436a789268f8941"
+  },
+  "compilerDiagnosticVerification": {
+    "tests": 18,
+    "passed": 18,
+    "failed": 0,
+    "correction": "Worst-ratio metadata now includes rejected cells; missing and unbounded ratios are distinguished. Admission is unchanged."
+  },
+  "reviewClarifications": [
+    "30-item move is within one column, unlike larger cross-column cases.",
+    "Dense scalar updates do not trigger structural certification; broad proxy/bookkeeping work remains.",
+    "13/21 strict cells pass against pre-library budget; 14/21 against the current full-copy Runtime.",
+    "The first measured candidate dataset is retained in raw-results.zip."
+  ]
+}

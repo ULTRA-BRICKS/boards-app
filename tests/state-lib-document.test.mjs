@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createDocumentStore } from "../packages/core/document-store.mjs";
+import { createDocumentStore as createStore } from "../packages/core/document-store.mjs";
+// Run the exact same contract expectations against the original and COW Runtime paths.
+const selected = process.env.STATE_DOCUMENT_BACKEND === "state-lib-cow" ? "state-lib-cow" : "state-lib";
+const createDocumentStore = (options = {}) => createStore({ ...options,
+  backend: !options.backend || options.backend === "state-lib" ? selected : options.backend,
+});
 const initial = () => ({
   name: "Workspace",
   boards: [
