@@ -87,7 +87,7 @@ export function beginJsonDraft(base) {
       for (const [parent, keys] of node.parents)
         for (const key of keys) {
           const value = latest(parent)[key];
-          if (value === node.base || value === node.proxy) {
+          if (!parent.raw.has(key) && (value === node.base || value === node.proxy)) {
             mark(parent);
             Reflect.set(parent.copy, key, node.proxy);
             parent.changed.add(key);
@@ -116,25 +116,29 @@ export function beginJsonDraft(base) {
         marking: false,
         proxy: null,
         changed: new Set(),
+        raw: new Set(),
       };
       const target = Array.isArray(value) ? [] : {};
       node.proxy = new Proxy(target, {
         get(_target, key) {
           const value = Reflect.get(latest(node), key, node.proxy);
-          if (!object(value)) return value;
+          if (!object(value) || node.raw.has(key)) return value;
           if (!owned.has(value) && !proxies.has(value)) return value;
           return state(value, node, key).proxy;
         },
         set(_target, key, value) {
           if (key === '__proto__' && !Object.hasOwn(latest(node), key))
             throw new TypeError('JSON drafts do not support prototype mutation');
+          // An explicit historical value is not a handle to the active draft.
+          const child = proxies.get(value);
+          if (object(value) && !child) node.raw.add(key);
+          else node.raw.delete(key);
           const previous = latest(node)[key];
           if (Object.hasOwn(latest(node), key) && Object.is(previous, value)) return true;
           if (object(previous) || object(value) || (Array.isArray(node.base) && key !== 'length' && !index(key)))
             structural = true;
           mark(node);
           node.changed.add(key);
-          const child = proxies.get(value);
           if (child) attach(child, node, key);
           return Reflect.set(node.copy, key, value);
         },
@@ -143,6 +147,7 @@ export function beginJsonDraft(base) {
           if (object(latest(node)[key])) structural = true;
           mark(node);
           node.changed.delete(key);
+          node.raw.delete(key);
           return Reflect.deleteProperty(node.copy, key);
         },
         has(_target, key) {
@@ -187,7 +192,7 @@ export function beginJsonDraft(base) {
         if (!scalar(value)) throw new TypeError(message);
         return value;
       }
-      const node = proxies.get(value) ?? nodes.get(value);
+      const node = proxies.get(value);
       if (node) {
         if (finished.has(node)) return finished.get(node);
         if (visiting.has(node)) throw new TypeError(message);
