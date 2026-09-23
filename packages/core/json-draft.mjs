@@ -1,6 +1,12 @@
 /** Experimental JSON COW engine. Reactive graph and history stay in the owning Runtime. */
 const owned = new WeakSet(),
-  tree = new WeakMap();
+  tree = new WeakMap(),
+  denseArrays = new WeakSet();
+const standardArrayIterator = Array.prototype.values;
+const arrayIteratorPrototype = Object.getPrototypeOf(standardArrayIterator.call([]));
+const standardArrayNext = arrayIteratorPrototype.next;
+const intrinsicArrayFrom = Array.from,
+  intrinsicArraySlice = Array.prototype.slice;
 const message = 'Document snapshots must be acyclic JSON data';
 const object = (value) => value !== null && typeof value === 'object';
 const scalar = (value) =>
@@ -32,10 +38,13 @@ function certify(root) {
       throw new TypeError(message);
     seen.add(value);
     active.add(value);
-    for (const key of Object.keys(value)) {
+    const keys = Object.keys(value);
+    const dense = Array.isArray(value) && keys.length === value.length && keys.every(index);
+    for (const key of keys) {
       if (Array.isArray(value) && !index(key)) isTree = false;
       visit(value[key]);
     }
+    if (dense) denseArrays.add(value);
     active.delete(value);
     Object.freeze(value);
     owned.add(value);
@@ -258,5 +267,390 @@ export function beginJsonDraft(base) {
     get copiedContainers() {
       return copiedContainers;
     },
+  };
+}
+
+/** Copy only certified dense arrays through the engine's native iterable fast path.
+ * Sparse or untrusted arrays retain indexed slice semantics. The result is private,
+ * not an owned snapshot until an audited command finishes constructing it.
+ */
+export function copyJsonArrayForCommand(value) {
+  if (!Array.isArray(value)) throw new TypeError('Command copy requires an array');
+  const dense =
+    owned.has(value) &&
+    denseArrays.has(value) &&
+    value[Symbol.iterator] === standardArrayIterator &&
+    arrayIteratorPrototype.next === standardArrayNext;
+  const result = dense ? intrinsicArrayFrom.call(Array, value) : intrinsicArraySlice.call(value);
+  if (dense) denseArrays.add(result);
+  return result;
+}
+const commandCopy = (value) => (Array.isArray(value) ? copyJsonArrayForCommand(value) : { ...value });
+
+/** Read-only ownership check for the existing Runtime publication boundary. */
+export function isOwnedJsonSnapshot(value) {
+  return object(value) && owned.has(value);
+}
+function commandPath(path) {
+  if (!Array.isArray(path)) throw new TypeError('Command path must be an array');
+  for (let i = 0; i < path.length; i++) {
+    const key = path[i];
+    if (typeof key !== 'string' && !(Number.isSafeInteger(key) && key >= 0))
+      throw new TypeError('Command path must contain strings or nonnegative integer indices');
+  }
+  return path;
+}
+
+function commandChild(node, key) {
+  if (!object(node) || !Object.hasOwn(node, key)) throw new TypeError('Command path must name existing own data');
+  if (
+    Array.isArray(node) &&
+    !(typeof key === 'number' ? Number.isInteger(key) && key >= 0 && key < 4294967295 : index(key))
+  )
+    throw new TypeError('Command paths do not mutate array metadata');
+  return node[key];
+}
+/** Only private trusted operators receive this construction context. */
+function jsonConstruction(base) {
+  const fast = object(base) && owned.has(base) && tree.get(base) === true;
+  let root = fast ? base : structuredClone(base),
+    closed = false,
+    copied = 0;
+  const privateNodes = new WeakSet(),
+    created = [];
+  const abort = () => {
+    closed = true;
+    root = null;
+    created.length = 0;
+  };
+  const run = (fn) => {
+    if (closed) throw new Error('JSON command is already finished or aborted');
+    try {
+      return fn();
+    } catch (error) {
+      abort();
+      throw error;
+    }
+  };
+  const clone = (node) => {
+    if (!object(node)) throw new TypeError('Command path must address a container');
+    if (!fast || privateNodes.has(node)) return node;
+    const next = commandCopy(node);
+    privateNodes.add(next);
+    created.push(next);
+    copied++;
+    return next;
+  };
+  const read = (path) => {
+    let node = root;
+    for (const key of path) node = commandChild(node, key);
+    return node;
+  };
+  const writable = (path) => {
+    root = clone(root);
+    let node = root;
+    for (const key of path) {
+      const next = clone(commandChild(node, key));
+      node[key] = next;
+      node = next;
+    }
+    return node;
+  };
+  const finish = () =>
+    run(() => {
+      let result;
+      if (!fast) result = ownJson(root);
+      else {
+        root = clone(root);
+        for (let i = created.length - 1; i >= 0; i--) {
+          Object.freeze(created[i]);
+          owned.add(created[i]);
+        }
+        tree.set(root, true);
+        result = root;
+      }
+      abort();
+      return result;
+    });
+  return {
+    strategy: fast ? 'builder' : 'copy',
+    run,
+    read,
+    clone,
+    writable,
+    finish,
+    abort,
+    get copiedContainers() {
+      return copied;
+    },
+  };
+}
+function scalarCommand(context, path, value) {
+  commandPath(path);
+  if (!path.length || !scalar(value)) throw new TypeError('Command set requires a scalar value and nonempty path');
+  const old = context.read(path);
+  if (!scalar(old)) throw new TypeError('Command set replaces an existing scalar field');
+  if (!Object.is(old, value)) context.writable(path.slice(0, -1))[path.at(-1)] = value;
+}
+function toggleCommand(context, path) {
+  commandPath(path);
+  const old = context.read(path);
+  if (typeof old !== 'boolean') throw new TypeError('Toggle requires boolean data');
+  scalarCommand(context, path, !old);
+}
+function batchArguments(field, value, stride) {
+  if (typeof field !== 'string' || !scalar(value) || !Number.isSafeInteger(stride) || stride < 1)
+    throw new TypeError('Batch command requires a field, scalar value and positive stride');
+}
+function rowsCommand(context, path, field, value, stride = 1) {
+  commandPath(path);
+  batchArguments(field, value, stride);
+  const rows = context.read(path);
+  if (!Array.isArray(rows)) throw new TypeError('Batch path must address an array');
+  let target;
+  for (let i = 0; i < rows.length; i += stride) {
+    const row = commandChild(rows, i),
+      old = commandChild(row, field);
+    if (!scalar(old)) throw new TypeError('Batch command replaces scalar fields');
+    if (Object.is(old, value)) continue;
+    target ??= context.writable(path);
+    const next = context.clone(target[i]);
+    next[field] = value;
+    target[i] = next;
+  }
+}
+function groupsCommand(context, path, itemsField, field, value, stride = 1) {
+  commandPath(path);
+  batchArguments(field, value, stride);
+  if (typeof itemsField !== 'string') throw new TypeError('Grouped batch requires an item field');
+  const groups = context.read(path);
+  if (!Array.isArray(groups)) throw new TypeError('Grouped batch path must address an array');
+  for (let i = 0; i < groups.length; i++) rowsCommand(context, [...path, i, itemsField], field, value, stride);
+}
+function moveCommand(context, fromPath, fromIndex, toPath, toIndex) {
+  commandPath(fromPath);
+  commandPath(toPath);
+  const prefix = (a, b) => a.length < b.length && a.every((key, i) => String(key) === String(b[i]));
+  if (prefix(fromPath, toPath) || prefix(toPath, fromPath)) throw new TypeError('Move paths must not overlap');
+  const from = context.read(fromPath),
+    to = context.read(toPath);
+  if (!Array.isArray(from) || !Array.isArray(to)) throw new TypeError('Move paths must address arrays');
+  const same = from === to;
+  if (
+    !Number.isSafeInteger(fromIndex) ||
+    fromIndex < 0 ||
+    fromIndex >= from.length ||
+    !Object.hasOwn(from, fromIndex) ||
+    !Number.isSafeInteger(toIndex) ||
+    toIndex < 0 ||
+    toIndex > to.length - Number(same)
+  )
+    throw new RangeError('Move indices must be inside the source and post-removal destination');
+  if (same && fromIndex === toIndex) return;
+  const source = context.writable(fromPath),
+    target = same ? source : context.writable(toPath);
+  const [item] = source.splice(fromIndex, 1);
+  target.splice(toIndex, 0, item);
+}
+/** No mutable context escapes through the public command API. */
+export function beginJsonCommand(base) {
+  const context = jsonConstruction(base);
+  return {
+    strategy: context.strategy,
+    set: (path, value) => context.run(() => scalarCommand(context, path, value)),
+    toggle: (path) => context.run(() => toggleCommand(context, path)),
+    assignEach: (path, field, value, stride = 1) => context.run(() => rowsCommand(context, path, field, value, stride)),
+    assignGroups: (path, items, field, value, stride = 1) =>
+      context.run(() => groupsCommand(context, path, items, field, value, stride)),
+    move: (from, fromIndex, to, toIndex) => context.run(() => moveCommand(context, from, fromIndex, to, toIndex)),
+    finish: context.finish,
+    abort: context.abort,
+    get copiedContainers() {
+      return context.copiedContainers;
+    },
+  };
+}
+// Internal helpers for the already-tested immutable command operations.
+function treeOwned(base) {
+  return object(base) && owned.has(base) && tree.get(base) === true;
+}
+function frozenOwned(value) {
+  Object.freeze(value);
+  owned.add(value);
+  return value;
+}
+function traceCommand(root, path, validated = false) {
+  if (!validated) commandPath(path);
+  const parents = new Array(path.length + 1);
+  parents[0] = root;
+  for (let i = 0; i < path.length; i++) parents[i + 1] = commandChild(parents[i], path[i]);
+  return parents;
+}
+function liftCommand(parents, path, value, stop = 0) {
+  for (let i = path.length - 1; i >= stop; i--) {
+    const parent = commandCopy(parents[i]);
+    parent[path[i]] = value;
+    value = frozenOwned(parent);
+  }
+  return value;
+}
+function finishDirect(root, fast) {
+  if (!fast) return certify(root);
+  tree.set(root, true);
+  return root;
+}
+function unchangedRoot(root, fast) {
+  return fast ? frozenOwned(commandCopy(root)) : root;
+}
+function directScalar(base, path, value, toggle = false) {
+  if ((!toggle && !scalar(value)) || !Array.isArray(path) || !path.length)
+    throw new TypeError('Command set requires a scalar and nonempty path');
+  const fast = treeOwned(base),
+    root = fast ? base : structuredClone(base),
+    parents = traceCommand(root, path);
+  const old = parents[parents.length - 1];
+  if (!scalar(old)) throw new TypeError('Command set replaces an existing scalar field');
+  if (toggle) {
+    if (typeof old !== 'boolean') throw new TypeError('Toggle requires boolean data');
+    value = !old;
+  }
+  let next;
+  if (Object.is(old, value)) next = unchangedRoot(root, fast);
+  else if (fast) next = liftCommand(parents, path, value);
+  else {
+    parents[parents.length - 2][path.at(-1)] = value;
+    next = root;
+  }
+  return finishDirect(next, fast);
+}
+function directRows(rows, field, value, stride, fast) {
+  if (!Array.isArray(rows)) throw new TypeError('Batch path must address an array');
+  let output = rows;
+  for (let i = 0; i < rows.length; i += stride) {
+    const row = commandChild(rows, i),
+      old = commandChild(row, field);
+    if (!scalar(old)) throw new TypeError('Batch command replaces scalar fields');
+    if (Object.is(old, value)) continue;
+    if (fast) {
+      if (output === rows) output = copyJsonArrayForCommand(rows);
+      const next = commandCopy(row);
+      next[field] = value;
+      output[i] = frozenOwned(next);
+    } else row[field] = value;
+  }
+  return fast && output !== rows ? frozenOwned(output) : output;
+}
+export function setJsonEach(base, path, field, value, stride = 1) {
+  batchArguments(field, value, stride);
+  const fast = treeOwned(base),
+    root = fast ? base : structuredClone(base),
+    parents = traceCommand(root, path);
+  const before = parents[parents.length - 1],
+    after = directRows(before, field, value, stride, fast);
+  const next = fast && before !== after ? liftCommand(parents, path, after) : unchangedRoot(root, fast);
+  return finishDirect(next, fast);
+}
+export function setJsonGroups(base, path, items, field, value, stride = 1) {
+  batchArguments(field, value, stride);
+  if (typeof items !== 'string') throw new TypeError('Grouped batch requires an item field');
+  const fast = treeOwned(base),
+    root = fast ? base : structuredClone(base),
+    parents = traceCommand(root, path);
+  const groups = parents[parents.length - 1];
+  if (!Array.isArray(groups)) throw new TypeError('Grouped batch path must address an array');
+  let output = groups;
+  for (let i = 0; i < groups.length; i++) {
+    const group = commandChild(groups, i),
+      before = commandChild(group, items);
+    const after = directRows(before, field, value, stride, fast);
+    if (fast && before !== after) {
+      if (output === groups) output = copyJsonArrayForCommand(groups);
+      const next = commandCopy(group);
+      next[items] = after;
+      output[i] = frozenOwned(next);
+    }
+  }
+  const next = fast && output !== groups ? liftCommand(parents, path, frozenOwned(output)) : unchangedRoot(root, fast);
+  return finishDirect(next, fast);
+}
+export function moveJsonItem(base, fromPath, fromIndex, toPath, toIndex) {
+  commandPath(fromPath);
+  commandPath(toPath);
+  let common = 0;
+  while (
+    common < fromPath.length &&
+    common < toPath.length &&
+    (fromPath[common] === toPath[common] || String(fromPath[common]) === String(toPath[common]))
+  )
+    common++;
+  if (fromPath.length !== toPath.length && common === Math.min(fromPath.length, toPath.length))
+    throw new TypeError('Move paths must not overlap');
+  const fast = treeOwned(base),
+    root = fast ? base : structuredClone(base);
+  const fromTrace = traceCommand(root, fromPath, true);
+  const toTrace = fromTrace.slice(0, common + 1);
+  for (let i = common; i < toPath.length; i++) toTrace.push(commandChild(toTrace[toTrace.length - 1], toPath[i]));
+  const from = fromTrace[fromTrace.length - 1],
+    to = toTrace[toTrace.length - 1];
+  if (!Array.isArray(from) || !Array.isArray(to)) throw new TypeError('Move paths must address arrays');
+  const same = from === to;
+  if (
+    !Number.isSafeInteger(fromIndex) ||
+    fromIndex < 0 ||
+    fromIndex >= from.length ||
+    !Object.hasOwn(from, fromIndex) ||
+    !Number.isSafeInteger(toIndex) ||
+    toIndex < 0 ||
+    toIndex > to.length - Number(same)
+  )
+    throw new RangeError('Move indices must be inside the source and post-removal destination');
+  if (same && fromIndex === toIndex) return finishDirect(unchangedRoot(root, fast), fast);
+  let source, target;
+  if (fast && !same && from.length === 1 && to.length === 0) {
+    source = [];
+    target = [from[0]];
+    denseArrays.add(source);
+    denseArrays.add(target);
+  } else {
+    source = fast ? copyJsonArrayForCommand(from) : from;
+    target = same ? source : fast ? copyJsonArrayForCommand(to) : to;
+    const [item] = source.splice(fromIndex, 1);
+    target.splice(toIndex, 0, item);
+  }
+  if (!fast) return finishDirect(root, false);
+  frozenOwned(source);
+  if (same) return finishDirect(liftCommand(fromTrace, fromPath, source), true);
+  frozenOwned(target);
+  const left = liftCommand(fromTrace, fromPath, source, common + 1);
+  const right = liftCommand(toTrace, toPath, target, common + 1);
+  const ancestor = commandCopy(fromTrace[common]);
+  ancestor[fromPath[common]] = left;
+  ancestor[toPath[common]] = right;
+  return finishDirect(liftCommand(fromTrace, fromPath.slice(0, common), frozenOwned(ancestor)), true);
+}
+export function copyJsonRoot(base) {
+  if (treeOwned(base)) return finishDirect(frozenOwned(commandCopy(base)), true);
+  return ownJson(base);
+}
+
+export const setJsonScalar = (base, path, value) => directScalar(base, path, value);
+export const toggleJsonScalar = (base, path) => directScalar(base, path, undefined, true);
+
+/** Reusable synchronous multi-operation recipe; native single-operation code imports narrower helpers. */
+export function defineJsonCommand(execute) {
+  if (typeof execute !== 'function') throw new TypeError('A command recipe must be callable');
+  return function applyCommand(base, args) {
+    const tx = beginJsonCommand(base);
+    try {
+      const result = execute(tx, args);
+      if (result && typeof result.then === 'function') {
+        Promise.resolve(result).catch(() => {});
+        throw new TypeError('JSON command recipes must be synchronous');
+      }
+      return tx.finish();
+    } catch (error) {
+      tx.abort();
+      throw error;
+    }
   };
 }

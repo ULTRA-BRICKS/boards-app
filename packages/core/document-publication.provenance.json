@@ -1,0 +1,8 @@
+{
+  "sourceRepository": "hyperide/hyper-saas",
+  "sourcePath": "packages/state-lib/experiments/2026-09-19-cow/document-publication.mjs",
+  "sourceBranch": "research/state-build-20260918",
+  "sourceStatus": "published experimental command/ownership helper; global timing admission remains pending",
+  "sha256": "6a9046ec5d5a64e5c99f8656865bf6f95f7d4d966fa0f3991ac7624ea94fa4a3",
+  "sourceCommit": "dbdfc07d0b25fa12f6f395305a25d88b6b838052"
+}
