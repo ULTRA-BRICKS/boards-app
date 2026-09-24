@@ -20,7 +20,7 @@ The prototype deliberately does **not** pretend that Google/Slack/GitHub sign-in
 
 ## Full application and Bun migration
 
-The repository also contains the fuller board backend, identity/linking flows, deterministic PNG previews and provider adapters. The Bun/Oxc/Nx migration remains in [PR #2](https://github.com/ultrabricks/boards-app/pull/2); it must not be described as merged or fully verified merely because a static prototype has been prepared. The older root commands still reflect the previous runtime until that migration is accepted.
+The repository also contains the fuller board backend, identity/linking flows, deterministic PNG previews and provider adapters. The Bun/Oxc/Nx migration remains in [PR #2](https://git.hyperide.ai/ultrabricks/boards-app/pulls/2); it must not be described as merged or fully verified merely because a static prototype has been prepared. The older root commands still reflect the previous runtime until that migration is accepted.
 
 The prototype is plain browser ES modules plus PostgreSQL RPCs: no container, Python server or Node process is required to host it. The new browser harness is TypeScript and runs with Bun:
 
@@ -34,21 +34,21 @@ Set `CHROMIUM_PATH` for a system Chromium. This harness uses actual HTML/CSS/mod
 
 ## Visual reference
 
-These existing images come from the last successful full-application native CI run, not the new prototype harness. Their [manifest](https://github.com/ultrabricks/boards-app/blob/visual-evidence/evidence.json) records the source and run. Prototype screenshots were produced by its TypeScript harness and attached to the delivery conversation; they are not generated UI mockups or evidence of a successful public deployment.
+These existing images come from the last successful full-application native CI run, not the new prototype harness. Their [manifest](https://git.hyperide.ai/ultrabricks/boards-app/src/branch/visual-evidence/evidence.json) records the source and run. Prototype screenshots were produced by its TypeScript harness and attached to the delivery conversation; they are not generated UI mockups or evidence of a successful public deployment.
 
-![Paper board](https://raw.githubusercontent.com/ultrabricks/boards-app/visual-evidence/screenshots/board-desktop.png)
+![Paper board](https://git.hyperide.ai/ultrabricks/boards-app/raw/branch/visual-evidence/screenshots/board-desktop.png)
 
 <details><summary>Mobile and independent type specimen</summary>
 
-<img width="393" alt="Mobile board" src="https://raw.githubusercontent.com/ultrabricks/boards-app/visual-evidence/screenshots/board-mobile-viewport.png">
+<img width="393" alt="Mobile board" src="https://git.hyperide.ai/ultrabricks/boards-app/raw/branch/visual-evidence/screenshots/board-mobile-viewport.png">
 
-![Conloca type specimen](https://raw.githubusercontent.com/ultrabricks/boards-app/visual-evidence/screenshots/type-site.png)
+![Conloca type specimen](https://git.hyperide.ai/ultrabricks/boards-app/raw/branch/visual-evidence/screenshots/type-site.png)
 
 </details>
 
 ## Source and operational limits
 
-[Roadmap](ROADMAP.md) · [Architecture](docs/ARCHITECTURE.md) · [Provider setup](docs/SETUP.md) · [Security](SECURITY.md) · [Previous full-app review](docs/REVIEW-2026-09-10.md) · [GitHub Actions](https://github.com/ultrabricks/boards-app/actions)
+[Roadmap](ROADMAP.md) · [Architecture](docs/ARCHITECTURE.md) · [Provider setup](docs/SETUP.md) · [Security](SECURITY.md) · [Previous full-app review](docs/REVIEW-2026-09-10.md) · [GitHub Actions](https://git.hyperide.ai/ultrabricks/boards-app/actions)
 
 The prototype is bounded to 200 isolated notebooks, 50 share links per notebook and a 512 KB document. It is a demonstration, not an audited multi-tenant identity platform. Keep backups. Revoking a share prevents new reads but cannot remove screenshots someone already saved.
 

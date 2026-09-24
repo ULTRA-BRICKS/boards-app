@@ -1,6 +1,6 @@
 {
   "sourceCommit": "c65206fea5d7c5b8520a61d9211e6782c278b2d7",
-  "workflowRun": "https://github.com/alex-mextner/boards-app/actions/runs/34500828958",
+  "workflowRun": "https://git.hyperide.ai/ultrabricks/boards-app/actions/runs/34500828958",
   "artifactId": 10161804027,
   "artifactSha256": "1f761554c479e4dc8c167161adda265ef708c05581fec8796f6079fe42cd22a5",
   "model": "intfloat/multilingual-e5-base",

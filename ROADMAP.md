@@ -1,6 +1,6 @@
 # Boards delivery roadmap
 
-Updated: 2026-09-10. This is the execution ledger, not a claim that tested adapters are a deployed product. [Tracking issue #1](https://github.com/alex-mextner/boards-app/issues/1) · [Review and evidence](docs/REVIEW-2026-09-10.md).
+Updated: 2026-09-10. This is the execution ledger, not a claim that tested adapters are a deployed product. [Tracking issue #1](https://git.hyperide.ai/ultrabricks/boards-app/issues/1) · [Review and evidence](docs/REVIEW-2026-09-10.md).
 
 ## Delivery order and acceptance gates
 
@@ -31,14 +31,14 @@ Check the official status API and the failing component, but distinguish cached 
 
 1. `95648aa` — roadmap committed before recovery. Initial main had only README; application objects existed in orphan tree `29f479efbdd15865ddd2415c5f9ec843f6218050`.
 2. `bf97e7` — recovered source, removed unverified claims, added actual CI. Native browser testing exposed a parse error despite passing backend tests.
-3. `6ee1c44` — fixed startup and added guarded bootstrap, browser-module syntax checks, caret/draft preservation and mobile column tabs. [Run 34488301726](https://github.com/alex-mextner/boards-app/actions/runs/34488301726): 65 Node tests and 27 native browser checks.
-4. `a74b4a9` — refused mixed test/cloud configuration; validated readiness and shared bootstrap. [Run 34489588055](https://github.com/alex-mextner/boards-app/actions/runs/34489588055): 71 Node tests and both jobs passed.
+3. `6ee1c44` — fixed startup and added guarded bootstrap, browser-module syntax checks, caret/draft preservation and mobile column tabs. [Run 34488301726](https://git.hyperide.ai/ultrabricks/boards-app/actions/runs/34488301726): 65 Node tests and 27 native browser checks.
+4. `a74b4a9` — refused mixed test/cloud configuration; validated readiness and shared bootstrap. [Run 34489588055](https://git.hyperide.ai/ultrabricks/boards-app/actions/runs/34489588055): 71 Node tests and both jobs passed.
 5. `ef5166f` — automated sample screenshot publication with a source/run manifest and in-memory font validation. README images are actual Chromium output.
 6. `963ce23` — self-contained original-source type specimen, suitable for independent static hosting; not a font binary.
 7. `fe8405d`, `d721c9b` — avatar approval races, repeat linking, UTF-8 chunk decoding, disposed queue writes, active-draft loss, stale UI responses and lost assignee hints fixed. Photo review is now a form instead of a JSON editor.
-8. `0094449`, `c65206f` — actual multilingual model evaluation and conservative opposite-action/stopword fixes. [Measured run 34500828958](https://github.com/alex-mextner/boards-app/actions/runs/34500828958): 15 public tasks and 15 queries; not a production-quality benchmark.
+8. `0094449`, `c65206f` — actual multilingual model evaluation and conservative opposite-action/stopword fixes. [Measured run 34500828958](https://git.hyperide.ai/ultrabricks/boards-app/actions/runs/34500828958): 15 public tasks and 15 queries; not a production-quality benchmark.
 9. `fb36de0`, `11be9ee` — isolated no-Git static Vercel deployment and alternative Neon Node 24 function target; code/build/HTTP checks, not a completed authenticated deployment.
-10. `29922cc` — [run 34501918744](https://github.com/alex-mextner/boards-app/actions/runs/34501918744): **92 Node tests; 27 main Chromium + 9 review Chromium + 7 WebKit touch checks; eight font instances; both builds passed**. WebKit uses a simulated viewport, not a physical iPhone.
+10. `29922cc` — [run 34501918744](https://git.hyperide.ai/ultrabricks/boards-app/actions/runs/34501918744): **92 Node tests; 27 main Chromium + 9 review Chromium + 7 WebKit touch checks; eight font instances; both builds passed**. WebKit uses a simulated viewport, not a physical iPhone.
 
 ## Current blocker and next work
 
