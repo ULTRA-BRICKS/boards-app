@@ -15,6 +15,7 @@
     "Mobile scrolling updates the active column",
     "A failed previous save preserves the newer text still being edited",
     "Revoking a link after closing its dialog produces no stale DOM exception",
+    "People-to-profile dialog chain restores the original keyboard focus",
     "No serious or critical automated accessibility violations"
   ],
   "errors": []

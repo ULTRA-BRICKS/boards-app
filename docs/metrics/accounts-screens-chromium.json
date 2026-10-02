@@ -17,6 +17,7 @@
     "People: four widths and no serious/critical automated accessibility violations",
     "Item history shows persisted actor, server time and changed text",
     "History: four widths and no serious/critical automated accessibility violations",
+    "A delayed settings save stays on its original space and cannot overwrite another screen",
     "Logout ends the server session",
     "Account screens use the actual handwritten font and have no horizontal overflow at 320–1080px"
   ],

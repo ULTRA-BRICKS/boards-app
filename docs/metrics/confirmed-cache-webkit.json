@@ -1,0 +1,18 @@
+{
+  "browser": "webkit",
+  "mode": "Native IndexedDB and WebCrypto, synthetic board; no live private data",
+  "results": {
+    "firstWrite": true,
+    "restores": true,
+    "olderWriteRejected": true,
+    "wrongKeyCannotDecrypt": true,
+    "noPlaintext": true,
+    "invalidated": true,
+    "inflightCannotRepopulate": true,
+    "reauthorizedReadCanCache": true,
+    "autosavesReuseConnection": true,
+    "autosavesSkipUnnecessaryPruning": true,
+    "boundedTo24Snapshots": true,
+    "closedConnectionRecovers": true
+  }
+}

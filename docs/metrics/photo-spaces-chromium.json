@@ -1,0 +1,15 @@
+{
+  "browser": "chromium",
+  "mode": "Native image decoding, IndexedDB and live application UI; explicit fixture cloud and vision responses. This is not a successful real model call.",
+  "checks": [
+    "Double tapping photo creation initializes only one editor",
+    "Unconfigured recognition never uploads a photo or creates a board",
+    "Photo draft survives leaving and reopening the screen",
+    "Thirty draft edits do not rewrite the photo or reopen IndexedDB",
+    "Corrected draft text is persistent and the sheet is responsive at four widths",
+    "Only confirmed corrected page reaches the space, preserving completion without guessing identities",
+    "A lost space-creation response reuses its key instead of creating duplicates",
+    "Space creation and return use separate cloud documents without copying or overwriting boards"
+  ],
+  "errors": []
+}

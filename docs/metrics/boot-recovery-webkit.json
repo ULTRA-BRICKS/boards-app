@@ -1,0 +1,9 @@
+{
+  "browser": "webkit",
+  "mode": "Native browser with deliberately failed JS and delayed fixture cloud, not real device/server latency",
+  "checks": [
+    "Missing application JavaScript shows a recovery control instead of an infinite skeleton",
+    "Retry preserves the address and successfully boots when the application file is available",
+    "A slow cold read explains the wait, and recovery UI disappears automatically when real tasks arrive"
+  ]
+}

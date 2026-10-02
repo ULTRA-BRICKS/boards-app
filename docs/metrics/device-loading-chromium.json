@@ -1,0 +1,12 @@
+{
+  "browser": "chromium",
+  "mode": "Native browser + IndexedDB, same-origin cloud routes are explicit fixtures; SW navigation tested separately",
+  "checks": [
+    "Closing the first tab still permits a new tab to show the confirmed board before slow cloud revalidation",
+    "Typing over a cached copy waits for a successful version check then saves",
+    "Uncommitted tab input is not shared as an acknowledged device snapshot",
+    "SWR displays the confirmed previous revision then replaces it with the newer cloud revision",
+    "Permission rejection clears the device snapshot rather than reusing it on the next visit"
+  ],
+  "errors": []
+}

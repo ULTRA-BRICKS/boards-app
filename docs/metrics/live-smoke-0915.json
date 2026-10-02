@@ -1,5 +1,5 @@
 {
-  "build": "634694f79261ec34",
+  "build": "c7f90940134b739c",
   "mode": "Unmocked public HTTPS; isolated test notebook for writes; provided user notebook only read",
   "checks": [
     "Public cloud creation and fifteen seed tasks",
@@ -14,119 +14,127 @@
     "The exact user-provided board opens without edits or recovery loop"
   ],
   "cold": {
-    "build": "634694f79261ec34",
+    "build": "c7f90940134b739c",
     "measurements": [
       {
         "name": "module-ready",
-        "ms": 250
+        "ms": 311
       },
       {
         "name": "board-render",
-        "ms": 254
-      },
-      {
-        "name": "sample-render",
-        "ms": 254
-      },
-      {
-        "name": "board-frame",
-        "ms": 272
-      },
-      {
-        "name": "font-ready",
         "ms": 340
       },
       {
+        "name": "sample-render",
+        "ms": 341
+      },
+      {
+        "name": "board-frame",
+        "ms": 341
+      },
+      {
+        "name": "font-ready",
+        "ms": 494
+      },
+      {
         "name": "token-ready",
-        "ms": 590
+        "ms": 642
       },
       {
         "name": "cloud-ready",
-        "ms": 866
+        "ms": 827
+      },
+      {
+        "name": "device-cache-saved",
+        "ms": 833
       }
     ],
     "inp": null,
-    "lcp": 284,
+    "lcp": 404,
     "cls": 0.037,
     "longTasks": [],
     "navigation": {
-      "ttfb": 141,
-      "dom": 254,
-      "load": 255
+      "ttfb": 193,
+      "dom": 324,
+      "load": 326
     },
     "resources": [
       {
         "kind": "app-asset",
-        "duration": 61
+        "duration": 50
       },
       {
         "kind": "app-asset",
-        "duration": 91
+        "duration": 84
       },
       {
         "kind": "anonymous-token",
-        "duration": 337
+        "duration": 323
       },
       {
         "kind": "app-asset",
-        "duration": -1
+        "duration": -38
       },
       {
         "kind": "cloud-rpc",
-        "duration": 272
+        "duration": 182
       }
     ],
     "serviceWorker": true
   },
   "repeat": {
-    "build": "634694f79261ec34",
+    "build": "c7f90940134b739c",
     "measurements": [
       {
         "name": "module-ready",
-        "ms": 7
+        "ms": 9
       },
       {
         "name": "board-render",
-        "ms": 8
+        "ms": 11
       },
       {
         "name": "tab-render",
-        "ms": 8
+        "ms": 11
       },
       {
         "name": "board-frame",
-        "ms": 22
+        "ms": 24
       },
       {
         "name": "font-ready",
-        "ms": 63
+        "ms": 84
       },
       {
         "name": "cloud-ready",
-        "ms": 182
+        "ms": 201
+      },
+      {
+        "name": "device-cache-saved",
+        "ms": 202
       }
     ],
     "inp": null,
-    "lcp": 32,
+    "lcp": 36,
     "cls": 0.037,
     "longTasks": [],
     "navigation": {
-      "ttfb": 2,
-      "dom": 8,
-      "load": 9
+      "ttfb": 3,
+      "dom": 11,
+      "load": 12
     },
     "resources": [
       {
         "kind": "app-asset",
-        "duration": 1
+        "duration": 2
       },
       {
         "kind": "app-asset",
-        "duration": 1
+        "duration": 2
       },
       {
         "kind": "cloud-rpc",
-        "duration": 174
+        "duration": 189
       },
       {
         "kind": "app-asset",
@@ -141,5 +149,5 @@
     "writes": 0
   },
   "errors": [],
-  "timestamp": "2026-09-15T17:32:27.600Z"
+  "timestamp": "2026-09-17T22:49:02.533Z"
 }

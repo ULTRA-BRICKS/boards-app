@@ -1,0 +1,554 @@
+{
+  "scope": "Public supplied board, read-only, normal browser security and unthrottled network. Private task text and editing URL are omitted.",
+  "build": "c7f90940134b739c",
+  "results": [
+    {
+      "engine": "chromium",
+      "mode": "first-tab",
+      "metrics": {
+        "build": "c7f90940134b739c",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 650
+          },
+          {
+            "name": "font-ready",
+            "ms": 1041
+          },
+          {
+            "name": "token-ready",
+            "ms": 10915
+          },
+          {
+            "name": "board-render",
+            "ms": 10919
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 10919
+          },
+          {
+            "name": "device-cache-saved",
+            "ms": 10922
+          },
+          {
+            "name": "board-frame",
+            "ms": 10927
+          }
+        ],
+        "inp": null,
+        "lcp": 6668,
+        "cls": 0.187,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 154,
+          "dom": 659,
+          "load": 661
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 314
+          },
+          {
+            "kind": "app-asset",
+            "duration": 92
+          },
+          {
+            "kind": "app-asset",
+            "duration": 10215
+          },
+          {
+            "kind": "app-asset",
+            "duration": -2
+          }
+        ],
+        "serviceWorker": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "mode": "same-tab",
+      "metrics": {
+        "build": "c7f90940134b739c",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 9
+          },
+          {
+            "name": "board-render",
+            "ms": 10
+          },
+          {
+            "name": "tab-render",
+            "ms": 10
+          },
+          {
+            "name": "board-frame",
+            "ms": 28
+          },
+          {
+            "name": "font-ready",
+            "ms": 86
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 212
+          },
+          {
+            "name": "device-cache-saved",
+            "ms": 214
+          }
+        ],
+        "inp": null,
+        "lcp": 36,
+        "cls": 0.084,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 3,
+          "dom": 11,
+          "load": 12
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 201
+          },
+          {
+            "kind": "app-asset",
+            "duration": -15
+          }
+        ],
+        "serviceWorker": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "mode": "new-tab",
+      "metrics": {
+        "build": "c7f90940134b739c",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 10
+          },
+          {
+            "name": "board-render",
+            "ms": 16
+          },
+          {
+            "name": "device-render",
+            "ms": 16
+          },
+          {
+            "name": "board-frame",
+            "ms": 22
+          },
+          {
+            "name": "font-ready",
+            "ms": 79
+          },
+          {
+            "name": "token-ready",
+            "ms": 349
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 349
+          },
+          {
+            "name": "device-cache-saved",
+            "ms": 350
+          }
+        ],
+        "inp": null,
+        "lcp": 56,
+        "cls": 0.084,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 1,
+          "dom": 11,
+          "load": 11
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": -4
+          },
+          {
+            "kind": "app-asset",
+            "duration": 332
+          }
+        ],
+        "serviceWorker": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "chromium",
+      "mode": "versioned-tab",
+      "metrics": {
+        "build": "c7f90940134b739c",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 10
+          },
+          {
+            "name": "board-render",
+            "ms": 14
+          },
+          {
+            "name": "device-render",
+            "ms": 14
+          },
+          {
+            "name": "board-frame",
+            "ms": 22
+          },
+          {
+            "name": "font-ready",
+            "ms": 80
+          },
+          {
+            "name": "token-ready",
+            "ms": 279
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 279
+          },
+          {
+            "name": "device-cache-saved",
+            "ms": 280
+          }
+        ],
+        "inp": null,
+        "lcp": 52,
+        "cls": 0.084,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 1,
+          "dom": 11,
+          "load": 11
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 264
+          },
+          {
+            "kind": "app-asset",
+            "duration": -5
+          }
+        ],
+        "serviceWorker": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "mode": "first-tab",
+      "metrics": {
+        "build": "c7f90940134b739c",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 242
+          },
+          {
+            "name": "font-ready",
+            "ms": 368
+          },
+          {
+            "name": "token-ready",
+            "ms": 473
+          },
+          {
+            "name": "board-render",
+            "ms": 479
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 479
+          },
+          {
+            "name": "board-frame",
+            "ms": 508
+          },
+          {
+            "name": "device-cache-saved",
+            "ms": 525
+          }
+        ],
+        "inp": null,
+        "lcp": 224,
+        "cls": 0,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 132,
+          "dom": 248,
+          "load": 250
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 50
+          },
+          {
+            "kind": "app-asset",
+            "duration": 76
+          },
+          {
+            "kind": "app-asset",
+            "duration": 66
+          },
+          {
+            "kind": "app-asset",
+            "duration": 50
+          },
+          {
+            "kind": "app-asset",
+            "duration": 205
+          }
+        ],
+        "serviceWorker": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "mode": "same-tab",
+      "metrics": {
+        "build": "c7f90940134b739c",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 10
+          },
+          {
+            "name": "board-render",
+            "ms": 13
+          },
+          {
+            "name": "tab-render",
+            "ms": 13
+          },
+          {
+            "name": "board-frame",
+            "ms": 32
+          },
+          {
+            "name": "font-ready",
+            "ms": 75
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 205
+          },
+          {
+            "name": "device-cache-saved",
+            "ms": 206
+          }
+        ],
+        "inp": null,
+        "lcp": 122,
+        "cls": 0,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 1,
+          "dom": 11,
+          "load": 11
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": 3
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 189
+          }
+        ],
+        "serviceWorker": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "mode": "new-tab",
+      "metrics": {
+        "build": "c7f90940134b739c",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 13
+          },
+          {
+            "name": "board-render",
+            "ms": 20
+          },
+          {
+            "name": "device-render",
+            "ms": 20
+          },
+          {
+            "name": "board-frame",
+            "ms": 51
+          },
+          {
+            "name": "font-ready",
+            "ms": 72
+          },
+          {
+            "name": "token-ready",
+            "ms": 226
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 227
+          },
+          {
+            "name": "device-cache-saved",
+            "ms": 229
+          }
+        ],
+        "inp": null,
+        "lcp": 62,
+        "cls": 0,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 1,
+          "dom": 14,
+          "load": 15
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 3
+          },
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": 204
+          }
+        ],
+        "serviceWorker": true
+      },
+      "errors": []
+    },
+    {
+      "engine": "webkit",
+      "mode": "versioned-tab",
+      "metrics": {
+        "build": "c7f90940134b739c",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 13
+          },
+          {
+            "name": "board-render",
+            "ms": 20
+          },
+          {
+            "name": "device-render",
+            "ms": 20
+          },
+          {
+            "name": "board-frame",
+            "ms": 50
+          },
+          {
+            "name": "font-ready",
+            "ms": 73
+          },
+          {
+            "name": "token-ready",
+            "ms": 236
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 237
+          },
+          {
+            "name": "device-cache-saved",
+            "ms": 239
+          }
+        ],
+        "inp": null,
+        "lcp": 61,
+        "cls": 0,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 1,
+          "dom": 14,
+          "load": 15
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 3
+          },
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": 213
+          }
+        ],
+        "serviceWorker": true
+      },
+      "errors": []
+    }
+  ]
+}

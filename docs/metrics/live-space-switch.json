@@ -1,0 +1,13 @@
+{
+  "build": "f121ea23096d236d",
+  "mode": "Unmocked public HTTPS and cloud database, isolated test notebooks. Photo text was entered manually; no real recognition or Slack connection is claimed.",
+  "checks": [
+    "Created a separate cloud space and opened it",
+    "Manual photo-sheet draft survives leaving and saves a real cloud page",
+    "Independent browser session reads the saved page from the cloud",
+    "Returning to the first space preserves its original 15 tasks",
+    "Space list survives reload and reopens the isolated second space"
+  ],
+  "photoUploads": 0,
+  "errors": []
+}

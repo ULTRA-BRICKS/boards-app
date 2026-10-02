@@ -1,0 +1,618 @@
+{
+  "scope": "Public supplied board, read only, no throttling, fresh contexts; no edits",
+  "build": "f121ea23096d236d",
+  "results": [
+    {
+      "engine": "chromium",
+      "mode": "first-tab",
+      "elapsed": 919,
+      "metrics": {
+        "build": "f121ea23096d236d",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 297
+          },
+          {
+            "name": "font-ready",
+            "ms": 419
+          },
+          {
+            "name": "token-ready",
+            "ms": 669
+          },
+          {
+            "name": "board-render",
+            "ms": 875
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 875
+          },
+          {
+            "name": "board-frame",
+            "ms": 876
+          }
+        ],
+        "inp": null,
+        "lcp": 272,
+        "cls": 0.036,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 191,
+          "dom": 303,
+          "load": 304
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 58
+          },
+          {
+            "kind": "app-asset",
+            "duration": 86
+          },
+          {
+            "kind": "anonymous-token",
+            "duration": 367
+          },
+          {
+            "kind": "app-asset",
+            "duration": -3
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 197
+          }
+        ],
+        "serviceWorker": true
+      },
+      "taskCount": 15,
+      "alert": false,
+      "cached": [
+        {
+          "worker": 0,
+          "transfer": 1465
+        }
+      ],
+      "stored": 2,
+      "worker": "activated",
+      "failures": []
+    },
+    {
+      "engine": "chromium",
+      "mode": "same-tab",
+      "elapsed": 191,
+      "metrics": {
+        "build": "f121ea23096d236d",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 6
+          },
+          {
+            "name": "board-render",
+            "ms": 7
+          },
+          {
+            "name": "tab-render",
+            "ms": 7
+          },
+          {
+            "name": "board-frame",
+            "ms": 22
+          },
+          {
+            "name": "font-ready",
+            "ms": 62
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 186
+          }
+        ],
+        "inp": null,
+        "lcp": 28,
+        "cls": 0.084,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 2,
+          "dom": 8,
+          "load": 8
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 178
+          },
+          {
+            "kind": "app-asset",
+            "duration": -11
+          }
+        ],
+        "serviceWorker": true
+      },
+      "taskCount": 15,
+      "alert": false,
+      "cached": [
+        {
+          "worker": 0.7000000029802322,
+          "transfer": 0
+        }
+      ],
+      "stored": 2,
+      "worker": "activated",
+      "failures": []
+    },
+    {
+      "engine": "chromium",
+      "mode": "new-tab",
+      "elapsed": 493,
+      "metrics": {
+        "build": "f121ea23096d236d",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 8
+          },
+          {
+            "name": "font-ready",
+            "ms": 59
+          },
+          {
+            "name": "token-ready",
+            "ms": 263
+          },
+          {
+            "name": "board-render",
+            "ms": 455
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 455
+          },
+          {
+            "name": "board-frame",
+            "ms": 455
+          }
+        ],
+        "inp": null,
+        "lcp": 12,
+        "cls": 0.036,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 1,
+          "dom": 10,
+          "load": 11
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "anonymous-token",
+            "duration": 252
+          },
+          {
+            "kind": "app-asset",
+            "duration": -4
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 183
+          }
+        ],
+        "serviceWorker": true
+      },
+      "taskCount": 15,
+      "alert": false,
+      "cached": [
+        {
+          "worker": 0.29999999701976776,
+          "transfer": 0
+        }
+      ],
+      "stored": 2,
+      "worker": "activated",
+      "failures": []
+    },
+    {
+      "engine": "chromium",
+      "mode": "versioned-tab",
+      "elapsed": 560,
+      "metrics": {
+        "build": "f121ea23096d236d",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 62
+          },
+          {
+            "name": "font-ready",
+            "ms": 117
+          },
+          {
+            "name": "token-ready",
+            "ms": 335
+          },
+          {
+            "name": "board-render",
+            "ms": 519
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 519
+          },
+          {
+            "name": "board-frame",
+            "ms": 524
+          }
+        ],
+        "inp": null,
+        "lcp": 64,
+        "cls": 0.036,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 43,
+          "dom": 64,
+          "load": 65
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "anonymous-token",
+            "duration": 269
+          },
+          {
+            "kind": "app-asset",
+            "duration": -5
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 176
+          }
+        ],
+        "serviceWorker": true
+      },
+      "taskCount": 15,
+      "alert": false,
+      "cached": [
+        {
+          "worker": 0.29999999701976776,
+          "transfer": 1465
+        }
+      ],
+      "stored": 2,
+      "worker": "activated",
+      "failures": []
+    },
+    {
+      "engine": "webkit",
+      "mode": "first-tab",
+      "elapsed": 686,
+      "metrics": {
+        "build": "f121ea23096d236d",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 248
+          },
+          {
+            "name": "font-ready",
+            "ms": 343
+          },
+          {
+            "name": "token-ready",
+            "ms": 439
+          },
+          {
+            "name": "board-render",
+            "ms": 631
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 631
+          },
+          {
+            "name": "board-frame",
+            "ms": 674
+          }
+        ],
+        "inp": null,
+        "lcp": 246,
+        "cls": 0,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 134,
+          "dom": 253,
+          "load": 254
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 87
+          },
+          {
+            "kind": "app-asset",
+            "duration": 87
+          },
+          {
+            "kind": "app-asset",
+            "duration": 50
+          },
+          {
+            "kind": "anonymous-token",
+            "duration": 186
+          },
+          {
+            "kind": "app-asset",
+            "duration": 47
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 174
+          }
+        ],
+        "serviceWorker": true
+      },
+      "taskCount": 15,
+      "alert": false,
+      "cached": [
+        {
+          "worker": 0,
+          "transfer": 1483
+        }
+      ],
+      "stored": 2,
+      "worker": "activated",
+      "failures": []
+    },
+    {
+      "engine": "webkit",
+      "mode": "same-tab",
+      "elapsed": 196,
+      "metrics": {
+        "build": "f121ea23096d236d",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 9
+          },
+          {
+            "name": "board-render",
+            "ms": 11
+          },
+          {
+            "name": "tab-render",
+            "ms": 11
+          },
+          {
+            "name": "board-frame",
+            "ms": 25
+          },
+          {
+            "name": "font-ready",
+            "ms": 57
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 181
+          }
+        ],
+        "inp": null,
+        "lcp": 75,
+        "cls": 0,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 1,
+          "dom": 9,
+          "load": 9
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 3
+          },
+          {
+            "kind": "app-asset",
+            "duration": 3
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 168
+          }
+        ],
+        "serviceWorker": true
+      },
+      "taskCount": 15,
+      "alert": false,
+      "cached": [
+        {
+          "worker": 1,
+          "transfer": 0
+        }
+      ],
+      "stored": 2,
+      "worker": "activated",
+      "failures": []
+    },
+    {
+      "engine": "webkit",
+      "mode": "new-tab",
+      "elapsed": 471,
+      "metrics": {
+        "build": "f121ea23096d236d",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 10
+          },
+          {
+            "name": "font-ready",
+            "ms": 44
+          },
+          {
+            "name": "token-ready",
+            "ms": 206
+          },
+          {
+            "name": "board-render",
+            "ms": 416
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 416
+          },
+          {
+            "name": "board-frame",
+            "ms": 460
+          }
+        ],
+        "inp": null,
+        "lcp": 8,
+        "cls": 0,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 1,
+          "dom": 11,
+          "load": 11
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": 1
+          },
+          {
+            "kind": "anonymous-token",
+            "duration": 193
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 194
+          }
+        ],
+        "serviceWorker": true
+      },
+      "taskCount": 15,
+      "alert": false,
+      "cached": [
+        {
+          "worker": 1,
+          "transfer": 0
+        }
+      ],
+      "stored": 2,
+      "worker": "activated",
+      "failures": []
+    },
+    {
+      "engine": "webkit",
+      "mode": "versioned-tab",
+      "elapsed": 543,
+      "metrics": {
+        "build": "f121ea23096d236d",
+        "measurements": [
+          {
+            "name": "module-ready",
+            "ms": 66
+          },
+          {
+            "name": "font-ready",
+            "ms": 109
+          },
+          {
+            "name": "token-ready",
+            "ms": 262
+          },
+          {
+            "name": "board-render",
+            "ms": 490
+          },
+          {
+            "name": "cloud-ready",
+            "ms": 490
+          },
+          {
+            "name": "board-frame",
+            "ms": 532
+          }
+        ],
+        "inp": null,
+        "lcp": 64,
+        "cls": 0,
+        "longTasks": [],
+        "navigation": {
+          "ttfb": 46,
+          "dom": 67,
+          "load": 67
+        },
+        "resources": [
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "app-asset",
+            "duration": 2
+          },
+          {
+            "kind": "anonymous-token",
+            "duration": 193
+          },
+          {
+            "kind": "cloud-rpc",
+            "duration": 210
+          }
+        ],
+        "serviceWorker": true
+      },
+      "taskCount": 15,
+      "alert": false,
+      "cached": [
+        {
+          "worker": 1,
+          "transfer": 1483
+        }
+      ],
+      "stored": 2,
+      "worker": "activated",
+      "failures": []
+    }
+  ]
+}
