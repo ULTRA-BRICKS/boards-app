@@ -1,0 +1,36 @@
+{
+  "people": [
+    {
+      "id": "demo-ada",
+      "name": "Ada Example",
+      "email": "ada@example.invalid",
+      "avatar": "",
+      "slackUserId": "",
+      "slackUrl": ""
+    },
+    {
+      "id": "demo-ben",
+      "name": "Ben Sample",
+      "email": "ben@example.invalid",
+      "avatar": "",
+      "slackUserId": "",
+      "slackUrl": ""
+    },
+    {
+      "id": "demo-cleo",
+      "name": "Cleo Placeholder",
+      "email": "cleo@example.invalid",
+      "avatar": "",
+      "slackUserId": "",
+      "slackUrl": ""
+    },
+    {
+      "id": "demo-dan",
+      "name": "Dan Demo",
+      "email": "dan@example.invalid",
+      "avatar": "",
+      "slackUserId": "",
+      "slackUrl": ""
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "sourceRepository": "this repository (boards-app)",
+  "sourcePath": "packages/state-lib/scoped/scope-baseline.mjs",
+  "sourceBranch": "feat/state-complete-HYP-1490",
+  "sourceStatus": "authored in HYP-1490; not yet upstreamed to hyperide/hyper-saas",
+  "sha256": "e87c53a0801ec924af2bd76ee623f3ac87dacaa956b75930b157e58860c9edca",
+  "sourceCommit": "9ebf080da4cdb96deb13b80f5faf5775850be67a",
+  "uncommitted": true
+}

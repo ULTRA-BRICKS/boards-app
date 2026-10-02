@@ -1,0 +1,9 @@
+{
+  "sourceRepository": "this repository (boards-app)",
+  "sourcePath": "packages/state-lib/scoped/debounced-latest.mjs",
+  "sourceBranch": "feat/state-complete-HYP-1490",
+  "sourceStatus": "authored in HYP-1490; not yet upstreamed to hyperide/hyper-saas",
+  "sha256": "b63423838f375f1a8ebf44204d7ba509cc82a4bde1ce2c72b6b71653901f4d31",
+  "sourceCommit": "9ebf080da4cdb96deb13b80f5faf5775850be67a",
+  "uncommitted": true
+}

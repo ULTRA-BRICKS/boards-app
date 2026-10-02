@@ -1,0 +1,58 @@
+{
+  "description": "Staging manifest for the baseline state backend A/B build. Names only, never values.",
+  "variant": "baseline",
+  "buildCommand": "node scripts/build.mjs --state-backend=baseline --out=dist/board-baseline",
+  "outputDir": "dist/board-baseline",
+  "forbiddenEnv": [
+    "RESEND_API_KEY",
+    "MAIL_FROM",
+    "SLACK_BOT_TOKEN",
+    "SLACK_CLIENT_ID",
+    "SLACK_CLIENT_SECRET",
+    "SLACK_TEAM_ID",
+    "GITHUB_TOKEN",
+    "LINEAR_API_KEY",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_API_TOKEN",
+    "VISION_BASE_URL",
+    "VISION_API_KEY",
+    "VISION_MODEL",
+    "EMBEDDING_API_KEY"
+  ],
+  "targets": {
+    "local-synthetic": {
+      "runnableByWorker": true,
+      "startCommand": "node scripts/dev.mjs",
+      "env": {
+        "LOCAL_TEST_MODE": "1",
+        "LOCAL_DATABASE_PATH": ":memory:",
+        "AUTH_SECRET": "synthetic-not-a-secret",
+        "BOARDS_SEED_PEOPLE": "deploy/staging/synthetic-demo/people.json",
+        "PORT": "5173",
+        "BOARDS_STATE_BACKEND": "baseline"
+      }
+    },
+    "remote-staging": {
+      "runnableByWorker": false,
+      "requiredEnv": [
+        "DATABASE_URL",
+        "APP_ORIGIN",
+        "OWNER_EMAIL",
+        "AUTH_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET"
+      ],
+      "optionalEnv": [
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET"
+      ],
+      "notes": {
+        "DATABASE_URL": "Must point at a dedicated staging database, never the production one.",
+        "APP_ORIGIN": "Public origin of the staging deployment only.",
+        "OWNER_EMAIL": "Synthetic address on the example.invalid domain.",
+        "AUTH_SECRET": "Fresh random value generated for staging; never reused from production.",
+        "LOCAL_TEST_MODE": "Server code refuses LOCAL_TEST_MODE on Vercel, so remote staging needs a real staging sign-in provider (client id and secret names above); the coordinator must supply that capability."
+      }
+    }
+  }
+}

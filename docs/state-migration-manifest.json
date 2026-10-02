@@ -1,0 +1,1156 @@
+{
+  "baselineRevision": "9ebf080",
+  "specBase": "/spec",
+  "generatedFor": "HYP-1490",
+  "entries": [
+    {
+      "id": "document-store",
+      "owner": "documentStore (Runtime document cell + history)",
+      "kind": "document",
+      "actions": [
+        "read",
+        "replace",
+        "change",
+        "subscribe",
+        "clear"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "Object.defineProperty(state,'ws'",
+          "createDocumentStore({backend:documentBackend})"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "createDocumentStore",
+          "runtime: runtime"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-lib-document.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-4",
+        "/spec#s4-10"
+      ],
+      "appUse": [
+        "S.documentStore.replace(",
+        "ws=()=>S.documentStore.read()"
+      ],
+      "completionNote": "The document store now shares the board Runtime with the scopes, so document and UI owners can commit in one S.batch."
+    },
+    {
+      "id": "document-history",
+      "owner": "documentStore undo/redo (bounded history)",
+      "kind": "document",
+      "actions": [
+        "undo",
+        "redo",
+        "canUndo",
+        "canRedo"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "documentStore.undo()",
+          "documentStore.redo()",
+          "documentStore.canUndo"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "documentStore"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/board-commands.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-10"
+      ],
+      "appUse": [
+        "S.documentStore.undo()",
+        "S.documentStore.redo()",
+        "S.documentStore.canUndo"
+      ]
+    },
+    {
+      "id": "document-declared-commands",
+      "owner": "board-commands.mjs declared immutable commands",
+      "kind": "document",
+      "actions": [
+        "toggleDone",
+        "setField",
+        "moveItem",
+        "moveColumn"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "t.done=!t.done",
+          "const[moving]=c.items.splice(i,1)",
+          "const[c]=a.splice(i,1)",
+          "target[key]=text"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-commands.mjs",
+        "symbols": [
+          "toggleDone",
+          "setField",
+          "moveItem",
+          "moveColumn"
+        ]
+      },
+      "completion": "partial",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-commands.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-4",
+        "/spec#s4-10"
+      ],
+      "appUse": [
+        "cmd('toggleDone'",
+        "cmd('setField'",
+        "cmd('moveItem'",
+        "cmd('moveColumn'"
+      ],
+      "completionNote": "Toggle done, inline field edits (text/title/note/subtitle/board fields/illustration), move item up/down/to another column and reorder columns use the shared publication interface (store.apply). Add item, add/remove column, remove item, board creation, assignee changes and workspace settings still use the generic change(callback) adapter."
+    },
+    {
+      "id": "document-with-navigation-atomic",
+      "owner": "board creation + navigation in one Runtime batch",
+      "kind": "document",
+      "actions": [
+        "new board",
+        "open board",
+        "focus item",
+        "load workspace"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "state.ws.boards.push(b);state.boardId=b.id",
+          "state.boardId=boardId;selected.clear()"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/document-action.mjs",
+        "symbols": [
+          "commitDocumentAction"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs",
+        "tests/document-action-commit.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-4",
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "commitDocumentAction(S,",
+        "S.batch(()=>{S.boardId.set(boardId);S.selected.clear()})"
+      ]
+    },
+    {
+      "id": "session-config",
+      "owner": "session.config",
+      "kind": "workspace-session",
+      "actions": [
+        "status load",
+        "setup screen",
+        "login screen",
+        "connections dialog"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "state.config=await api('status')",
+          "const c=state.config"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "config: scope.owner(\"config\""
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.config.set(config)",
+        "S.config.get()"
+      ]
+    },
+    {
+      "id": "session-share-mode",
+      "owner": "session.shared and session.shareId",
+      "kind": "workspace-session",
+      "actions": [
+        "open shared link",
+        "disable editing"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "state.shared=true",
+          "state.shareId=sharedId"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "shared: scope.owner(\"shared\"",
+          "shareId: scope.owner(\"shareId\""
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.shared.set(true)",
+        "S.shareId.get()"
+      ]
+    },
+    {
+      "id": "private-user-people-requests",
+      "owner": "private.user, people, requests",
+      "kind": "workspace-session",
+      "actions": [
+        "workspace publish",
+        "refresh people",
+        "sign out reset"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "state.people=p.people;state.requests=p.requests;state.user=p.user",
+          "state.people=[];state.requests=[];state.user=null"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "user: scope.owner(\"user\"",
+          "people: scope.owner(\"people\"",
+          "requests: scope.owner(\"requests\""
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.people.set(p.people)",
+        "S.requests.set(p.requests)",
+        "S.user.set(p.user)"
+      ]
+    },
+    {
+      "id": "workspace-loader",
+      "owner": "workspaceLoader (latest-wins load) publishing into the owners",
+      "kind": "pending-operation",
+      "actions": [
+        "load",
+        "clear",
+        "cancel"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "createWorkspaceLoader({backend:workspaceBackend",
+          "workspaceEpoch++"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "workspaceEpoch: scope.epoch(\"workspaceEpoch\")"
+        ]
+      },
+      "completion": "partial",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/state-lib-loader.test.mjs",
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.workspaceEpoch.bump()",
+        "workspaceLoader.clear()"
+      ],
+      "completionNote": "The loader (packages/core/workspace-loader.mjs, HYP-1464 pilot) still owns its own Runtime and publishes into the board Runtime through S.batch; it is not merged into the shared Runtime. Only its epoch bump and reset moved to board-state."
+    },
+    {
+      "id": "sync-queue",
+      "owner": "sync (SyncQueue handle)",
+      "kind": "resource",
+      "actions": [
+        "configure",
+        "flush",
+        "retry",
+        "dispose on reset"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "sync?.dispose();sync=new SyncQueue",
+          "sync=null"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "sync: scope.resource(\"sync\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.sync.set(queue",
+        "syncQ()"
+      ],
+      "completionNote": "Only the handle is owned; the SyncQueue compare-and-swap protocol itself (packages/core/sync.mjs) is unchanged and remains a plain class."
+    },
+    {
+      "id": "save-status",
+      "owner": "saveStatus owner behind the .save-state label",
+      "kind": "workspace-session",
+      "actions": [
+        "pending",
+        "saving",
+        "saved",
+        "error"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "s.kind==='pending'?'Ink drying\u2026'"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "saveStatus: scope.owner(\"saveStatus\""
+        ]
+      },
+      "completion": "partial",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.saveStatus.set(s.kind)"
+      ],
+      "completionNote": "The sync callback writes the owner and paints the label imperatively; renderBoard() does not re-read the owner, so the label is still lost on re-render exactly like the baseline."
+    },
+    {
+      "id": "save-error-dialog-flag",
+      "owner": "session.errorOpen",
+      "kind": "pending-operation",
+      "actions": [
+        "open save error dialog",
+        "retry",
+        "reload"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "errorOpen=true",
+          "errorOpen=false"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "errorOpen: scope.owner(\"errorOpen\""
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-lib-full-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.errorOpen.set(true)",
+        "S.errorOpen.set(false)"
+      ]
+    },
+    {
+      "id": "navigation-board",
+      "owner": "private.boardId",
+      "kind": "navigation",
+      "actions": [
+        "open board",
+        "new board",
+        "focus item",
+        "import photo",
+        "query ?board="
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "state.boardId=el.dataset.board",
+          "state.boardId=response.boardId"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "boardId: scope.owner(\"boardId\""
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.boardId.set(el.dataset.board)",
+        "S.boardId.set(response.boardId)"
+      ]
+    },
+    {
+      "id": "navigation-column",
+      "owner": "private.columnId",
+      "kind": "navigation",
+      "actions": [
+        "column jump",
+        "visible column tracking",
+        "column menu share"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "state.columnId=visible.target.dataset.col",
+          "state.columnId=id"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "columnId: scope.owner(\"columnId\""
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.columnId.set(visible.target.dataset.col)",
+        "S.columnId.set(id)"
+      ]
+    },
+    {
+      "id": "selection",
+      "owner": "private.selected (ids selection)",
+      "kind": "selection",
+      "actions": [
+        "toggle",
+        "select only",
+        "clear",
+        "share selection"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "selected.has(id)?selected.delete(id):selected.add(id)",
+          "selected=new Set([id])"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "selected: scope.ids(\"selected\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.selected.toggle(id)",
+        "S.selected.only(id)",
+        "S.selected.clear()"
+      ]
+    },
+    {
+      "id": "menu-popover",
+      "owner": "private.popover resource (item/column menus, people picker, mentions, duplicate suggestions)",
+      "kind": "menu",
+      "actions": [
+        "open",
+        "close on Escape/pointerdown/render",
+        "restore mention keys"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "pop=document.createElement('div')",
+          "pop?.remove();pop=null"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "popover: scope.resource(\"popover\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.popover.set(pop,disposePopover)",
+        "S.popover.clear()"
+      ]
+    },
+    {
+      "id": "menu-hover-card",
+      "owner": "private.hoverCard resource and hoverEpoch",
+      "kind": "menu",
+      "actions": [
+        "profile hover",
+        "ticket hover",
+        "clear"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "hover=document.createElement('div')",
+          "hoverSeq++"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "hoverCard: scope.resource(\"hoverCard\")",
+          "hoverEpoch: scope.epoch(\"hoverEpoch\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.hoverCard.set(card",
+        "S.hoverEpoch.bump()"
+      ]
+    },
+    {
+      "id": "dialog-chrome",
+      "owner": "session.dialog owner, modalReturn resource, dialogEpoch",
+      "kind": "menu",
+      "actions": [
+        "open dialog",
+        "close dialog",
+        "Escape",
+        "Tab focus trap",
+        "restore focus"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "overlays.dataset.dismiss=String(dismiss)",
+          "modalReturn=document.activeElement",
+          "dialogEpoch++"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "dialog: scope.owner(\"dialog\"",
+          "modalReturn: scope.resource(\"modalReturn\")",
+          "dialogEpoch: scope.epoch(\"dialogEpoch\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.dialog.set({open:true,dismiss})",
+        "S.modalReturn.set(opener)",
+        "S.dialogEpoch.bump()"
+      ]
+    },
+    {
+      "id": "editor-inline",
+      "owner": "private.editor resource + editMeta owner",
+      "kind": "editor",
+      "actions": [
+        "start edit",
+        "commit on blur/Enter",
+        "revert on Escape",
+        "mention keys"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "edit={el,obj,key,max,old:obj[key]}",
+          "edit=null;el.contentEditable='false'"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "editor: scope.resource(\"editor\")",
+          "editMeta: scope.owner(\"editMeta\""
+        ]
+      },
+      "completion": "partial",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs",
+        "tests/state-lib-full-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.editor.set(el,releaseEditor)",
+        "S.editMeta.set(",
+        "S.editor.take()"
+      ],
+      "completionNote": "The edited element and its caret/selection/composition stay browser-owned (an opaque handle, never serialized); only the edit session is owned. Caret-at-end and text insertion are browser-tested with insertText; real IME composition was NOT exercised."
+    },
+    {
+      "id": "toast-timer",
+      "owner": "session.toastTimer resource",
+      "kind": "resource",
+      "actions": [
+        "show toast"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "clearTimeout(toastTimer);toastTimer=setTimeout"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "toastTimer: scope.resource(\"toastTimer\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.toastTimer.set(setTimeout("
+      ]
+    },
+    {
+      "id": "column-observer",
+      "owner": "private.columnObserver resource",
+      "kind": "resource",
+      "actions": [
+        "observe columns",
+        "disconnect on render/reset"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "columnObserver?.disconnect()",
+          "columnObserver=new IntersectionObserver"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "columnObserver: scope.resource(\"columnObserver\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.columnObserver.clear()",
+        "S.columnObserver.set(observer"
+      ]
+    },
+    {
+      "id": "pending-duplicate-suggestion",
+      "owner": "suggestTask (600 ms debounced latest-wins search)",
+      "kind": "pending-operation",
+      "actions": [
+        "suggest on input",
+        "cancel on finish/short text",
+        "abort in-flight fetch"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "debounce=setTimeout(async()=>",
+          "searchSeq++"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "createDebouncedLatestTask",
+          "suggestions: scope.owner(\"suggestions\""
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/state-lib-scoped.test.mjs",
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "suggestTask.run(",
+        "suggestTask.cancel()"
+      ]
+    },
+    {
+      "id": "pending-search-dialog",
+      "owner": "searchTask (300 ms debounced latest-wins search)",
+      "kind": "pending-operation",
+      "actions": [
+        "type",
+        "supersede",
+        "cancel on close"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "let timer,seq=0,hits=[],active=0",
+          "if(n!==seq||!container.isConnected)return"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "createDebouncedLatestTask",
+          "searchResults: scope.owner(\"searchResults\""
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/state-lib-scoped.test.mjs",
+        "tests/board-state.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "searchTask.run(",
+        "searchTask.cancel()"
+      ]
+    },
+    {
+      "id": "pending-illustration",
+      "owner": "workspaceEpoch guard on async illustration write",
+      "kind": "pending-operation",
+      "actions": [
+        "redraw column art"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "epoch=workspaceEpoch",
+          "if(epoch!==workspaceEpoch"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "workspaceEpoch: scope.epoch(\"workspaceEpoch\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.workspaceEpoch.guard()",
+        "alive()"
+      ]
+    },
+    {
+      "id": "pending-ticket-preview",
+      "owner": "dialogEpoch/hoverEpoch guards on ticket lookups",
+      "kind": "pending-operation",
+      "actions": [
+        "ticket hover",
+        "ticket dialog"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "const epoch=dialogEpoch",
+          "if(n!==hoverSeq"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "dialogEpoch: scope.epoch(\"dialogEpoch\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.dialogEpoch.guard()",
+        "S.hoverEpoch.guard()"
+      ]
+    },
+    {
+      "id": "pending-photo-read",
+      "owner": "session.photoEpoch (fileVersion) guard",
+      "kind": "pending-operation",
+      "actions": [
+        "choose photo",
+        "read photo"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "fileVersion=0",
+          "version!==fileVersion"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "photoEpoch: scope.epoch(\"photoEpoch\")"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.photoEpoch.bump()",
+        "S.photoEpoch.guard()"
+      ]
+    },
+    {
+      "id": "cache-tickets-and-art-attempts",
+      "owner": "tickets Map and artAttempts Set memo caches",
+      "kind": "cache",
+      "actions": [
+        "ticket lookup memo",
+        "illustration attempt memo",
+        "clear on sign-out"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "const tickets=new Map()",
+          "const artAttempts=new Set()"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "tickets",
+          "artAttempts"
+        ]
+      },
+      "completion": "partial",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.tickets.",
+        "S.artAttempts."
+      ],
+      "completionNote": "Caches remain plain Map/Set inside board-state (not yet Runtime-owned). Reset now clears them and the private document even when post-commit disposal throws; that lifecycle correction does not eliminate the remaining ownership gap."
+    },
+    {
+      "id": "backend-selection-build-config",
+      "owner": "explicit baseline/state-lib build configuration",
+      "kind": "other-entry",
+      "actions": [
+        "build:baseline",
+        "build:state",
+        "?stateBackend= override"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "new URLSearchParams(location.search).get('stateBackend')==='baseline'"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/state-config.mjs",
+        "symbols": [
+          "STATE_CONFIG"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/state-build-config.test.mjs",
+        "tests/board-state.test.mjs"
+      ],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "STATE_CONFIG",
+        "resolveBackends(STATE_CONFIG,location.search)"
+      ],
+      "completionNote": "Baseline stays runnable: npm run build:baseline / BOARDS_STATE_BACKEND=baseline freeze the backend so the URL cannot flip it."
+    },
+    {
+      "id": "dialog-local-view-state",
+      "owner": "closure variables local to one open dialog (search hit list/active index, mention list index, photo image, previous key handler)",
+      "kind": "other-entry",
+      "actions": [
+        "search dialog navigation",
+        "mention list navigation",
+        "photo preview"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "let image=null,fileVersion=0",
+          "let index=0",
+          "previousKeys"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "scope.owner"
+        ]
+      },
+      "completion": "partial",
+      "baselineRevision": "9ebf080",
+      "tests": [],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [],
+      "completionNote": "Async guards are migrated, but dialog form/view values remain DOM-local. The requested whole-app ownership contract includes this state; complete ownership is still pending, not excluded merely because it is transient."
+    },
+    {
+      "id": "photo-review-component",
+      "owner": "apps/board/photo-review.mjs reviewPhoto form",
+      "kind": "other-entry",
+      "actions": [
+        "review transcription"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "reviewPhoto"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "scope.owner"
+        ]
+      },
+      "completion": "not-started",
+      "baselineRevision": "9ebf080",
+      "tests": [],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [],
+      "completionNote": "This form currently clones and owns its draft locally. It still needs scoped ownership and cancellation/persistence parity; transient form state is part of the requested migration."
+    },
+    {
+      "id": "type-site",
+      "owner": "apps/type-site/type.mjs specimen page",
+      "kind": "other-entry",
+      "actions": [
+        "weight/width sliders",
+        "build font"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "installFont"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "scope.owner"
+        ]
+      },
+      "completion": "not-started",
+      "baselineRevision": "9ebf080",
+      "tests": [],
+      "spec": [
+        "/spec#s4-9"
+      ],
+      "appUse": [],
+      "completionNote": "Separate shipped specimen entry in this repository; its input state has not been migrated. The measured board branch does not demonstrate whole-repository ownership completion."
+    },
+    {
+      "id": "compiler-lowered-commands",
+      "owner": "compiler-generated declared commands (spec s5)",
+      "kind": "document",
+      "actions": [
+        "generate board commands"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "t.done=!t.done"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-commands.mjs",
+        "symbols": [
+          "toggleDone"
+        ]
+      },
+      "completion": "not-started",
+      "baselineRevision": "9ebf080",
+      "tests": [],
+      "spec": [
+        "/spec#s5"
+      ],
+      "appUse": [],
+      "completionNote": "board-commands.mjs is hand-written against the shared helpers; nothing is generated by the state compiler yet, so no compiler claim is made."
+    },
+    {
+      "id": "bundle-budget",
+      "owner": "byte budgets for the board entry (spec s13)",
+      "kind": "other-entry",
+      "actions": [
+        "measure raw/gzip/Brotli of board entry"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "import {SyncQueue}"
+        ]
+      },
+      "replacement": {
+        "file": "package.json",
+        "symbols": [
+          "build:state"
+        ]
+      },
+      "completion": "not-started",
+      "baselineRevision": "9ebf080",
+      "tests": [],
+      "spec": [
+        "/spec#s13"
+      ],
+      "appUse": [],
+      "completionNote": "Both variants build (dist/board-baseline, dist/board-state) but no byte budget was measured or enforced for the board entry in this branch."
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "sourceRepository": "this repository (boards-app)",
+  "sourcePath": "packages/state-lib/scoped/scope.mjs",
+  "sourceBranch": "feat/state-complete-HYP-1490",
+  "sourceStatus": "authored in HYP-1490; sourceCommit identifies branch base only, sha256 identifies current uncommitted reset correction; not upstreamed",
+  "sha256": "277151252dd2db695d802925b8bdc2d8e8fe3c7f27dacbb6ceb48332381a25fc",
+  "uncommitted": true,
+  "baselineCommit": "9ebf080da4cdb96deb13b80f5faf5775850be67a",
+  "sourceCommit": "9ebf080da4cdb96deb13b80f5faf5775850be67a",
+  "sourceCommitRole": "branch base, not the uncommitted implementation"
+}
