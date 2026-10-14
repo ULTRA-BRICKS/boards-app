@@ -7,6 +7,7 @@
       "id": "document-store",
       "owner": "documentStore (Runtime document cell + history)",
       "kind": "document",
+      "category": "application-state",
       "actions": [
         "read",
         "replace",
@@ -48,6 +49,7 @@
       "id": "document-history",
       "owner": "documentStore undo/redo (bounded history)",
       "kind": "document",
+      "category": "application-state",
       "actions": [
         "undo",
         "redo",
@@ -72,7 +74,8 @@
       "baselineRevision": "9ebf080",
       "tests": [
         "tests/board-state.test.mjs",
-        "tests/board-commands.test.mjs"
+        "tests/board-commands.test.mjs",
+        "tests/state-migration-browser.mjs"
       ],
       "spec": [
         "/spec#s4-10"
@@ -87,6 +90,7 @@
       "id": "document-declared-commands",
       "owner": "board-commands.mjs declared immutable commands",
       "kind": "document",
+      "category": "compiler-lowering",
       "actions": [
         "toggleDone",
         "setField",
@@ -127,12 +131,13 @@
         "cmd('moveItem'",
         "cmd('moveColumn'"
       ],
-      "completionNote": "Toggle done, inline field edits (text/title/note/subtitle/board fields/illustration), move item up/down/to another column and reorder columns use the shared publication interface (store.apply). Add item, add/remove column, remove item, board creation, assignee changes and workspace settings still use the generic change(callback) adapter."
+      "completionNote": "Optional compiler specialization, NOT an ownership gap. Toggle done, inline field edits, move item (up/down/to another column) and reorder columns are declared commands (hand-written defineJsonCommand, store.apply). Add item, add/remove column, remove item, board creation, assignee changes and workspace settings use the library change(callback) adapter, which is library-owned (same Runtime, history and rollback) but not statically lowered. No generated lowering exists, so none is claimed."
     },
     {
       "id": "document-with-navigation-atomic",
       "owner": "board creation + navigation in one Runtime batch",
       "kind": "document",
+      "category": "application-state",
       "actions": [
         "new board",
         "open board",
@@ -172,6 +177,7 @@
       "id": "session-config",
       "owner": "session.config",
       "kind": "workspace-session",
+      "category": "application-state",
       "actions": [
         "status load",
         "setup screen",
@@ -208,6 +214,7 @@
       "id": "session-share-mode",
       "owner": "session.shared and session.shareId",
       "kind": "workspace-session",
+      "category": "application-state",
       "actions": [
         "open shared link",
         "disable editing"
@@ -243,6 +250,7 @@
       "id": "private-user-people-requests",
       "owner": "private.user, people, requests",
       "kind": "workspace-session",
+      "category": "application-state",
       "actions": [
         "workspace publish",
         "refresh people",
@@ -280,8 +288,9 @@
     },
     {
       "id": "workspace-loader",
-      "owner": "workspaceLoader (latest-wins load) publishing into the owners",
+      "owner": "workspaceLoader (latest-wins load, per-run publish authority) publishing into the owners",
       "kind": "pending-operation",
+      "category": "application-state",
       "actions": [
         "load",
         "clear",
@@ -295,30 +304,38 @@
         ]
       },
       "replacement": {
-        "file": "apps/board/board-state.mjs",
+        "file": "packages/core/workspace-loader.mjs",
         "symbols": [
-          "workspaceEpoch: scope.epoch(\"workspaceEpoch\")"
+          "createWorkspaceLoader",
+          "borrowed",
+          "apply?.(value)"
         ]
       },
-      "completion": "partial",
+      "completion": "complete",
       "baselineRevision": "9ebf080",
       "tests": [
         "tests/state-lib-loader.test.mjs",
+        "tests/state-lib-loader-shared-runtime.test.mjs",
+        "tests/board-state-ownership.test.mjs",
         "tests/board-state.test.mjs"
       ],
       "spec": [
         "/spec#s4-9"
       ],
       "appUse": [
+        "runtime:S.runtime",
+        "apply:({state:r,people:p})",
+        "S.workspaceStatus.set('ready')",
         "S.workspaceEpoch.bump()",
         "workspaceLoader.clear()"
       ],
-      "completionNote": "The loader (packages/core/workspace-loader.mjs, HYP-1464 pilot) still owns its own Runtime and publishes into the board Runtime through S.batch; it is not merged into the shared Runtime. Only its epoch bump and reset moved to board-state."
+      "completionNote": "The loader borrows the board Runtime (runtime option), commits document, people, requests, user and workspaceStatus inside the latestTask transaction via apply, and publishes (sync setup, render) only after the commit. A throwing apply rolls back and never publishes; superseded or cleared loads never apply. Publish-only legacy callers are unchanged."
     },
     {
       "id": "sync-queue",
       "owner": "sync (SyncQueue handle)",
       "kind": "resource",
+      "category": "application-state",
       "actions": [
         "configure",
         "flush",
@@ -357,6 +374,7 @@
       "id": "save-status",
       "owner": "saveStatus owner behind the .save-state label",
       "kind": "workspace-session",
+      "category": "application-state",
       "actions": [
         "pending",
         "saving",
@@ -366,32 +384,36 @@
       "oldSource": {
         "file": "apps/board/app.mjs",
         "symbols": [
-          "s.kind==='pending'?'Ink drying\u2026'"
+          "s.kind==='pending'?'Ink drying…'"
         ]
       },
       "replacement": {
         "file": "apps/board/board-state.mjs",
         "symbols": [
-          "saveStatus: scope.owner(\"saveStatus\""
+          "saveStatus"
         ]
       },
-      "completion": "partial",
+      "completion": "complete",
       "baselineRevision": "9ebf080",
       "tests": [
-        "tests/board-state.test.mjs"
+        "tests/board-state.test.mjs",
+        "tests/board-state-ownership.test.mjs",
+        "tests/state-migration-browser.mjs"
       ],
       "spec": [
         "/spec#s4-9"
       ],
       "appUse": [
-        "S.saveStatus.set(s.kind)"
+        "S.saveStatus.set(s.kind)",
+        "saveLabel(S.saveStatus.get())"
       ],
-      "completionNote": "The sync callback writes the owner and paints the label imperatively; renderBoard() does not re-read the owner, so the label is still lost on re-render exactly like the baseline."
+      "completionNote": "The owner is written by the sync callback and the label is painted from it inside renderBoard, so the label survives the re-render of every change. The browser parity test failed on the baseline-selected build first (empty label right after a change), then passed on both builds after the fix; the unit tests cover reset to empty."
     },
     {
       "id": "save-error-dialog-flag",
       "owner": "session.errorOpen",
       "kind": "pending-operation",
+      "category": "application-state",
       "actions": [
         "open save error dialog",
         "retry",
@@ -428,6 +450,7 @@
       "id": "navigation-board",
       "owner": "private.boardId",
       "kind": "navigation",
+      "category": "application-state",
       "actions": [
         "open board",
         "new board",
@@ -466,6 +489,7 @@
       "id": "navigation-column",
       "owner": "private.columnId",
       "kind": "navigation",
+      "category": "application-state",
       "actions": [
         "column jump",
         "visible column tracking",
@@ -502,6 +526,7 @@
       "id": "selection",
       "owner": "private.selected (ids selection)",
       "kind": "selection",
+      "category": "application-state",
       "actions": [
         "toggle",
         "select only",
@@ -540,6 +565,7 @@
       "id": "menu-popover",
       "owner": "private.popover resource (item/column menus, people picker, mentions, duplicate suggestions)",
       "kind": "menu",
+      "category": "application-state",
       "actions": [
         "open",
         "close on Escape/pointerdown/render",
@@ -576,6 +602,7 @@
       "id": "menu-hover-card",
       "owner": "private.hoverCard resource and hoverEpoch",
       "kind": "menu",
+      "category": "application-state",
       "actions": [
         "profile hover",
         "ticket hover",
@@ -612,6 +639,7 @@
       "id": "dialog-chrome",
       "owner": "session.dialog owner, modalReturn resource, dialogEpoch",
       "kind": "menu",
+      "category": "application-state",
       "actions": [
         "open dialog",
         "close dialog",
@@ -654,6 +682,7 @@
       "id": "editor-inline",
       "owner": "private.editor resource + editMeta owner",
       "kind": "editor",
+      "category": "application-state",
       "actions": [
         "start edit",
         "commit on blur/Enter",
@@ -674,7 +703,7 @@
           "editMeta: scope.owner(\"editMeta\""
         ]
       },
-      "completion": "partial",
+      "completion": "complete",
       "baselineRevision": "9ebf080",
       "tests": [
         "tests/board-state.test.mjs",
@@ -689,12 +718,13 @@
         "S.editMeta.set(",
         "S.editor.take()"
       ],
-      "completionNote": "The edited element and its caret/selection/composition stay browser-owned (an opaque handle, never serialized); only the edit session is owned. Caret-at-end and text insertion are browser-tested with insertText; real IME composition was NOT exercised."
+      "completionNote": "The edited element is an opaque editor resource and its session an editMeta owner; caret, selection and composition stay browser-owned and are never rewritten. Real IME composition is browser-tested through CDP Input.imeSetComposition + Input.insertText on both builds (compositionstart/update/end fire, the in-progress text is in the field, committed text is kept, Escape still reverts)."
     },
     {
       "id": "toast-timer",
       "owner": "session.toastTimer resource",
       "kind": "resource",
+      "category": "application-state",
       "actions": [
         "show toast"
       ],
@@ -726,6 +756,7 @@
       "id": "column-observer",
       "owner": "private.columnObserver resource",
       "kind": "resource",
+      "category": "application-state",
       "actions": [
         "observe columns",
         "disconnect on render/reset"
@@ -761,6 +792,7 @@
       "id": "pending-duplicate-suggestion",
       "owner": "suggestTask (600 ms debounced latest-wins search)",
       "kind": "pending-operation",
+      "category": "application-state",
       "actions": [
         "suggest on input",
         "cancel on finish/short text",
@@ -799,6 +831,7 @@
       "id": "pending-search-dialog",
       "owner": "searchTask (300 ms debounced latest-wins search)",
       "kind": "pending-operation",
+      "category": "application-state",
       "actions": [
         "type",
         "supersede",
@@ -837,6 +870,7 @@
       "id": "pending-illustration",
       "owner": "workspaceEpoch guard on async illustration write",
       "kind": "pending-operation",
+      "category": "application-state",
       "actions": [
         "redraw column art"
       ],
@@ -870,6 +904,7 @@
       "id": "pending-ticket-preview",
       "owner": "dialogEpoch/hoverEpoch guards on ticket lookups",
       "kind": "pending-operation",
+      "category": "application-state",
       "actions": [
         "ticket hover",
         "ticket dialog"
@@ -904,6 +939,7 @@
       "id": "pending-photo-read",
       "owner": "session.photoEpoch (fileVersion) guard",
       "kind": "pending-operation",
+      "category": "application-state",
       "actions": [
         "choose photo",
         "read photo"
@@ -936,8 +972,9 @@
     },
     {
       "id": "cache-tickets-and-art-attempts",
-      "owner": "tickets Map and artAttempts Set memo caches",
+      "owner": "tickets (frozen null-prototype JSON record, values cloned and deep-frozen at admission, behind a Map-like facade) and artAttempts Set memo caches",
       "kind": "cache",
+      "category": "application-state",
       "actions": [
         "ticket lookup memo",
         "illustration attempt memo",
@@ -953,28 +990,33 @@
       "replacement": {
         "file": "apps/board/board-state.mjs",
         "symbols": [
-          "tickets",
-          "artAttempts"
+          "createTicketCache",
+          "createAttemptSet",
+          "loadTicket"
         ]
       },
-      "completion": "partial",
+      "completion": "complete",
       "baselineRevision": "9ebf080",
       "tests": [
-        "tests/board-state.test.mjs"
+        "tests/board-state.test.mjs",
+        "tests/board-state-ownership.test.mjs",
+        "tests/board-state-ticket-cache.test.mjs",
+        "tests/state-migration-browser.mjs"
       ],
       "spec": [
         "/spec#s4-9"
       ],
       "appUse": [
-        "S.tickets.",
+        "S.loadTicket(",
         "S.artAttempts."
       ],
-      "completionNote": "Caches remain plain Map/Set inside board-state (not yet Runtime-owned). Reset now clears them and the private document even when post-commit disposal throws; that lifecycle correction does not eliminate the remaining ownership gap."
+      "completionNote": "Tickets are a copy-on-write Map owner (Map facade) and art attempts reuse the shipped ids collection. Both are private-scope members wiped atomically by resetPrivate; loadTicket guards the awaited fetch with workspaceEpoch so a lookup finishing after sign-out cannot repopulate the next session."
     },
     {
       "id": "backend-selection-build-config",
       "owner": "explicit baseline/state-lib build configuration",
       "kind": "other-entry",
+      "category": "application-state",
       "actions": [
         "build:baseline",
         "build:state",
@@ -996,7 +1038,8 @@
       "baselineRevision": "9ebf080",
       "tests": [
         "tests/state-build-config.test.mjs",
-        "tests/board-state.test.mjs"
+        "tests/board-state.test.mjs",
+        "tests/state-build-static-browser.mjs"
       ],
       "spec": [
         "/spec#s4-9"
@@ -1011,6 +1054,7 @@
       "id": "dialog-local-view-state",
       "owner": "closure variables local to one open dialog (search hit list/active index, mention list index, photo image, previous key handler)",
       "kind": "other-entry",
+      "category": "application-state",
       "actions": [
         "search dialog navigation",
         "mention list navigation",
@@ -1021,28 +1065,40 @@
         "symbols": [
           "let image=null,fileVersion=0",
           "let index=0",
-          "previousKeys"
+          "hits=[],active=0"
         ]
       },
       "replacement": {
         "file": "apps/board/board-state.mjs",
         "symbols": [
-          "scope.owner"
+          "createDialogDraft",
+          "searchActive",
+          "mentionIndex",
+          "photoImage"
         ]
       },
-      "completion": "partial",
+      "completion": "complete",
       "baselineRevision": "9ebf080",
-      "tests": [],
+      "tests": [
+        "tests/board-state-ownership.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
       "spec": [
         "/spec#s4-9"
       ],
-      "appUse": [],
-      "completionNote": "Async guards are migrated, but dialog form/view values remain DOM-local. The requested whole-app ownership contract includes this state; complete ownership is still pending, not excluded merely because it is transient."
+      "appUse": [
+        "S.draft.open(",
+        "S.searchActive.set(",
+        "S.mentionIndex.set(",
+        "S.photoImage.set("
+      ],
+      "completionNote": "Dialog form drafts (settings, person, name forms), the search cursor, the mention cursor and the selected photo image are private-scope owners (dialogDraft, searchActive, mentionIndex, photoImage, plus searchResults for the hit list). Inputs remain the live DOM surface and are only mirrored on input events, so focus, selection and IME composition are untouched. closeDialog and resetPrivate wipe them."
     },
     {
       "id": "photo-review-component",
       "owner": "apps/board/photo-review.mjs reviewPhoto form",
       "kind": "other-entry",
+      "category": "application-state",
       "actions": [
         "review transcription"
       ],
@@ -1053,53 +1109,63 @@
         ]
       },
       "replacement": {
-        "file": "apps/board/board-state.mjs",
+        "file": "apps/board/photo-review.mjs",
         "symbols": [
-          "scope.owner"
+          "createPhotoReviewSession"
         ]
       },
-      "completion": "not-started",
+      "completion": "complete",
       "baselineRevision": "9ebf080",
-      "tests": [],
+      "tests": [
+        "tests/board-state-ownership.test.mjs",
+        "tests/state-migration-browser.mjs"
+      ],
       "spec": [
         "/spec#s4-9"
       ],
-      "appUse": [],
-      "completionNote": "This form currently clones and owns its draft locally. It still needs scoped ownership and cancellation/persistence parity; transient form state is part of the requested migration."
+      "appUse": [
+        "createPhotoReviewSession(S.photoReview)",
+        "S.photoForm.set("
+      ],
+      "completionNote": "The review edit/confirm state is the photoReview owner behind createPhotoReviewSession (pure, DOM-free, immutable values, one submission at a time, stale completion ignored); the form element is the photoForm disposable resource. reviewPhoto keeps inputs as the live surface and mirrors them into the session, so confirmation rules and IME behaviour match the baseline."
     },
     {
       "id": "type-site",
       "owner": "apps/type-site/type.mjs specimen page",
       "kind": "other-entry",
+      "category": "out-of-board-entry",
       "actions": [
         "weight/width sliders",
         "build font"
       ],
       "oldSource": {
-        "file": "apps/board/app.mjs",
+        "file": "apps/type-site/type.mjs",
         "symbols": [
-          "installFont"
+          "installFont",
+          "buildFont"
         ]
       },
       "replacement": {
-        "file": "apps/board/board-state.mjs",
+        "file": "apps/type-site/type.mjs",
         "symbols": [
-          "scope.owner"
+          "installFont",
+          "buildFont"
         ]
       },
-      "completion": "not-started",
+      "completion": "out-of-scope",
       "baselineRevision": "9ebf080",
       "tests": [],
       "spec": [
         "/spec#s4-9"
       ],
       "appUse": [],
-      "completionNote": "Separate shipped specimen entry in this repository; its input state has not been migrated. The measured board branch does not demonstrate whole-repository ownership completion."
+      "completionNote": "Separate shipped product (Conloca Sans type specimen, apps/type-site), built by npm run build:type, not part of the board entry. Its page-local slider/button handlers were not migrated and are not claimed; this is not an excuse for any board owner, which are all mapped above."
     },
     {
       "id": "compiler-lowered-commands",
       "owner": "compiler-generated declared commands (spec s5)",
       "kind": "document",
+      "category": "compiler-lowering",
       "actions": [
         "generate board commands"
       ],
@@ -1122,12 +1188,13 @@
         "/spec#s5"
       ],
       "appUse": [],
-      "completionNote": "board-commands.mjs is hand-written against the shared helpers; nothing is generated by the state compiler yet, so no compiler claim is made."
+      "completionNote": "Optional specialization, NOT an ownership gap: nothing is generated by the state compiler; board-commands.mjs is hand-written against the shared helpers. Commands outside it are already library-owned through change(callback)."
     },
     {
       "id": "bundle-budget",
       "owner": "byte budgets for the board entry (spec s13)",
       "kind": "other-entry",
+      "category": "test-performance-evidence",
       "actions": [
         "measure raw/gzip/Brotli of board entry"
       ],
@@ -1150,7 +1217,7 @@
         "/spec#s13"
       ],
       "appUse": [],
-      "completionNote": "Both variants build (dist/board-baseline, dist/board-state) but no byte budget was measured or enforced for the board entry in this branch."
+      "completionNote": "Evidence gap only, not state ownership: both variants build (dist/board-baseline, dist/board-state) but no byte budget was measured or enforced for the board entry in this branch (the coordinator owns numerical measurement)."
     }
   ]
 }

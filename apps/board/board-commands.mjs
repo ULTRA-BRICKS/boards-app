@@ -35,6 +35,10 @@ function need(found, what) {
   if (!found) throw new RangeError(`Board command: ${what} not found`);
 }
 
+function needDelta(a) {
+  if (!Number.isInteger(a.delta)) throw new TypeError("Board command: delta must be an integer");
+}
+
 /** The node a field edit writes to, plus the path to it. */
 function fieldTarget(doc, { target, ...where }) {
   const loc = locate(doc, where);
@@ -94,6 +98,7 @@ function moveDestination(loc, doc, a) {
 }
 
 const moveItem = {
+  validate: (a) => a.toColumnId === undefined && needDelta(a),
   supports(doc, a) {
     const loc = locate(doc, a);
     if (!loc.item) return false;
@@ -131,6 +136,7 @@ const columnsPath = ({ bi }) => ["boards", bi, "columns"];
 
 /** Reorders a column within its board by delta (-1/+1, clamped). */
 const moveColumn = {
+  validate: needDelta,
   supports: (doc, a) => locate(doc, a).ci >= 0,
   plan(doc, a) {
     const loc = locate(doc, a);
@@ -160,6 +166,7 @@ export function createBoardCommands({ defineJsonCommand }) {
   function run(store, name, args) {
     const command = COMMANDS[name];
     if (!command) throw new TypeError(`Unknown board command ${name}`);
+    command.validate?.(args);
     const doc = store.read();
     if (typeof store.apply === "function" && command.supports(doc, args))
       return store.apply(declared[name], command.plan(doc, args));

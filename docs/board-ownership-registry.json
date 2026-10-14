@@ -1,0 +1,149 @@
+{
+  "description": "Explicit exceptions to 'board UI state lives in board-state.mjs'. scripts/scan-board-state.mjs fails on any let/var, new Map/Set/WeakMap/WeakSet, mutable top-level const literal or web-storage use in apps/board/*.mjs that is not listed here with the exact occurrence count. for-loop counters are exempt by rule. Application state (session, navigation, selection, editor, dialogs, drafts, caches, photo review, workspace status, search/mention cursors, pending tasks) must be a state-lib scope owner, ids, epoch or resource in board-state.mjs, never an entry here.",
+  "entries": [
+    {
+      "file": "apps/board/app.mjs",
+      "kind": "literal",
+      "scope": "top-level",
+      "name": "paths",
+      "count": 1,
+      "why": "Read-only table of SVG icon path strings; never written after module evaluation and not application state."
+    },
+    {
+      "file": "apps/board/app.mjs",
+      "kind": "let",
+      "scope": "closure",
+      "name": "value",
+      "count": 1,
+      "why": "api(): response-body local that lives for one awaited request; not shared and not UI state."
+    },
+    {
+      "file": "apps/board/app.mjs",
+      "kind": "let",
+      "scope": "closure",
+      "name": "at",
+      "count": 1,
+      "why": "linkedText(): cursor of one synchronous string render; discarded when the function returns."
+    },
+    {
+      "file": "apps/board/app.mjs",
+      "kind": "let",
+      "scope": "closure",
+      "name": "out",
+      "count": 1,
+      "why": "linkedText(): HTML accumulator of one synchronous string render; discarded when the function returns."
+    },
+    {
+      "file": "apps/board/app.mjs",
+      "kind": "collection",
+      "scope": "closure",
+      "name": "(expression)",
+      "count": 1,
+      "why": "profile(): new Set(...).size counts distinct board ids inside one render template; a pure temporary."
+    },
+    {
+      "file": "apps/board/board-commands.mjs",
+      "kind": "literal",
+      "scope": "top-level",
+      "name": "toggleDone",
+      "count": 1,
+      "why": "Declarative command definition (library-owned defineJsonCommand input); read-only, the document mutates only through the store."
+    },
+    {
+      "file": "apps/board/board-commands.mjs",
+      "kind": "literal",
+      "scope": "top-level",
+      "name": "setField",
+      "count": 1,
+      "why": "Declarative command definition; read-only."
+    },
+    {
+      "file": "apps/board/board-commands.mjs",
+      "kind": "literal",
+      "scope": "top-level",
+      "name": "moveItem",
+      "count": 1,
+      "why": "Declarative command definition; read-only."
+    },
+    {
+      "file": "apps/board/board-commands.mjs",
+      "kind": "literal",
+      "scope": "top-level",
+      "name": "moveColumn",
+      "count": 1,
+      "why": "Declarative command definition; read-only."
+    },
+    {
+      "file": "apps/board/board-commands.mjs",
+      "kind": "literal",
+      "scope": "top-level",
+      "name": "COMMANDS",
+      "count": 1,
+      "why": "Name-to-definition lookup of the declarative commands; read-only."
+    },
+    {
+      "file": "apps/board/board-state.mjs",
+      "kind": "literal",
+      "scope": "top-level",
+      "name": "DOCUMENT_BACKENDS",
+      "count": 1,
+      "why": "Closed list of backend names used for validation; never mutated."
+    },
+    {
+      "file": "apps/board/board-state.mjs",
+      "kind": "literal",
+      "scope": "top-level",
+      "name": "BUILD_BACKENDS",
+      "count": 1,
+      "why": "Closed list of backend names used for validation; never mutated."
+    },
+    {
+      "file": "apps/board/board-state.mjs",
+      "kind": "collection",
+      "scope": "closure",
+      "name": "tasks",
+      "count": 1,
+      "why": "Infrastructure registry of the debounced tasks so resetPrivate can cancel them; not UI state and never serialized."
+    },
+    {
+      "file": "apps/board/document-action.mjs",
+      "kind": "let",
+      "scope": "closure",
+      "name": "result",
+      "count": 1,
+      "why": "commitDocumentAction(): local result of one synchronous commit, not shared state."
+    },
+    {
+      "file": "apps/board/document-action.mjs",
+      "kind": "let",
+      "scope": "closure",
+      "name": "observerFailure",
+      "count": 1,
+      "why": "commitDocumentAction(): captures a post-commit observer failure for one call; not shared state."
+    },
+    {
+      "file": "apps/board/photo-review.mjs",
+      "kind": "let",
+      "scope": "closure",
+      "name": "value",
+      "count": 1,
+      "why": "Default plainCell for standalone use of createPhotoReviewSession; the board always passes the photoReview scope owner instead."
+    },
+    {
+      "file": "apps/board/photo-review.mjs",
+      "kind": "let",
+      "scope": "closure",
+      "name": "submission",
+      "count": 1,
+      "why": "reviewPhoto submit handler local; holds one in-flight submission token, whose state of record is the session owner."
+    },
+    {
+      "file": "apps/board/board-state.mjs",
+      "kind": "collection",
+      "scope": "closure",
+      "name": "active",
+      "count": 1,
+      "why": "deepFreeze(): recursion-path WeakSet created for one synchronous cache admission, discarded when that validation returns; not a cross-action state owner or persistent cache."
+    }
+  ]
+}

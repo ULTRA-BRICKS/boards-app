@@ -10,6 +10,10 @@ import {fileURLToPath} from 'node:url';
 const KINDS = ['document', 'selection', 'navigation', 'menu', 'editor', 'pending-operation',
   'workspace-session', 'resource', 'cache', 'other-entry'];
 const COMPLETIONS = ['complete', 'partial', 'not-started', 'out-of-scope'];
+// Keeps three different questions apart: who OWNS board state (application-state), optional compiler specialization of
+// commands (compiler-lowering), measurement gaps (test-performance-evidence) and separate products (out-of-board-entry).
+// A command that already runs through the library change(callback) is library-owned, so lowering is never an ownership gap.
+const CATEGORIES = ['application-state', 'compiler-lowering', 'test-performance-evidence', 'out-of-board-entry'];
 // CLOSED set. Adding an anchor requires a real target for it to exist in the spec.
 const SPEC_ANCHORS = ['/spec#s4-4', '/spec#s4-9', '/spec#s4-10', '/spec#s5', '/spec#s13'];
 const TOP_FIELDS = ['baselineRevision', 'specBase', 'generatedFor'];
@@ -27,6 +31,9 @@ function checkShape(entry, at) {
   if (!isText(entry.id)) errors.push(`${at}: id must be a non-empty string`);
   if (!isText(entry.owner)) errors.push(`${at}: owner must be a non-empty string`);
   if (!KINDS.includes(entry.kind)) errors.push(`${at}: kind ${JSON.stringify(entry.kind)} not in ${KINDS.join(', ')}`);
+  if (!CATEGORIES.includes(entry.category)) errors.push(`${at}: category ${JSON.stringify(entry.category)} not in ${CATEGORIES.join(', ')}`);
+  else if (entry.category === 'out-of-board-entry' && entry.completion !== 'out-of-scope') errors.push(`${at}: out-of-board-entry entries must have completion out-of-scope`);
+  else if (entry.category !== 'out-of-board-entry' && entry.completion === 'out-of-scope') errors.push(`${at}: only out-of-board-entry entries may be out-of-scope; board state, lowering and evidence cannot be excused`);
   if (!isTextList(entry.actions)) errors.push(`${at}: actions must be an array of strings`);
   if (!COMPLETIONS.includes(entry.completion)) errors.push(`${at}: completion ${JSON.stringify(entry.completion)} not in ${COMPLETIONS.join(', ')}`);
   else if (entry.completion !== 'complete' && !isText(entry.completionNote)) errors.push(`${at}: completionNote is required unless completion is complete`);
@@ -111,10 +118,27 @@ export function validateManifest(manifest, {root, gitShow = defaultGitShow(root)
   return errors;
 }
 
+/** Counts per category and completion; the honest inventory view (ownership gaps are application-state only). */
+export function summarizeManifest(manifest) {
+  const byCategory = Object.fromEntries(CATEGORIES.map((c) => [c, {total: 0, ...Object.fromEntries(COMPLETIONS.map((k) => [k, 0]))}]));
+  for (const entry of manifest.entries) {
+    const bucket = byCategory[entry.category];
+    if (!bucket) continue;
+    bucket.total++;
+    bucket[entry.completion]++;
+  }
+  return {total: manifest.entries.length, byCategory};
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const file = resolve(process.argv[2] ?? `${root}/docs/state-migration-manifest.json`);
   const errors = validateManifest(JSON.parse(readFileSync(file, 'utf8')), {root});
   for (const error of errors) console.error(error);
+  if (!errors.length) {
+    const {total, byCategory} = summarizeManifest(JSON.parse(readFileSync(file, 'utf8')));
+    console.log(`manifest ok: ${total} entries`);
+    for (const [name, counts] of Object.entries(byCategory)) console.log(`  ${name}: ${JSON.stringify(counts)}`);
+  }
   process.exit(errors.length ? 1 : 0);
 }

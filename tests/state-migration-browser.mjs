@@ -153,7 +153,273 @@ async function scenarioNavigationAndReset(page) {
   await login(page);
 }
 
-const scenarios = [scenarioSelectionAndMenus, scenarioMoves, scenarioEditor, scenarioSearchCancellation, scenarioDuplicateSuggestion, scenarioNavigationAndReset];
+const openSettings = (page) => page.getByRole('button', {name: 'Notebook settings and profile', exact: true}).click();
+
+// Undo/redo go through the shared Runtime history; the rendered order must follow it.
+async function scenarioUndoRedo(page) {
+  const before = await order(page, 'landing');
+  await page.locator('.task[data-item="l3"] [data-item-menu]').click();
+  await page.getByRole('button', {name: 'Move up ↑', exact: true}).click();
+  await settle(page);
+  const moved = await order(page, 'landing');
+  assert.notDeepEqual(moved, before, 'the move changed the order');
+  await openSettings(page);
+  await page.locator('#undo').click();
+  assert.deepEqual(await order(page, 'landing'), before, 'undo restores the previous order');
+  await openSettings(page);
+  await page.locator('#redo').click();
+  assert.deepEqual(await order(page, 'landing'), moved, 'redo re-applies the move');
+  await openSettings(page);
+  await page.locator('#undo').click();
+  await settle(page);
+  assert.deepEqual(await order(page, 'landing'), before, 'final undo leaves the document as it started');
+}
+
+// Private UI state (selection, popovers) and in-flight async results must not survive sign-out/relogin.
+async function scenarioSignoutRelogin(page) {
+  const row = page.locator('.task[data-item="l4"]');
+  await row.locator('[data-item-menu]').click();
+  await page.getByRole('button', {name: 'Select for sharing', exact: true}).click();
+  assert.match(await row.getAttribute('class'), /\bselected\b/);
+  assert.ok(await page.locator('.task.selected').count() >= 2, 'earlier selection is still present before sign-out');
+  let slow = true;
+  await page.route('**/api/search', async (route) => {
+    if (slow) await new Promise((r) => setTimeout(r, 900));
+    const hit = {title: 'stale hit from the old session', boardTitle: 'B', columnTitle: 'C', boardId: 'roadmap', itemId: 'l1'};
+    return route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({mode: 'words', hits: [hit]})});
+  });
+  await page.keyboard.press('Control+k');
+  await page.locator('#search-query').fill('Stale');
+  await page.waitForTimeout(450);
+  await page.keyboard.press('Escape');
+  await openSettings(page);
+  await page.getByRole('button', {name: 'Sign out', exact: true}).click();
+  await page.getByRole('button', {name: 'Open local test workspace', exact: true}).waitFor();
+  await page.waitForTimeout(1100);
+  assert.equal(await page.locator('.search-hit').count(), 0, 'a search started before sign-out never renders');
+  await login(page);
+  slow = false;
+  await page.unroute('**/api/search');
+  assert.equal(await page.locator('.task.selected').count(), 0, 'selection did not leak into the next session');
+  assert.equal(await page.locator('.popover, .hover-card, [role=dialog]').count(), 0, 'no chrome from the previous session');
+  assert.equal(await page.locator('.search-hit').count(), 0);
+}
+
+
+const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+const openBoards = (page) => page.getByRole('button', {name: 'Boards and columns', exact: true}).click();
+const json = (body, status = 200) => ({status, contentType: 'application/json', body: JSON.stringify(body)});
+
+// Real IME: CDP drives a genuine composition session (not insertText alone). Composition events must fire and the text must survive.
+async function composeIme(page, steps, commit) {
+  const cdp = await page.context().newCDPSession(page);
+  await page.evaluate(() => {
+    if (window.__imeInstalled) { window.__ime.length = 0; return; }
+    window.__imeInstalled = true; window.__ime = [];
+    for (const type of ['compositionstart', 'compositionupdate', 'compositionend']) document.addEventListener(type, (e) => window.__ime.push(`${type}:${e.data}`), true);
+  });
+  const midTexts = [];
+  for (const text of steps) {
+    await cdp.send('Input.imeSetComposition', {text, selectionStart: text.length, selectionEnd: text.length});
+    midTexts.push(await page.evaluate(() => document.activeElement.value ?? document.activeElement.textContent));
+  }
+  await cdp.send('Input.insertText', {text: commit});
+  const events = await page.evaluate(() => [...window.__ime]);
+  await cdp.detach();
+  return {events, midTexts};
+}
+
+async function scenarioImeComposition(page) {
+  const el = page.locator('.task[data-item="l5"] [data-edit="item"]');
+  const original = await el.textContent();
+  await el.click();
+  assert.equal(await el.getAttribute('contenteditable'), 'plaintext-only');
+  const {events, midTexts} = await composeIme(page, ['に', 'にほ', 'にほん'], '日本');
+  assert.ok(events.some((e) => e.startsWith('compositionstart')), `compositionstart fired: ${events}`);
+  assert.ok(events.filter((e) => e.startsWith('compositionupdate')).length >= 2, `compositionupdate fired: ${events}`);
+  assert.ok(events.some((e) => e.startsWith('compositionend')), `compositionend fired: ${events}`);
+  assert.ok(midTexts.at(-1).includes('にほん'), `the in-progress composition is in the field: ${midTexts}`);
+  assert.equal(await el.getAttribute('contenteditable'), 'plaintext-only', 'composition does not end the edit session');
+  const text = await el.textContent();
+  assert.ok(text.startsWith(original) && text.endsWith('日本'), `original text kept and committed text appended: ${text}`);
+  assert.ok(!text.includes('にほん'), 'the composition string was replaced by the committed text');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('.task[data-item="l5"] [data-edit="item"]').textContent(), original, 'Escape still reverts after IME');
+}
+
+// The label of the save status must survive the re-render that every change triggers (baseline lost it).
+async function scenarioSaveStatusSurvivesRerender(page) {
+  let release;
+  const gate = new Promise((r) => { release = r; });
+  await page.route('**/api/state', async (route) => {
+    if (route.request().method() !== 'PUT') return route.fallback();
+    await gate;
+    return route.fallback();
+  });
+  const status = page.locator('.save-state');
+  await page.locator('.task[data-item="l2"] [data-done]').click();
+  assert.equal(await status.textContent(), 'Ink drying…', 'the label painted by the change survives its own re-render');
+  await page.waitForFunction(() => document.querySelector('.save-state')?.textContent === 'Saving…');
+  await openBoards(page);
+  await page.locator('[data-board]').first().click();
+  assert.equal(await status.textContent(), 'Saving…', 'a navigation re-render while saving keeps the current label');
+  release();
+  await page.unroute('**/api/state');
+  await settle(page);
+  await page.locator('.task[data-item="l2"] [data-done]').click();
+  await settle(page);
+}
+
+async function scenarioSearchAndMentionCursors(page) {
+  const hits = [0, 1, 2].map((n) => ({title: `cursor hit ${n}`, boardTitle: 'B', columnTitle: 'C', boardId: 'roadmap', itemId: 'l1'}));
+  await page.route('**/api/search', (route) => route.fulfill(json({mode: 'words', hits})));
+  await page.keyboard.press('Control+k');
+  await page.locator('#search-query').fill('cursor');
+  await page.locator('.search-hit').nth(2).waitFor();
+  const activeIndex = () => page.locator('.search-hit').evaluateAll((els) => els.findIndex((e) => e.classList.contains('active')));
+  assert.equal(await activeIndex(), 0);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  assert.equal(await activeIndex(), 2, 'the cursor owner clamps at the last hit');
+  await page.keyboard.press('ArrowUp');
+  assert.equal(await activeIndex(), 1);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Control+k');
+  await page.locator('#search-query').fill('cursor');
+  await page.locator('.search-hit').nth(2).waitFor();
+  assert.equal(await activeIndex(), 0, 'a reopened search starts at the first hit');
+  await page.keyboard.press('Escape');
+  await page.unroute('**/api/search');
+
+  const el = page.locator('.task[data-item="l5"] [data-edit="item"]');
+  await el.click();
+  await page.keyboard.type(' @');
+  await page.locator('.popover.mentions').waitFor();
+  const options = await page.locator('.popover.mentions [data-pick]').count();
+  const mentionActive = () => page.locator('.popover.mentions [data-pick]').evaluateAll((els) => els.findIndex((e) => e.classList.contains('active')));
+  assert.equal(await mentionActive(), 0);
+  if (options > 1) {
+    await page.keyboard.press('ArrowDown');
+    assert.equal(await mentionActive(), 1, 'mention cursor moves down');
+    await page.keyboard.press('ArrowUp');
+    assert.equal(await mentionActive(), 0, 'and back up');
+  }
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+}
+
+async function scenarioDialogDraftsAndSettings(page) {
+  await openSettings(page);
+  await page.locator('#workspace-settings').click();
+  const space = page.locator('#settings-form input[name=space]');
+  const original = await space.inputValue();
+  await space.fill('Draft name, not saved');
+  await page.keyboard.press('Escape');
+  await openSettings(page);
+  await page.locator('#workspace-settings').click();
+  assert.equal(await page.locator('#settings-form input[name=space]').inputValue(), original, 'a cancelled draft never leaks into the next dialog');
+  await page.locator('#settings-form input[name=space]').fill('Renamed space');
+  await page.locator('#settings-form button').click();
+  await settle(page);
+  await openSettings(page);
+  await page.locator('#workspace-settings').click();
+  assert.equal(await page.locator('#settings-form input[name=space]').inputValue(), 'Renamed space', 'submitting reads the live inputs');
+  await page.locator('#settings-form input[name=space]').fill(original);
+  await page.locator('#settings-form button').click();
+  await settle(page);
+}
+
+// Photo review: edit, confirm and cancel through the owned session, with real IME composition in the review form.
+async function scenarioPhotoReview(page) {
+  await page.route('**/api/status', async (route) => {
+    const response = await route.fetch();
+    const body = await response.json();
+    return route.fulfill(json({...body, ai: {...body.ai, vision: true}}));
+  });
+  await page.reload();
+  await page.locator('.paper').waitFor();
+  const draft = {board: {id: 'photo', title: 'From photo', columns: [{id: 'c1', title: 'Launch', items: [
+    {id: 'i1', text: 'Ship it', tag: 'D', assignees: ['someone']}, {id: 'i2', text: 'Drop me', tag: '', assignees: []}]}]}, warnings: []};
+  let imported;
+  await page.route('**/api/photo', (route) => route.fulfill(json(draft)));
+  await page.route('**/api/import', (route) => { imported = JSON.parse(route.request().postData()).board; return route.fulfill(json({boardId: 'roadmap'})); });
+  const openReview = async () => {
+    await openBoards(page);
+    await page.locator('#photo-import').click();
+    await page.locator('#photo-file').setInputFiles({name: 'p.png', mimeType: 'image/png', buffer: Buffer.from(PNG, 'base64')});
+    await page.locator('.preview-photo').waitFor();
+    await page.locator('#read-photo').click();
+    await page.locator('form.photo-review').waitFor();
+  };
+  await openReview();
+  await page.locator('form.photo-review label:has-text("Page title") input').fill('  Edited title ');
+  const thought = page.locator('form.photo-review textarea').first();
+  await thought.click();
+  await page.keyboard.press('End');
+  const {events} = await composeIme(page, ['に', 'にほ'], '日本');
+  assert.ok(events.some((e) => e.startsWith('compositionstart')) && events.some((e) => e.startsWith('compositionend')), `review form IME events: ${events}`);
+  assert.equal(await thought.inputValue(), 'Ship it日本', 'composition text is preserved in the review textarea');
+  await page.locator('form.photo-review textarea').nth(1).locator('xpath=ancestor::div[contains(@class,"review-row")]').locator('input[type=checkbox]').uncheck();
+  await page.locator('form.photo-review .review-consent input').check();
+  await page.locator('form.photo-review button[type=submit]').click();
+  await page.waitForFunction(() => !document.querySelector('form.photo-review'));
+  assert.equal(imported.title, 'Edited title');
+  assert.equal(imported.columns.length, 1);
+  assert.deepEqual(imported.columns[0].items.map((i) => i.text), ['Ship it日本'], 'unchecked thought dropped, composed text kept');
+  assert.deepEqual(imported.columns[0].items[0].assignees, [], 'a hint never becomes an assignee');
+  assert.equal(imported.columns[0].items[0].tag, 'D');
+
+  // Closing the dialog while the transcription is still being read must leave nothing behind.
+  await page.unroute('**/api/photo');
+  await page.route('**/api/photo', async (route) => { await new Promise((r) => setTimeout(r, 700)); return route.fulfill(json(draft)); });
+  await openBoards(page);
+  await page.locator('#photo-import').click();
+  await page.locator('#photo-file').setInputFiles({name: 'p.png', mimeType: 'image/png', buffer: Buffer.from(PNG, 'base64')});
+  await page.locator('.preview-photo').waitFor();
+  await page.locator('#read-photo').click();
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(1000);
+  assert.equal(await page.locator('form.photo-review, [role=dialog]').count(), 0, 'a stale transcription never renders into a closed dialog');
+  await page.unroute('**/api/photo'); await page.unroute('**/api/import'); await page.unroute('**/api/status');
+  await page.reload();
+  await page.locator('.paper').waitFor();
+}
+
+// A ticket lookup that finishes after sign-out must not seed the next session's cache.
+async function scenarioStaleTicketAfterSignout(page) {
+  const el = page.locator('.task[data-item="l5"] [data-edit="item"]');
+  await el.click();
+  await page.keyboard.insertText(' ABC-123');
+  await page.locator('[data-edit="title"]').click();
+  await settle(page);
+  await openBoards(page);
+  await page.locator('[data-board]').first().click();
+  let session = 'old';
+  await page.route('**/api/ticket', async (route) => {
+    const answering = session;
+    if (answering === 'old') await new Promise((r) => setTimeout(r, 900));
+    return route.fulfill(json({title: `${answering} session ticket`, label: 'ABC-123', kind: 'issue', state: 'open', provider: 'linear', url: 'https://linear.app/x', description: ''}));
+  });
+  await page.locator('a[data-ticket="ABC-123"]').first().click();
+  await page.locator('[role=dialog]').waitFor();
+  await page.keyboard.press('Escape');
+  await openSettings(page);
+  await page.getByRole('button', {name: 'Sign out', exact: true}).click();
+  await page.getByRole('button', {name: 'Open local test workspace', exact: true}).waitFor();
+  await page.waitForTimeout(1300);
+  session = 'new';
+  await login(page);
+  await page.locator('a[data-ticket="ABC-123"]').first().click();
+  await page.getByRole('heading', {name: 'new session ticket'}).waitFor({timeout: 5000});
+  await page.keyboard.press('Escape');
+  await page.unroute('**/api/ticket');
+}
+
+const all = [scenarioSelectionAndMenus, scenarioMoves, scenarioEditor, scenarioImeComposition, scenarioSearchCancellation, scenarioSearchAndMentionCursors,
+  scenarioDuplicateSuggestion, scenarioDialogDraftsAndSettings, scenarioUndoRedo, scenarioSignoutRelogin, scenarioStaleTicketAfterSignout, scenarioSaveStatusSurvivesRerender, scenarioPhotoReview, scenarioNavigationAndReset];
+const only = (process.env.MIGRATION_ONLY || '').split(',').filter(Boolean);
+const scenarios = only.length ? all.filter((fn) => only.includes(fn.name)) : all;
 const results = [];
 for (const backend of ['baseline', 'state-lib']) {
   const server = await startServer(backend);

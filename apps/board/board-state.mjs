@@ -22,6 +22,34 @@
 
 const DOCUMENT_BACKENDS = ["baseline", "state-lib", "state-lib-cow"];
 const BUILD_BACKENDS = ["baseline", "state-lib"];
+/** Initial and reset value of the tickets owner: a frozen null-prototype record, so no key can alias a prototype member. */
+const EMPTY_TICKETS = Object.freeze(Object.create(null));
+
+function deepFreeze(value, active = new WeakSet()) {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "object") throw new TypeError("A cached ticket must be JSON data");
+  const prototype = Object.getPrototypeOf(value);
+  if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null)
+    throw new TypeError("A cached ticket must contain only JSON objects and arrays");
+  if (active.has(value)) throw new TypeError("A cached ticket must be acyclic JSON data");
+  if (Object.isFrozen(value)) return value;
+  active.add(value);
+  Object.freeze(value);
+  for (const key of Reflect.ownKeys(value)) deepFreeze(value[key], active);
+  active.delete(value);
+  return value;
+}
+
+/** Cache admission: a private structured clone, deep-frozen, so neither the caller's object nor a reader can alter it. */
+function admit(value) {
+  try {
+    return deepFreeze(structuredClone(value));
+  } catch (cause) {
+    throw new TypeError("A cached ticket must be plain JSON data", { cause });
+  }
+}
+const EMPTY_DRAFT = Object.freeze({ form: "", values: Object.freeze({}) });
 
 /** Build config picks the backend; the URL only overrides it when the build allows it. */
 export function resolveBackends(config, search) {
@@ -80,6 +108,14 @@ function defineData(scope) {
     saveStatus: scope.owner("saveStatus", ""),
     suggestions: scope.owner("suggestions", null),
     searchResults: scope.owner("searchResults", null),
+    workspaceStatus: scope.owner("workspaceStatus", "idle"),
+    searchActive: scope.owner("searchActive", 0),
+    mentionIndex: scope.owner("mentionIndex", 0),
+    photoImage: scope.owner("photoImage", null),
+    photoReview: scope.owner("photoReview", null),
+    tickets: scope.owner("tickets", EMPTY_TICKETS),
+    dialogDraft: scope.owner("dialogDraft", EMPTY_DRAFT),
+    artAttempts: scope.ids("artAttempts"),
     workspaceEpoch: scope.epoch("workspaceEpoch"),
     hoverEpoch: scope.epoch("hoverEpoch"),
   };
@@ -93,6 +129,71 @@ function defineHandles(scope) {
     columnObserver: scope.resource("columnObserver"),
     editor: scope.resource("editor"),
     sync: scope.resource("sync"),
+    photoForm: scope.resource("photoForm"),
+  };
+}
+
+/**
+ * Copy-on-write Map-like facade over an owner holding a frozen null-prototype record {ref: frozen JSON value}. Every
+ * write builds a new frozen record; reads never subscribe (a ticket lookup must not re-render).
+ */
+function createTicketCache(cell) {
+  const has = (record, ref) => Object.hasOwn(record, ref);
+  const replace = (change) => {
+    const next = Object.create(null);
+    for (const key of Object.keys(cell.peek())) next[key] = cell.peek()[key];
+    change(next);
+    cell.set(Object.freeze(next));
+  };
+  return {
+    has: (ref) => has(cell.peek(), ref),
+    get: (ref) => (has(cell.peek(), ref) ? cell.peek()[ref] : undefined),
+    set(ref, value) {
+      const admitted = admit(value);
+      replace((next) => {
+        next[ref] = admitted;
+      });
+    },
+    delete(ref) {
+      if (!has(cell.peek(), ref)) return;
+      replace((next) => {
+        delete next[ref];
+      });
+    },
+    clear: () => cell.set(EMPTY_TICKETS),
+    get size() {
+      return Object.keys(cell.peek()).length;
+    },
+  };
+}
+
+/** Set facade over the shipped ids collection: adding a known attempt keeps the previous reference. */
+export function createAttemptSet(ids) {
+  return {
+    has: (key) => ids.peek().includes(key),
+    add(key) {
+      if (!ids.peek().includes(key)) ids.replace([...ids.peek(), key]);
+    },
+    clear: () => ids.clear(),
+    get size() {
+      return ids.peek().length;
+    },
+  };
+}
+
+/** Form draft: plain immutable data (which form is open and its field values); inputs stay the live DOM surface. */
+function createDialogDraft(cell) {
+  const write = (form, values) => cell.set(Object.freeze({ form, values: Object.freeze(values) }));
+  return {
+    open: (form, values = {}) => write(form, { ...values }),
+    set(key, value) {
+      const { form, values } = cell.peek();
+      if (values[key] !== value) write(form, { ...values, [key]: value });
+    },
+    get: (key) => cell.peek().values[key],
+    values: () => cell.peek().values,
+    form: () => cell.peek().form,
+    clear: () => cell.set(EMPTY_DRAFT),
   };
 }
 
@@ -103,17 +204,24 @@ export function createBoardState({ kit, backends }) {
   const session = defineSession(sessionScope),
     data = defineData(privateScope),
     handles = defineHandles(privateScope);
-  // Memo caches: non-reactive by design (a ticket lookup or an attempted illustration must not re-render).
-  const tickets = new Map(),
-    artAttempts = new Set();
+  const tickets = createTicketCache(data.tickets),
+    artAttempts = createAttemptSet(data.artAttempts),
+    draft = createDialogDraft(data.dialogDraft);
+
+  /** Cached lookup; a result that arrives after sign-out or a workspace reload is returned but not cached. */
+  async function loadTicket(ref, fetcher) {
+    if (tickets.has(ref)) return tickets.get(ref);
+    const alive = data.workspaceEpoch.guard();
+    const value = await fetcher();
+    if (!alive()) return value;
+    tickets.set(ref, value);
+    return tickets.get(ref);
+  }
 
   function resetPrivate() {
     privateScope.reset(
       () => infra.documentStore.replace(null),
       () => {
-        // These caches are not reactive, but must clear even if cancellation throws.
-        tickets.clear();
-        artAttempts.clear();
         const errors = [];
         for (const task of infra.tasks) {
           try {
@@ -136,6 +244,8 @@ export function createBoardState({ kit, backends }) {
     ...handles,
     tickets,
     artAttempts,
+    draft,
+    loadTicket,
     batch: infra.batch,
     debounced: infra.debounced,
     resetPrivate,

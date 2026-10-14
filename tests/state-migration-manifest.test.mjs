@@ -4,13 +4,13 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {validateManifest} from '../scripts/validate-state-manifest.mjs';
+import {validateManifest,summarizeManifest} from '../scripts/validate-state-manifest.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const gitShow = () => 'const onlyType = false; function legacyHelper() {}';
 const check = (manifest) => validateManifest(manifest, {root, gitShow, warn: () => {}});
 const good = () => ({
-  id: 'demo-entry', owner: 'test', kind: 'document', actions: ['edit'],
+  id: 'demo-entry', owner: 'test', kind: 'document', category: 'application-state', actions: ['edit'],
   oldSource: {file: 'scripts/build.mjs', symbols: ['onlyType']},
   replacement: {file: 'apps/board/state-config.mjs', symbols: ['STATE_CONFIG']},
   completion: 'complete', completionNote: '', baselineRevision: '9ebf080',
@@ -35,6 +35,11 @@ test('bad entries are rejected with specific errors', () => {
   const cases = {
     'duplicate id': () => check(wrap(good(), good())),
     'unknown kind': () => errorsFor({kind: 'thing'}),
+    'missing category': () => errorsFor({category: undefined}),
+    'unknown category': () => errorsFor({category: 'misc'}),
+    'application state cannot be out of scope': () => errorsFor({completion: 'out-of-scope', completionNote: 'x'}),
+    'out-of-board-entry must be out-of-scope': () => errorsFor({category: 'out-of-board-entry'}),
+    'out-of-scope must be out-of-board-entry': () => errorsFor({category: 'compiler-lowering', completion: 'out-of-scope', completionNote: 'x'}),
     'unknown completion': () => errorsFor({completion: 'done'}),
     'partial without note': () => errorsFor({completion: 'partial', completionNote: ' '}),
     'missing replacement file': () => errorsFor({replacement: {file: 'nope/missing.mjs', symbols: ['x']}}),
@@ -121,4 +126,49 @@ test('a state entry that is not complete says so and no entry claims an unbuilt 
   const incomplete = manifest.entries.filter((e) => e.completion !== 'complete');
   assert.ok(incomplete.some((e) => e.completion === 'partial'), 'the manifest must record real partial work');
   for (const entry of manifest.entries) assert.ok(entry.spec.every((a) => a.startsWith('/spec#')));
+});
+
+// ---- categories keep ownership, optional compiler lowering, evidence and other products apart ----
+const committed = () => JSON.parse(readFileSync(root + 'docs/state-migration-manifest.json', 'utf8'));
+const byId = (id) => committed().entries.find((e) => e.id === id);
+
+test('summarizeManifest counts every entry once by category and completion', () => {
+  const manifest = committed(), summary = summarizeManifest(manifest);
+  assert.equal(Object.values(summary.byCategory).reduce((n, c) => n + c.total, 0), manifest.entries.length);
+  assert.deepEqual(Object.keys(summary.byCategory).sort(), ['application-state', 'compiler-lowering', 'out-of-board-entry', 'test-performance-evidence']);
+  assert.deepEqual(summarizeManifest(wrap(good(), {...good(), id: 'b', completion: 'partial', completionNote: 'x'})).byCategory['application-state'],
+    {total: 2, complete: 1, partial: 1, 'not-started': 0, 'out-of-scope': 0});
+});
+
+test('every board application-state owner is categorized as application state and none is excused', () => {
+  const owners = ['document-store', 'document-history', 'document-with-navigation-atomic', 'session-config', 'session-share-mode', 'private-user-people-requests',
+    'workspace-loader', 'sync-queue', 'save-status', 'save-error-dialog-flag', 'navigation-board', 'navigation-column', 'selection', 'menu-popover', 'menu-hover-card',
+    'dialog-chrome', 'editor-inline', 'toast-timer', 'column-observer', 'pending-duplicate-suggestion', 'pending-search-dialog', 'pending-illustration',
+    'pending-ticket-preview', 'pending-photo-read', 'cache-tickets-and-art-attempts', 'backend-selection-build-config', 'dialog-local-view-state', 'photo-review-component'];
+  for (const id of owners) {
+    assert.equal(byId(id)?.category, 'application-state', id);
+    assert.notEqual(byId(id).completion, 'out-of-scope', `${id} must not be excused from the board`);
+  }
+});
+
+test('optional compiler specialization, evidence and the separate type product are not ownership gaps', () => {
+  assert.equal(byId('compiler-lowered-commands').category, 'compiler-lowering');
+  assert.equal(byId('document-declared-commands').category, 'compiler-lowering');
+  assert.equal(byId('bundle-budget').category, 'test-performance-evidence');
+  assert.equal(byId('type-site').category, 'out-of-board-entry');
+  assert.equal(byId('type-site').completion, 'out-of-scope');
+  assert.notEqual(byId('compiler-lowered-commands').completion, 'complete', 'no generated lowering exists, so it must not be called implemented');
+  assert.match(byId('document-declared-commands').completionNote, /change\(callback\)/);
+  assert.match(byId('document-declared-commands').completionNote, /library-owned/);
+});
+
+test('type-site points at the real separate entry, not at a board owner', () => {
+  const entry = byId('type-site');
+  assert.equal(entry.oldSource.file, 'apps/type-site/type.mjs');
+  assert.equal(entry.replacement.file, 'apps/type-site/type.mjs');
+});
+
+test('the inventory exposes zero application-state gaps once every owner is verified', () => {
+  const state = summarizeManifest(committed()).byCategory['application-state'];
+  assert.equal(state.total, state.complete, JSON.stringify(state));
 });

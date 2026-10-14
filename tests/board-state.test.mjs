@@ -388,3 +388,172 @@ test("[state-lib] private reset clears document and owners atomically despite di
   assert.deepEqual(released, ["popover", "sync"]);
   assert.deepEqual(observed, [["", null, null]]);
 });
+
+// Sign-out lifecycle edge cases (HYP-1490 continuation): shared private state must be wiped
+// no matter which disposer, task, observer or companion fails.
+function seedPrivate(S) {
+  S.documentStore.replace(doc());
+  S.boardId.set("b2");
+  S.user.set({ id: "old-user" });
+  S.people.set([{ id: "p" }]);
+  S.selected.replace(["x"]);
+  S.tickets.set("private", {});
+  S.artAttempts.add("private");
+}
+const wiped = (S) =>
+  assert.deepEqual(
+    [
+      S.documentStore.read(),
+      S.user.get(),
+      S.boardId.get(),
+      [...S.people.get()],
+      S.selected.size,
+      S.tickets.size,
+      S.artAttempts.size,
+    ],
+    [null, null, "", [], 0, 0, 0],
+  );
+const flatMessages = (e) =>
+  e instanceof AggregateError ? e.errors.flatMap(flatMessages) : [e.message];
+
+for (const backend of ALL) {
+  test(`[${backend}] signout wipes everything and runs every disposer even when disposers throw`, () => {
+    const S = make(backend);
+    seedPrivate(S);
+    const released = [];
+    for (const name of ["popover", "hoverCard", "columnObserver", "sync"])
+      S[name].set({}, () => {
+        released.push(name);
+        if (name !== "columnObserver") throw Error(`${name} failed`);
+      });
+    let error;
+    try {
+      S.resetPrivate();
+    } catch (e) {
+      error = e;
+    }
+    assert.ok(error instanceof AggregateError, "disposal failures are reported, not swallowed");
+    assert.deepEqual(flatMessages(error).sort(), ["hoverCard failed", "popover failed", "sync failed"]);
+    assert.deepEqual(released, ["popover", "hoverCard", "columnObserver", "sync"]);
+    wiped(S);
+    assert.doesNotThrow(() => S.resetPrivate(), "a second signout has nothing left to dispose");
+  });
+
+  test(`[${backend}] a throwing task cancel cannot strand state, caches or the other tasks`, () => {
+    const S = make(backend);
+    seedPrivate(S);
+    const cancelled = [];
+    const bad = S.debounced({ delay: 1, load: () => 1, commit: () => {} });
+    const good = S.debounced({ delay: 1, load: () => 1, commit: () => {} });
+    const realCancel = good.cancel.bind(good);
+    bad.cancel = () => {
+      cancelled.push("bad");
+      throw Error("cancel failed");
+    };
+    good.cancel = () => {
+      cancelled.push("good");
+      realCancel();
+    };
+    let error;
+    try {
+      S.resetPrivate();
+    } catch (e) {
+      error = e;
+    }
+    assert.deepEqual(flatMessages(error), ["cancel failed"]);
+    assert.deepEqual(cancelled, ["bad", "good"]);
+    wiped(S);
+  });
+
+  test(`[${backend}] task cancel failure and disposer failure are both reported`, () => {
+    const S = make(backend);
+    seedPrivate(S);
+    S.popover.set({}, () => {
+      throw Error("dispose failed");
+    });
+    const task = S.debounced({ delay: 1, load: () => 1, commit: () => {} });
+    task.cancel = () => {
+      throw Error("cancel failed");
+    };
+    let error;
+    try {
+      S.resetPrivate();
+    } catch (e) {
+      error = e;
+    }
+    assert.deepEqual(flatMessages(error).sort(), ["cancel failed", "dispose failed"]);
+    wiped(S);
+  });
+}
+
+for (const backend of RUNTIME) {
+  test(`[${backend}] an observer that throws on the committed signout still wipes and disposes`, () => {
+    const S = make(backend);
+    seedPrivate(S);
+    const released = [];
+    S.sync.set({}, () => released.push("sync"));
+    S.runtime.watch(
+      () => S.user.get(),
+      () => {
+        throw Error("observer");
+      },
+    );
+    assert.throws(() => S.resetPrivate(), /observer|dispos/i);
+    assert.deepEqual(released, ["sync"]);
+    wiped(S);
+  });
+
+  test(`[${backend}] resetPrivate inside an outer batch is refused and strands nothing`, () => {
+    const S = make(backend);
+    seedPrivate(S);
+    const released = [];
+    S.sync.set({}, () => released.push("sync"));
+    assert.throws(() => S.batch(() => S.resetPrivate()), /outer transaction boundary/);
+    assert.deepEqual(released, [], "handles are retained when the boundary was refused");
+    assert.equal(S.user.get().id, "old-user");
+    S.resetPrivate();
+    assert.deepEqual(released, ["sync"]);
+    wiped(S);
+  });
+
+  test(`[${backend}] a rolled-back signout keeps the old user's handle for a retry; the retry wipes`, () => {
+    const S = make(backend);
+    seedPrivate(S);
+    const released = [];
+    S.sync.set({}, () => released.push("sync"));
+    const realReplace = S.documentStore.replace;
+    S.documentStore.replace = () => {
+      throw Error("replace failed");
+    };
+    assert.throws(() => S.resetPrivate(), /replace failed/);
+    S.documentStore.replace = realReplace;
+    assert.deepEqual(released, []);
+    assert.equal(S.user.get().id, "old-user");
+    assert.equal(S.tickets.size, 1, "caches only clear on a committed reset");
+    S.resetPrivate();
+    assert.deepEqual(released, ["sync"]);
+    wiped(S);
+  });
+
+  test(`[${backend}] a stale in-flight search finishing after signout cannot repopulate private state`, async () => {
+    const S = make(backend);
+    seedPrivate(S);
+    let release;
+    const gate = new Promise((r) => (release = r));
+    const task = S.debounced({
+      delay: 1,
+      load: async () => {
+        await gate;
+        return { hits: ["old-user-data"] };
+      },
+      commit: (v) => S.searchResults.set(v),
+    });
+    const pending = task.run("q");
+    await new Promise((r) => setTimeout(r, 10));
+    S.resetPrivate();
+    release();
+    await pending;
+    assert.equal(S.searchResults.get(), null);
+    wiped(S);
+  });
+}
