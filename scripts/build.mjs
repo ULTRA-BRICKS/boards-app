@@ -6,10 +6,11 @@ import {mkdir,copyFile,rm,writeFile} from 'node:fs/promises';
 import {resolve,dirname,relative,isAbsolute,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {PLACEHOLDER} from '../server/assets.mjs';
+import {compileBoard} from './compile-board.mjs';
 import {assertStateBackend,renderStateConfig} from './state-config-source.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');process.chdir(root);
 
-const BOARD_FILES=['index.html','style.css','app.mjs','boot.mjs','refinements.css','photo-review.mjs','state-config.mjs','board-state.mjs','board-commands.mjs','document-action.mjs'];
+const BOARD_FILES=['index.html','style.css','app.mjs','boot.mjs','refinements.css','photo-review.mjs','state-config.mjs','board-state.mjs','board-commands.mjs','document-action.mjs','board-row-view.mjs'];
 const TYPE_FILES=['index.html','style.css','type.mjs'];
 const FONT_FILES=['font.mjs','glyphs.mjs'];
 const CORE_FILES=['model.mjs','workspace.mjs','sync.mjs','art.mjs','references.mjs','assignees.mjs','workspace-loader.mjs','document-store.mjs','document-store-baseline.mjs','json-draft.mjs','document-publication.mjs'];
@@ -46,6 +47,7 @@ async function copyBoard(out,backend){
   if(backend)await writeFile(`${out}/state-config.mjs`,renderStateConfig(backend));
   for(const file of STATE_LIB_SCOPED)await copyInto(out,`packages/state-lib/scoped/${file}`,`packages/state-lib/scoped/${file}`);
   for(const file of STATE_LIB_DIST)await copyInto(out,`packages/state-lib/dist/${file}`,`packages/state-lib/dist/${file}`);
+  await copyInto(out,'packages/state-lib/dom/immutable-row-delta.mjs','packages/state-lib/dom/immutable-row-delta.mjs');
   await writeFile(out+'/placeholder.svg',PLACEHOLDER);
 }
 
@@ -58,6 +60,13 @@ async function build(){
   const argv=process.argv.slice(2),onlyType=argv.includes('--type');
   const backend=onlyType?undefined:resolveBackend(argv,process.env);
   const out=resolveOut(argv,onlyType?'dist/type-site':'dist/board');
+  if(argv.includes('--compile')&&argv.includes('--bundle-only'))fail('Choose compile or bundle-only, not both');
+  if(argv.includes('--compile')||argv.includes('--bundle-only')){
+    if(onlyType)fail('The separate type site is not a board state entry');
+    if(!backend)fail('Compilation requires an explicit state backend');
+    await compileBoard({out,backend,specialize:argv.includes('--compile'),prepare:async stage=>{await copyPackages(stage,false);await copyBoard(stage,backend);}});
+    return;
+  }
   await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
   for(const file of onlyType?TYPE_FILES:[])await copyInto(out,`apps/type-site/${file}`,file);
   await copyPackages(out,onlyType);

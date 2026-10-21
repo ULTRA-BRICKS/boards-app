@@ -4,8 +4,8 @@
 //   node tests/state-migration-browser.mjs      (env: MIGRATION_PORT, MIGRATION_EVIDENCE)
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {mkdirSync,openSync} from 'node:fs';
-import {resolve} from 'node:path';
+import {mkdirSync,openSync,readFileSync,existsSync} from 'node:fs';
+import {resolve,extname,sep} from 'node:path';
 import {chromium} from 'playwright';
 
 const port = Number(process.env.MIGRATION_PORT || 6571), base = `http://127.0.0.1:${port}`;
@@ -66,8 +66,25 @@ async function scenarioMoves(page) {
   await settle(page);
   const moved = await page.locator('.column').evaluateAll((els) => els.map((e) => e.dataset.col));
   assert.deepEqual(moved.slice(0, 2), [columns[1], columns[0]]);
+  await page.evaluate(()=>{window.__unchangedRow=document.querySelector('.task[data-item="l3"]');window.__completedRow=document.querySelector('.task[data-item="l1"]');});
   await page.locator('.task[data-item="l1"] [data-done]').click();
   assert.equal(await page.locator('.task[data-item="l1"] [data-done]').getAttribute('aria-pressed'), 'true');
+  if(await page.locator('html').getAttribute('data-document-backend')==='state-lib'){
+    assert.equal(await page.evaluate(()=>window.__unchangedRow===document.querySelector('.task[data-item="l3"]')),true,'Completion must not recreate unrelated immutable rows');
+    assert.equal(await page.evaluate(()=>window.__completedRow===document.querySelector('.task[data-item="l1"]')),true,'The completed row and its control retain identity');
+    const completion=page.locator('.task[data-item="l1"] [data-done]');
+    await completion.focus();
+    const scroll=await page.evaluate(()=>window.scrollY);
+    await page.keyboard.press('Space');
+    assert.equal(await completion.getAttribute('aria-pressed'),'false');
+    assert.match(await completion.getAttribute('aria-label'),/^Complete /);
+    assert.equal(await completion.evaluate(node=>document.activeElement===node),true,'Reopening preserves the keyboard target');
+    await page.keyboard.press('Space');
+    assert.equal(await completion.getAttribute('aria-pressed'),'true');
+    assert.match(await completion.getAttribute('aria-label'),/^Reopen /);
+    assert.equal(await completion.evaluate(node=>document.activeElement===node),true,'Consecutive Space activation works without refocusing');
+    assert.equal(await page.evaluate(()=>window.scrollY),scroll,'Field-only completion preserves scroll');
+  }
 }
 
 async function scenarioEditor(page) {
@@ -426,6 +443,18 @@ for (const backend of ['baseline', 'state-lib']) {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage({viewport: {width: 1280, height: 900}});
+    if(process.env.MIGRATION_COMPILED_ROOT){
+      const root=resolve(process.env.MIGRATION_COMPILED_ROOT+'-'+backend);
+      const types={'.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.html':'text/html','.json':'application/json'};
+      if(!existsSync(root+'/state.manifest.json'))throw Error('Missing compiled entry '+root);
+      await page.route(base+'/**',route=>{
+        const path=new URL(route.request().url()).pathname;
+        if(path.startsWith('/api/'))return route.continue();
+        const file=resolve(root,'.'+(path==='/'?'/index.html':decodeURIComponent(path)));
+        if(!file.startsWith(root+sep)||!existsSync(file))return route.fulfill({status:404,body:'Not in compiled entry'});
+        return route.fulfill({status:200,contentType:types[extname(file)]??'application/octet-stream',body:readFileSync(file)});
+      });
+    }
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
     page.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });

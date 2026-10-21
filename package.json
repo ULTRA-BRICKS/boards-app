@@ -3,14 +3,16 @@
   "private": true,
   "version": "0.4.0",
   "type": "module",
-  "engines": {"node": ">=22.16.0"},
+  "engines": {
+    "node": ">=22.16.0"
+  },
   "scripts": {
     "dev": "node --env-file-if-exists=.env.local scripts/dev.mjs",
     "dev:type": "node scripts/type-server.mjs",
     "build": "node scripts/build.mjs",
     "build:baseline": "node scripts/build.mjs --state-backend=baseline --out=dist/board-baseline",
     "build:state": "node scripts/build.mjs --state-backend=state-lib --out=dist/board-state",
-    "build:type":"node scripts/build.mjs --type",
+    "build:type": "node scripts/build.mjs --type",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "python3 tests/browser.py",
     "test:state-browser": "node tests/state-migration-browser.mjs",
@@ -21,8 +23,16 @@
     "deploy": "node scripts/deploy.mjs",
     "deploy:type": "node scripts/deploy-type.mjs",
     "build:type:neon": "node scripts/build-neon-type.mjs",
-    "deploy:type:neon": "node scripts/deploy-neon-type.mjs"
+    "deploy:type:neon": "node scripts/deploy-neon-type.mjs",
+    "build:compiled:baseline": "node scripts/build.mjs --compile --state-backend=baseline --out=dist/board-compiled-baseline",
+    "build:compiled:state": "node scripts/build.mjs --compile --state-backend=state-lib --out=dist/board-compiled-state",
+    "test:compiled": "node --test tests/state-specialized-build.mjs"
   },
-  "dependencies": {"@neondatabase/serverless": "1.0.0"},
-  "devDependencies": {"nx": "^21.5.2", "playwright": "^1.55.0"}
+  "dependencies": {
+    "@neondatabase/serverless": "1.0.0"
+  },
+  "devDependencies": {
+    "nx": "^21.5.2",
+    "playwright": "^1.55.0"
+  }
 }

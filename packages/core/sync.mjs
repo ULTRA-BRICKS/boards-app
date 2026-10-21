@@ -1,7 +1,7 @@
 /** Serial CAS queue. Disposed queues cannot notify, retry or write into another session. */
 export class SyncQueue {
-  constructor({send,onState=()=>{},delay=550}) {
-    Object.assign(this,{send,onState,delay,version:0,enabled:false,paused:false,
+  constructor({send,onState=()=>{},delay=550,capture=value=>structuredClone(value)}) {
+    Object.assign(this,{send,onState,delay,capture,version:0,enabled:false,paused:false,
       running:false,disposed:false,sequence:0,ack:0,document:null,timer:null});
   }
   configure({enabled,version=0}) {
@@ -11,7 +11,7 @@ export class SyncQueue {
   }
   change(document) {
     if(this.disposed)return;
-    this.document=structuredClone(document);this.sequence++;
+    this.document=this.capture(document);this.sequence++;
     // Changes already in the editor must survive a failed previous request.
     if(!this.paused)this.onState({kind:this.enabled?'pending':'local'});
     if(this.enabled&&!this.paused)this.schedule();

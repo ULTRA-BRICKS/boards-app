@@ -1,4 +1,6 @@
 import {commitDocumentAction} from './document-action.mjs';
+import {planCompletionChanges,patchCompletionRows} from './board-row-view.mjs';
+import {immutableRowDelta} from '/packages/state-lib/dom/immutable-row-delta.mjs';
 import {createWorkspaceLoader} from '/packages/core/workspace-loader.mjs';
 import {createDocumentStore} from '/packages/core/document-store.mjs';
 import {unresolvedHints,setAssignee} from '/packages/core/assignees.mjs';
@@ -9,7 +11,7 @@ import {uid} from '/packages/core/model.mjs';
 import {newBoard,tasksForPerson,safeURL} from '/packages/core/workspace.mjs';
 import {references} from '/packages/core/references.mjs';
 import {SyncQueue} from '/packages/core/sync.mjs';
-import {defineJsonCommand} from '/packages/core/json-draft.mjs';
+import {defineJsonCommand,captureJsonSnapshot} from '/packages/core/json-draft.mjs';
 import {Runtime} from '/packages/state-lib/dist/index.js';
 import {createScope} from '/packages/state-lib/scoped/scope.mjs';
 import {createBaselineScope} from '/packages/state-lib/scoped/scope-baseline.mjs';
@@ -22,8 +24,13 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const paths={boards:'M4 6L18 4L20 19L6 21ZM8 2L3 3L2 17M9 9L16 8M10 13L16 12',search:'M16 16L22 22M18 10A8 8 0 1 1 2 10A8 8 0 1 1 18 10',share:'M8 12L17 6M8 13L17 19M7 10A3 3 0 1 1 7 16A3 3 0 1 1 7 10M19 2A3 3 0 1 1 19 8A3 3 0 1 1 19 2M19 16A3 3 0 1 1 19 22A3 3 0 1 1 19 16',more:'M5 12L5.1 12M12 12L12.1 12M19 12L19.1 12',close:'M6 6L18 18M18 6L6 18',person:'M5 22Q5 12 12 13Q19 12 19 22M12 2A5 5 0 1 1 12 12A5 5 0 1 1 12 2',plus:'M12 4L12 20M4 12L20 12',camera:'M3 7L8 7L10 4L16 4L18 7L22 7L22 21L3 21ZM12 10A4 4 0 1 1 12 18A4 4 0 1 1 12 10',check:'M4 12L9 18L21 5'};
 const icon=name=>`<svg class="icon" viewBox="0 0 25 25" aria-hidden="true"><path d="${paths[name]||paths.more}"/></svg>`;
 // All application state lives in board-state.mjs (state-lib Runtime scopes); nothing below keeps module-level mutable state.
-const backends=resolveBackends(STATE_CONFIG,location.search),commands=createBoardCommands({defineJsonCommand});
-const S=createBoardState({kit:{Runtime,createDocumentStore,createScope,createBaselineScope,createDebouncedLatestTask,createBaselineDebouncedLatestTask},backends});
+const backends=resolveBackends(STATE_CONFIG,location.search);
+const commands=createBoardCommands({defineJsonCommand:typeof __STATE_BUILD_BASELINE__==='boolean'&&__STATE_BUILD_BASELINE__?undefined:defineJsonCommand});
+// A fixed entry omits the unused executor imports; the uncompiled app keeps both.
+const kit=typeof __STATE_BUILD_BASELINE__==='boolean'
+  ? __STATE_BUILD_BASELINE__ ? {createDocumentStore,createBaselineScope,createBaselineDebouncedLatestTask} : {Runtime,createDocumentStore,createScope,createDebouncedLatestTask}
+  : {Runtime,createDocumentStore,createScope,createBaselineScope,createDebouncedLatestTask,createBaselineDebouncedLatestTask};
+const S=createBoardState({kit,backends});
 const ws=()=>S.documentStore.read(),shared=()=>S.shared.get(),syncQ=()=>S.sync.get(),editEl=()=>S.editor.get(),popEl=()=>S.popover.get();
 const cmd=(command,args)=>({command,args}),ref=(columnId,itemId)=>({boardId:board().id,columnId,itemId});
 const board=()=>ws().boards.find(b=>b.id===S.boardId.get())||ws().boards[0];
@@ -33,11 +40,27 @@ const post=(path,data)=>api(path,{method:'POST',data});
 function toast(text){const el=$('#toast');el.textContent=text;el.classList.add('visible');S.toastTimer.set(setTimeout(()=>el.classList.remove('visible'),5200),clearTimeout)}
 function downloadJSON(value,name='board-backup.json'){const u=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 const saveLabel=kind=>kind==='pending'?'Ink drying…':kind==='saving'?'Saving…':kind==='error'?'Not saved':'';
-function configureSync(version){const queue=new SyncQueue({send:async({document,version})=>api('state',{method:'PUT',data:{version,value:document}}),onState:s=>{S.saveStatus.set(s.kind);const el=$('.save-state');if(el)el.textContent=saveLabel(S.saveStatus.get());if(s.kind==='error'||s.kind==='conflict')saveError(s.message||'Another session made changes.')}});S.sync.set(queue,q=>q.dispose());queue.configure({enabled:!shared(),version})}
+function configureSync(version){const queue=new SyncQueue({capture:(typeof __STATE_BUILD_BASELINE__==='boolean'?__STATE_BUILD_BASELINE__:documentBackend==='baseline')?undefined:captureJsonSnapshot,send:async({document,version})=>api('state',{method:'PUT',data:{version,value:document}}),onState:s=>{S.saveStatus.set(s.kind);const el=$('.save-state');if(el)el.textContent=saveLabel(S.saveStatus.get());if(s.kind==='error'||s.kind==='conflict')saveError(s.message||'Another session made changes.')}});S.sync.set(queue,q=>q.dispose());queue.configure({enabled:!shared(),version})}
 async function flush(){finishEdit();if(!syncQ())return;for(let i=0;i<100;i++){if(syncQ().paused)throw Error('Resolve the save error before continuing.');await syncQ().flush();if(!syncQ().running&&syncQ().sequence===syncQ().ack)return;await new Promise(r=>setTimeout(r,80))}throw Error('Saving is taking longer than expected. Please try again.')}
 function saveError(message){if(S.errorOpen.get())return;S.errorOpen.set(true);dialog('Your last edits are not saved',`<p class="notice">${esc(message)} Your changes are still in this page. Nothing has switched to a local-only mode.</p><div class="actions"><button class="button" id="backup">Save a backup</button><button class="primary" id="retry-save">Retry</button><button id="reload-cloud">Reload cloud version</button></div>`,{dismiss:false});$('#backup').onclick=()=>downloadJSON(ws());$('#retry-save').onclick=()=>{S.errorOpen.set(false);closeDialog();syncQ().retry()};$('#reload-cloud').onclick=async()=>{if(!confirm('Discard unsaved changes and load the cloud version?'))return;S.errorOpen.set(false);closeDialog();await loadWorkspace()}}
 /** fn is a callback mutation or cmd(name,args) for the declared commands of board-commands.mjs. Returns whether it applied. */
-function change(fn,{render=true,allowPaused=false,background=false,afterChange}={}){if(shared()||syncQ()?.paused&&!allowPaused)return false;if(editEl()&&!background)finishEdit();return commitDocumentAction(S,()=>typeof fn==='function'?S.documentStore.change(fn):commands.run(S.documentStore,fn.command,fn.args),afterChange,document=>{syncQ().change(document);if(render)renderBoard()})}
+function change(fn,{render=true,allowPaused=false,background=false,afterChange}={}) {
+  if(shared()||syncQ()?.paused&&!allowPaused)return false;
+  if(editEl()&&!background)finishEdit();
+  const keyed=render&&(typeof __STATE_BUILD_BASELINE__==='boolean'?!__STATE_BUILD_BASELINE__:Boolean(S.runtime))
+    &&fn?.command==='toggleDone'&&!afterChange&&!background;
+  // The ordinary renderer does not need an extra pre-write document read.
+  const before=keyed?ws():null;
+  return commitDocumentAction(S,
+    ()=>typeof fn==='function'?S.documentStore.change(fn):commands.run(S.documentStore,fn.command,fn.args),
+    afterChange,
+    document=>{
+      syncQ().change(document);
+      if(!render)return;
+      const patched=keyed&&patchCompletionRows(app,planCompletionChanges(before,document,S.boardId.get(),immutableRowDelta),()=>{closePop();clearHover();});
+      if(!patched)renderBoard();
+    });
+}
 const workspaceBackend=backends.workspace,documentBackend=backends.document;
 document.documentElement.dataset.workspaceBackend=workspaceBackend;
 document.documentElement.dataset.documentBackend=documentBackend;

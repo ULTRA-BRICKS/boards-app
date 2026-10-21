@@ -53,6 +53,12 @@ const EMPTY_DRAFT = Object.freeze({ form: "", values: Object.freeze({}) });
 
 /** Build config picks the backend; the URL only overrides it when the build allows it. */
 export function resolveBackends(config, search) {
+  return typeof __STATE_BUILD_BASELINE__ === "boolean"
+    ? {workspace: __STATE_BUILD_BASELINE__ ? "baseline" : "state-lib", document: __STATE_BUILD_BASELINE__ ? "baseline" : "state-lib"}
+    : resolveRuntimeBackends(config, search);
+}
+
+function resolveRuntimeBackends(config, search) {
   if (!BUILD_BACKENDS.includes(config?.backend))
     throw TypeError(`Unknown state backend ${JSON.stringify(config?.backend)}`);
   const asked = config.allowUrlOverride ? new URLSearchParams(search).get("stateBackend") : null;
@@ -61,19 +67,20 @@ export function resolveBackends(config, search) {
 }
 
 function createInfrastructure({ kit, backends }) {
-  const runtime = backends.document === "baseline" ? null : new kit.Runtime();
+  const baseline = typeof __STATE_BUILD_BASELINE__ === "boolean" ? __STATE_BUILD_BASELINE__ : backends.document === "baseline";
+  const runtime = baseline ? null : new kit.Runtime();
   const documentStore = kit.createDocumentStore({
     backend: backends.document,
     runtime: runtime ?? undefined,
   });
   const makeScope = (name) =>
-    runtime ? kit.createScope(runtime, { name }) : kit.createBaselineScope({ name });
-  const batch = (fn) => (runtime ? runtime.transaction(fn) : fn());
+    baseline ? kit.createBaselineScope({ name }) : kit.createScope(runtime, { name });
+  const batch = (fn) => (baseline ? fn() : runtime.transaction(fn));
   const tasks = new Set();
   const debounced = (options) => {
-    const task = runtime
-      ? kit.createDebouncedLatestTask(runtime, options)
-      : kit.createBaselineDebouncedLatestTask(options);
+    const task = baseline
+      ? kit.createBaselineDebouncedLatestTask(options)
+      : kit.createDebouncedLatestTask(runtime, options);
     tasks.add(task);
     return task;
   };

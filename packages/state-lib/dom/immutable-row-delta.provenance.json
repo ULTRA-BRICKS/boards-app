@@ -1,0 +1,8 @@
+{
+  "sourceRepository": "hyperide/hyper-saas",
+  "sourcePath": "packages/state-lib/adapters/dom/immutable-row-delta.mjs",
+  "sourceBranch": "feat/HYP-1737-entry-specialization",
+  "sourceStatus": "published optional immutable-view adapter",
+  "sha256": "f3e82777b9058d3fa4cfc77d9bc91f3d82013f4a2edd4540eece69059f7bf2e1",
+  "sourceCommit": "f0dece207e07d91a12a89675e0bec910b63ed276"
+}

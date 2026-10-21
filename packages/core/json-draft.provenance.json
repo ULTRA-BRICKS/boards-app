@@ -1,9 +1,9 @@
 {
   "sourceRepository": "hyperide/hyper-saas",
   "sourcePath": "packages/state-lib/experiments/2026-09-19-cow/json-draft.mjs",
-  "sourceBranch": "research/state-build-20260918",
-  "sourceStatus": "published experimental command/ownership helper; global timing admission remains pending",
-  "sha256": "63a46c83bc0c9ae6de9aa024b484eb511400284ef117fa64d4e27699e7ed6fa4",
+  "sourceBranch": "feat/HYP-1737-entry-specialization",
+  "sourceStatus": "published ownership-checked snapshot capture; global timing admission remains pending",
+  "sha256": "15e43091c39a7990f2eef0db3afd952aa8e82bebbb0b9dece38a23c5ce3fd451",
   "qualification": "pending whole-operation and bundle qualification",
-  "sourceCommit": "dbdfc07d0b25fa12f6f395305a25d88b6b838052"
+  "sourceCommit": "f0dece207e07d91a12a89675e0bec910b63ed276"
 }

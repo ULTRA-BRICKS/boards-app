@@ -47,10 +47,11 @@ function borrowRuntime(runtime) {
 export function createDocumentStore({ backend = "state-lib", initial = null, limit = 40, runtime } = {}) {
   if (!["baseline", "state-lib", "state-lib-cow"].includes(backend)) throw TypeError("Unknown document backend");
   if (!Number.isSafeInteger(limit) || limit < 1) throw TypeError("History limit must be positive");
-  if (backend === "baseline") return createBaselineDocumentStore({ initial, limit });
+  if (typeof __STATE_BUILD_BASELINE__ === "boolean" ? __STATE_BUILD_BASELINE__ : backend === "baseline") return createBaselineDocumentStore({ initial, limit });
   const publication = createDocumentPublication(runtime ? borrowRuntime(runtime) : new Runtime(), { initial, limit });
   publication.change = (mutate) => publication.transact((before, expose) => {
-    const tx = backend === "state-lib-cow" ? beginJsonDraft(before) : beginCopiedJson(before);
+    const cow = typeof __STATE_BUILD_COW__ === "boolean" ? __STATE_BUILD_COW__ : backend === "state-lib-cow";
+    const tx = cow ? beginJsonDraft(before) : beginCopiedJson(before);
     expose(tx.draft);
     try {
       const result = mutate(tx.draft);

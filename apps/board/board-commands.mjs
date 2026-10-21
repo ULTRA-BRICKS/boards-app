@@ -157,7 +157,8 @@ const COMMANDS = { toggleDone, setField, moveItem, moveColumn };
 
 /** Returns {run(store, name, args)}; `defineJsonCommand` comes from packages/core/json-draft.mjs. */
 export function createBoardCommands({ defineJsonCommand }) {
-  const declared = Object.fromEntries(
+  const baseline = typeof __STATE_BUILD_BASELINE__ === "boolean" && __STATE_BUILD_BASELINE__;
+  const declared = baseline ? null : Object.fromEntries(
     Object.entries(COMMANDS).map(([name, c]) => [
       name,
       defineJsonCommand((tx, plan) => c.declared(tx, plan)),
@@ -168,7 +169,7 @@ export function createBoardCommands({ defineJsonCommand }) {
     if (!command) throw new TypeError(`Unknown board command ${name}`);
     command.validate?.(args);
     const doc = store.read();
-    if (typeof store.apply === "function" && command.supports(doc, args))
+    if (!baseline && typeof store.apply === "function" && command.supports(doc, args))
       return store.apply(declared[name], command.plan(doc, args));
     return store.change((draft) => command.mutate(draft, args));
   }

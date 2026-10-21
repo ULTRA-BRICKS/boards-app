@@ -24,8 +24,13 @@ function publishAfterCommit(publish, state, people) {
  * load() resolves 'cancelled' / 'superseded'. A publish that throws after an accepted commit rejects with an error
  * flagged `committed: true` (message kept, original in `cause`): the workspace is loaded, nothing was rolled back.
  */
-export function createWorkspaceLoader({ readState, readPeople, publish, apply, batch = (fn) => fn(), runtime: borrowed, backend = 'state-lib' }) {
-  if (backend === 'baseline') {
+export function createWorkspaceLoader(options) {
+  return (typeof __STATE_BUILD_BASELINE__ === 'boolean' ? __STATE_BUILD_BASELINE__ : options.backend === 'baseline')
+    ? createBaselineLoader(options)
+    : createRuntimeLoader(options);
+}
+
+function createBaselineLoader({readState, readPeople, publish, apply, batch = (fn) => fn()}) {
     let epoch = 0;
     return {
       async load() {
@@ -41,7 +46,9 @@ export function createWorkspaceLoader({ readState, readPeople, publish, apply, b
       clear() { epoch++; },
       dispose() { epoch++; },
     };
-  }
+}
+
+function createRuntimeLoader({readState, readPeople, publish, apply, runtime: borrowed}) {
   const load = async (_input, signal) => {
     // Keep the original request order for a fair comparison; no parallel-fetch speed claim.
     const state = await readState(signal);

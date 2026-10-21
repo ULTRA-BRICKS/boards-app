@@ -291,6 +291,10 @@ const commandCopy = (value) => (Array.isArray(value) ? copyJsonArrayForCommand(v
 export function isOwnedJsonSnapshot(value) {
   return object(value) && owned.has(value);
 }
+/** Retain a privately owned immutable value for later work; otherwise capture a private clone. */
+export function captureJsonSnapshot(value) {
+  return isOwnedJsonSnapshot(value) ? value : structuredClone(value);
+}
 function commandPath(path) {
   if (!Array.isArray(path)) throw new TypeError('Command path must be an array');
   for (let i = 0; i < path.length; i++) {
