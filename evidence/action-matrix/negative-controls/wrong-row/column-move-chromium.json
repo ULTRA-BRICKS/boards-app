@@ -1,0 +1,302 @@
+{
+  "date": "2026-10-21T14:58:17.413Z",
+  "node": "v26.0.0",
+  "engine": "chromium",
+  "browser": "153.0.8010.12",
+  "logicalCPUs": 16,
+  "startLoad": [
+    7.57,
+    5.92,
+    6.36
+  ],
+  "endLoad": [
+    7.66,
+    6.04,
+    6.39
+  ],
+  "variants": [
+    {
+      "name": "baseline",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline",
+      "sha256": "b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17"
+    },
+    {
+      "name": "state-lib",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib",
+      "sha256": "f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990"
+    }
+  ],
+  "sourceHashes": {
+    "scripts/benchmark-compiled-board-actions.mjs": "03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162",
+    "scripts/benchmark-compiled-board-actions-lib.mjs": "8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb"
+  },
+  "counts": [
+    30
+  ],
+  "measuredPagesPerBackend": 1,
+  "warmupPagesPerBackend": 0,
+  "family": "move",
+  "description": "Move the first row to the next column through its row menu and the move dialog.",
+  "settings": {
+    "events": "click .task-more; click [data-a=move]; click [data-move]",
+    "rowsPerColumn": 199
+  },
+  "settingsSha256": "4d3d254dbdf52cfbba0509059ecc49fdc93ab0abd68cceffabf8cc304c0d5eb0",
+  "limits": [
+    "Product limits unchanged: 200 rows per column and 1200 rows per board. The fixture uses at most 199 rows per column so one moved row never exceeds the limit; sizes above 1200 spill into extra boards in the same document.",
+    "Fresh page per sample: the recorded action is the first interaction of that action after load (JIT-cold for the action path), not a warmed steady state.",
+    "Events are trusted Playwright input; nextFrameMs is the first animation frame after the handler, not painted-frame completion, field INP, or peak memory.",
+    "asyncSettledMs is event start to answered save request, no pending fetch and idle save indicator; it includes the sync queue debounce and local server time.",
+    "Load family: start is navigation start; asyncSettledMs is the last state/people response; handlerMs is render commit after that response; nextFrameMs is the first frame after commit. Static files are fulfilled from exact build artifacts, so this is not network download timing.",
+    "The in-page fetch ledger and a Playwright route are identical for both backends."
+  ],
+  "comparisons": [],
+  "summary": [
+    {
+      "family": "move",
+      "count": 30,
+      "stage": "move",
+      "backend": "baseline",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 6.300000011920929,
+      "handlerP95Ms": 6.300000011920929,
+      "nextFrameMedianMs": 80.5,
+      "nextFrameP95Ms": 80.5,
+      "asyncSettledMedianMs": 565.9000000059605,
+      "asyncSettledP95Ms": 565.9000000059605
+    },
+    {
+      "family": "move",
+      "count": 30,
+      "stage": "move",
+      "backend": "state-lib",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 10.900000005960464,
+      "handlerP95Ms": 10.900000005960464,
+      "nextFrameMedianMs": 84.10000002384186,
+      "nextFrameP95Ms": 84.10000002384186,
+      "asyncSettledMedianMs": 567.4000000059605,
+      "asyncSettledP95Ms": 567.4000000059605
+    }
+  ],
+  "raw": [
+    {
+      "family": "move",
+      "backend": "baseline",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "move: result not committed when the handler returned",
+        "move: operation did not complete with the expected visible result",
+        "save payload matches no expected document",
+        "last save payload is not the final expected document",
+        "stored document differs from the expected final document",
+        "stored document after move differs from the expected document"
+      ],
+      "samples": [
+        {
+          "stage": "move",
+          "start": 1376.5,
+          "trusted": true,
+          "id": "measured-0",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 6.300000011920929,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 80.5,
+          "correct": false,
+          "asyncSettledMs": 565.9000000059605
+        }
+      ],
+      "load": [
+        7.33,
+        5.92,
+        6.35
+      ],
+      "saves": [
+        {
+          "version": 0,
+          "digest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+          "status": 200,
+          "startMs": 1930.0999999940395,
+          "endMs": 1941.300000011921
+        }
+      ],
+      "fetches": [
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 1930.0999999940395,
+          "endMs": 1941.300000011921,
+          "status": 200
+        }
+      ],
+      "finalDigest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+      "stageDigests": {
+        "move": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1"
+      },
+      "domOrder": [
+        "measured-0",
+        "measured-2",
+        "measured-3",
+        "measured-4",
+        "measured-5",
+        "measured-6",
+        "measured-7",
+        "measured-8",
+        "measured-9",
+        "measured-10",
+        "measured-11",
+        "measured-12",
+        "measured-13",
+        "measured-14",
+        "measured-15",
+        "measured-16",
+        "measured-17",
+        "measured-18",
+        "measured-19",
+        "measured-20",
+        "measured-21",
+        "measured-22",
+        "measured-23",
+        "measured-24",
+        "measured-25",
+        "measured-26",
+        "measured-27",
+        "measured-28",
+        "measured-29",
+        "measured-1"
+      ],
+      "selectedIds": [
+        "measured-1"
+      ],
+      "plan": {
+        "family": "move",
+        "boardId": "roadmap",
+        "rowId": "measured-0",
+        "fromColumnId": "measured-0-0",
+        "originalText": "Synthetic task 0",
+        "toColumnId": "measured-0-1",
+        "actRowId": "measured-1"
+      },
+      "stageExpected": [
+        {
+          "name": "move",
+          "digest": "d7ba97f2c55d4e5bf9e464e11cc5d445b9279a74550da036fd2a05462161c66e"
+        }
+      ]
+    },
+    {
+      "family": "move",
+      "backend": "state-lib",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "move: result not committed when the handler returned",
+        "move: operation did not complete with the expected visible result",
+        "save payload matches no expected document",
+        "last save payload is not the final expected document",
+        "stored document differs from the expected final document",
+        "stored document after move differs from the expected document"
+      ],
+      "samples": [
+        {
+          "stage": "move",
+          "start": 1209.7999999821186,
+          "trusted": true,
+          "id": "measured-0",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 10.900000005960464,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 84.10000002384186,
+          "correct": false,
+          "asyncSettledMs": 567.4000000059605
+        }
+      ],
+      "load": [
+        7.33,
+        5.92,
+        6.35
+      ],
+      "saves": [
+        {
+          "version": 0,
+          "digest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+          "status": 200,
+          "startMs": 1764.5,
+          "endMs": 1776.2999999821186
+        }
+      ],
+      "fetches": [
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 1764.5,
+          "endMs": 1776.2999999821186,
+          "status": 200
+        }
+      ],
+      "finalDigest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+      "stageDigests": {
+        "move": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1"
+      },
+      "domOrder": [
+        "measured-0",
+        "measured-2",
+        "measured-3",
+        "measured-4",
+        "measured-5",
+        "measured-6",
+        "measured-7",
+        "measured-8",
+        "measured-9",
+        "measured-10",
+        "measured-11",
+        "measured-12",
+        "measured-13",
+        "measured-14",
+        "measured-15",
+        "measured-16",
+        "measured-17",
+        "measured-18",
+        "measured-19",
+        "measured-20",
+        "measured-21",
+        "measured-22",
+        "measured-23",
+        "measured-24",
+        "measured-25",
+        "measured-26",
+        "measured-27",
+        "measured-28",
+        "measured-29",
+        "measured-1"
+      ],
+      "selectedIds": [
+        "measured-1"
+      ],
+      "plan": {
+        "family": "move",
+        "boardId": "roadmap",
+        "rowId": "measured-0",
+        "fromColumnId": "measured-0-0",
+        "originalText": "Synthetic task 0",
+        "toColumnId": "measured-0-1",
+        "actRowId": "measured-1"
+      },
+      "stageExpected": [
+        {
+          "name": "move",
+          "digest": "d7ba97f2c55d4e5bf9e464e11cc5d445b9279a74550da036fd2a05462161c66e"
+        }
+      ]
+    }
+  ]
+}

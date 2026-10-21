@@ -1,0 +1,87 @@
+{
+  "date": "2026-10-21T14:58:29.713Z",
+  "node": "v26.0.0",
+  "engine": "chromium",
+  "browser": "153.0.8010.12",
+  "logicalCPUs": 16,
+  "startLoad": [
+    7.61,
+    6.06,
+    6.39
+  ],
+  "endLoad": [
+    7.2,
+    6.02,
+    6.38
+  ],
+  "variants": [
+    {
+      "name": "baseline",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline",
+      "sha256": "b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17"
+    },
+    {
+      "name": "state-lib",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib",
+      "sha256": "f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990"
+    }
+  ],
+  "sourceHashes": {
+    "scripts/benchmark-compiled-board-actions.mjs": "03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162",
+    "scripts/benchmark-compiled-board-actions-lib.mjs": "8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb"
+  },
+  "counts": [
+    30
+  ],
+  "measuredPagesPerBackend": 1,
+  "warmupPagesPerBackend": 0,
+  "family": "completion",
+  "description": "Control: complete the first row with its real checkbox (same events as benchmark-compiled-board.mjs).",
+  "settings": {
+    "events": "click .task-check",
+    "rowsPerColumn": 199
+  },
+  "settingsSha256": "32ba8c17481805c267bb434a6e8ebedc07e553fdf3d3ff9cda630cdd1c1f1062",
+  "limits": [
+    "Product limits unchanged: 200 rows per column and 1200 rows per board. The fixture uses at most 199 rows per column so one moved row never exceeds the limit; sizes above 1200 spill into extra boards in the same document.",
+    "Fresh page per sample: the recorded action is the first interaction of that action after load (JIT-cold for the action path), not a warmed steady state.",
+    "Events are trusted Playwright input; nextFrameMs is the first animation frame after the handler, not painted-frame completion, field INP, or peak memory.",
+    "asyncSettledMs is event start to answered save request, no pending fetch and idle save indicator; it includes the sync queue debounce and local server time.",
+    "Load family: start is navigation start; asyncSettledMs is the last state/people response; handlerMs is render commit after that response; nextFrameMs is the first frame after commit. Static files are fulfilled from exact build artifacts, so this is not network download timing.",
+    "The in-page fetch ledger and a Playwright route are identical for both backends."
+  ],
+  "comparisons": [],
+  "summary": [],
+  "raw": [
+    {
+      "family": "completion",
+      "backend": "baseline",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "harness failure: stale initial state: stored document is not the seeded fixture\n+ actual - expected\n\n+ '4f94e20a152516ba6c0be542eb15da69b0e8ff99dd03844c1aedb838108bc713'\n- '20dc37d29279d7bb7822afb2c26b5fdcc673ed9e065a67ce0a8f70f9fd03d9fc'\n"
+      ],
+      "samples": [],
+      "load": [
+        7.61,
+        6.06,
+        6.39
+      ]
+    },
+    {
+      "family": "completion",
+      "backend": "state-lib",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "harness failure: stale initial state: stored document is not the seeded fixture\n+ actual - expected\n\n+ '4f94e20a152516ba6c0be542eb15da69b0e8ff99dd03844c1aedb838108bc713'\n- '20dc37d29279d7bb7822afb2c26b5fdcc673ed9e065a67ce0a8f70f9fd03d9fc'\n"
+      ],
+      "samples": [],
+      "load": [
+        7.61,
+        6.06,
+        6.39
+      ]
+    }
+  ]
+}

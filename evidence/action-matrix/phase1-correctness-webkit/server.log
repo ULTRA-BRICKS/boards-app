@@ -1,0 +1,4 @@
+EXPLICIT LOCAL TEST MODE: SQLite, test login, no cloud or real OAuth.
+Board: http://127.0.0.1:6983
+Type specimen: npm run dev:type
+Unconfigured cloud/auth opens setup, never a local-only editor.

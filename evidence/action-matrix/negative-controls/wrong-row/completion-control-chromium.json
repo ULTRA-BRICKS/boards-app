@@ -1,0 +1,298 @@
+{
+  "date": "2026-10-21T14:58:17.413Z",
+  "node": "v26.0.0",
+  "engine": "chromium",
+  "browser": "153.0.8010.12",
+  "logicalCPUs": 16,
+  "startLoad": [
+    7.57,
+    5.92,
+    6.36
+  ],
+  "endLoad": [
+    7.66,
+    6.04,
+    6.39
+  ],
+  "variants": [
+    {
+      "name": "baseline",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline",
+      "sha256": "b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17"
+    },
+    {
+      "name": "state-lib",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib",
+      "sha256": "f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990"
+    }
+  ],
+  "sourceHashes": {
+    "scripts/benchmark-compiled-board-actions.mjs": "03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162",
+    "scripts/benchmark-compiled-board-actions-lib.mjs": "8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb"
+  },
+  "counts": [
+    30
+  ],
+  "measuredPagesPerBackend": 1,
+  "warmupPagesPerBackend": 0,
+  "family": "completion",
+  "description": "Control: complete the first row with its real checkbox (same events as benchmark-compiled-board.mjs).",
+  "settings": {
+    "events": "click .task-check",
+    "rowsPerColumn": 199
+  },
+  "settingsSha256": "32ba8c17481805c267bb434a6e8ebedc07e553fdf3d3ff9cda630cdd1c1f1062",
+  "limits": [
+    "Product limits unchanged: 200 rows per column and 1200 rows per board. The fixture uses at most 199 rows per column so one moved row never exceeds the limit; sizes above 1200 spill into extra boards in the same document.",
+    "Fresh page per sample: the recorded action is the first interaction of that action after load (JIT-cold for the action path), not a warmed steady state.",
+    "Events are trusted Playwright input; nextFrameMs is the first animation frame after the handler, not painted-frame completion, field INP, or peak memory.",
+    "asyncSettledMs is event start to answered save request, no pending fetch and idle save indicator; it includes the sync queue debounce and local server time.",
+    "Load family: start is navigation start; asyncSettledMs is the last state/people response; handlerMs is render commit after that response; nextFrameMs is the first frame after commit. Static files are fulfilled from exact build artifacts, so this is not network download timing.",
+    "The in-page fetch ledger and a Playwright route are identical for both backends."
+  ],
+  "comparisons": [],
+  "summary": [
+    {
+      "family": "completion",
+      "count": 30,
+      "stage": "toggle",
+      "backend": "baseline",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 11.900000005960464,
+      "handlerP95Ms": 11.900000005960464,
+      "nextFrameMedianMs": 44.400000005960464,
+      "nextFrameP95Ms": 44.400000005960464,
+      "asyncSettledMedianMs": 568.5999999940395,
+      "asyncSettledP95Ms": 568.5999999940395
+    },
+    {
+      "family": "completion",
+      "count": 30,
+      "stage": "toggle",
+      "backend": "state-lib",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 5.0999999940395355,
+      "handlerP95Ms": 5.0999999940395355,
+      "nextFrameMedianMs": 9.099999994039536,
+      "nextFrameP95Ms": 9.099999994039536,
+      "asyncSettledMedianMs": 571.5999999940395,
+      "asyncSettledP95Ms": 571.5999999940395
+    }
+  ],
+  "raw": [
+    {
+      "family": "completion",
+      "backend": "baseline",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "toggle: wrong row: acted on measured-1, expected measured-0",
+        "toggle: result not committed when the handler returned",
+        "toggle: operation did not complete with the expected visible result",
+        "save payload matches no expected document",
+        "last save payload is not the final expected document",
+        "stored document differs from the expected final document",
+        "stored document after toggle differs from the expected document"
+      ],
+      "samples": [
+        {
+          "stage": "toggle",
+          "start": 659.5999999940395,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 11.900000005960464,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 44.400000005960464,
+          "correct": false,
+          "asyncSettledMs": 568.5999999940395
+        }
+      ],
+      "load": [
+        7.57,
+        5.92,
+        6.36
+      ],
+      "saves": [
+        {
+          "version": 0,
+          "digest": "0ba8eea53ee6fbfc86eaf48dc0d1f8c6337270ca3adbaa8195c63fbd151d3c79",
+          "status": 200,
+          "startMs": 1215.699999988079,
+          "endMs": 1227.199999988079
+        }
+      ],
+      "fetches": [
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 1215.699999988079,
+          "endMs": 1227.199999988079,
+          "status": 200
+        }
+      ],
+      "finalDigest": "0ba8eea53ee6fbfc86eaf48dc0d1f8c6337270ca3adbaa8195c63fbd151d3c79",
+      "stageDigests": {
+        "toggle": "0ba8eea53ee6fbfc86eaf48dc0d1f8c6337270ca3adbaa8195c63fbd151d3c79"
+      },
+      "domOrder": [
+        "measured-0",
+        "measured-1",
+        "measured-2",
+        "measured-3",
+        "measured-4",
+        "measured-5",
+        "measured-6",
+        "measured-7",
+        "measured-8",
+        "measured-9",
+        "measured-10",
+        "measured-11",
+        "measured-12",
+        "measured-13",
+        "measured-14",
+        "measured-15",
+        "measured-16",
+        "measured-17",
+        "measured-18",
+        "measured-19",
+        "measured-20",
+        "measured-21",
+        "measured-22",
+        "measured-23",
+        "measured-24",
+        "measured-25",
+        "measured-26",
+        "measured-27",
+        "measured-28",
+        "measured-29"
+      ],
+      "selectedIds": [],
+      "plan": {
+        "family": "completion",
+        "boardId": "roadmap",
+        "rowId": "measured-0",
+        "fromColumnId": "measured-0-0",
+        "originalText": "Synthetic task 0",
+        "actRowId": "measured-1"
+      },
+      "stageExpected": [
+        {
+          "name": "toggle",
+          "digest": "a466b57a086b95e2911ca6c8e1641c9e1f367ef1528e0a5a6238306a5180e4d5"
+        }
+      ]
+    },
+    {
+      "family": "completion",
+      "backend": "state-lib",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "toggle: wrong row: acted on measured-1, expected measured-0",
+        "toggle: result not committed when the handler returned",
+        "toggle: operation did not complete with the expected visible result",
+        "save payload matches no expected document",
+        "last save payload is not the final expected document",
+        "stored document differs from the expected final document",
+        "stored document after toggle differs from the expected document"
+      ],
+      "samples": [
+        {
+          "stage": "toggle",
+          "start": 746.0999999940395,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 5.0999999940395355,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 9.099999994039536,
+          "correct": false,
+          "asyncSettledMs": 571.5999999940395
+        }
+      ],
+      "load": [
+        7.57,
+        5.92,
+        6.36
+      ],
+      "saves": [
+        {
+          "version": 0,
+          "digest": "0ba8eea53ee6fbfc86eaf48dc0d1f8c6337270ca3adbaa8195c63fbd151d3c79",
+          "status": 200,
+          "startMs": 1302.0999999940395,
+          "endMs": 1316.0999999940395
+        }
+      ],
+      "fetches": [
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 1302.0999999940395,
+          "endMs": 1316.0999999940395,
+          "status": 200
+        }
+      ],
+      "finalDigest": "0ba8eea53ee6fbfc86eaf48dc0d1f8c6337270ca3adbaa8195c63fbd151d3c79",
+      "stageDigests": {
+        "toggle": "0ba8eea53ee6fbfc86eaf48dc0d1f8c6337270ca3adbaa8195c63fbd151d3c79"
+      },
+      "domOrder": [
+        "measured-0",
+        "measured-1",
+        "measured-2",
+        "measured-3",
+        "measured-4",
+        "measured-5",
+        "measured-6",
+        "measured-7",
+        "measured-8",
+        "measured-9",
+        "measured-10",
+        "measured-11",
+        "measured-12",
+        "measured-13",
+        "measured-14",
+        "measured-15",
+        "measured-16",
+        "measured-17",
+        "measured-18",
+        "measured-19",
+        "measured-20",
+        "measured-21",
+        "measured-22",
+        "measured-23",
+        "measured-24",
+        "measured-25",
+        "measured-26",
+        "measured-27",
+        "measured-28",
+        "measured-29"
+      ],
+      "selectedIds": [],
+      "plan": {
+        "family": "completion",
+        "boardId": "roadmap",
+        "rowId": "measured-0",
+        "fromColumnId": "measured-0-0",
+        "originalText": "Synthetic task 0",
+        "actRowId": "measured-1"
+      },
+      "stageExpected": [
+        {
+          "name": "toggle",
+          "digest": "a466b57a086b95e2911ca6c8e1641c9e1f367ef1528e0a5a6238306a5180e4d5"
+        }
+      ]
+    }
+  ]
+}

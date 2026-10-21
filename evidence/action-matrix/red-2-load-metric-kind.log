@@ -1,0 +1,7 @@
+✖ load rows carry a distinct metric kind and never expose event-handler or save fields (1.840807ms)
+✖ a load sample is judged on its own fields, not on event-handler fields (0.928596ms)
+ℹ pass 9
+ℹ fail 2
+✖ failing tests:
+✖ load rows carry a distinct metric kind and never expose event-handler or save fields (1.840807ms)
+✖ a load sample is judged on its own fields, not on event-handler fields (0.928596ms)

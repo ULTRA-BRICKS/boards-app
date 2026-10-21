@@ -1,0 +1,557 @@
+{
+  "date": "2026-10-21T14:58:17.413Z",
+  "node": "v26.0.0",
+  "engine": "chromium",
+  "browser": "153.0.8010.12",
+  "logicalCPUs": 16,
+  "startLoad": [
+    7.57,
+    5.92,
+    6.36
+  ],
+  "endLoad": [
+    7.66,
+    6.04,
+    6.39
+  ],
+  "variants": [
+    {
+      "name": "baseline",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline",
+      "sha256": "b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17"
+    },
+    {
+      "name": "state-lib",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib",
+      "sha256": "f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990"
+    }
+  ],
+  "sourceHashes": {
+    "scripts/benchmark-compiled-board-actions.mjs": "03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162",
+    "scripts/benchmark-compiled-board-actions-lib.mjs": "8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb"
+  },
+  "counts": [
+    30
+  ],
+  "measuredPagesPerBackend": 1,
+  "warmupPagesPerBackend": 0,
+  "family": "edit",
+  "description": "Open the first row text editor, type with real keystrokes, commit with Enter.",
+  "settings": {
+    "events": "click .task-text; keydown characters; keydown Enter",
+    "typed": "-edited",
+    "rowsPerColumn": 199
+  },
+  "settingsSha256": "e15525655fa3ba8363404543ebdab1a2a181c2901f424cfe1c91c87641a08e0b",
+  "limits": [
+    "Product limits unchanged: 200 rows per column and 1200 rows per board. The fixture uses at most 199 rows per column so one moved row never exceeds the limit; sizes above 1200 spill into extra boards in the same document.",
+    "Fresh page per sample: the recorded action is the first interaction of that action after load (JIT-cold for the action path), not a warmed steady state.",
+    "Events are trusted Playwright input; nextFrameMs is the first animation frame after the handler, not painted-frame completion, field INP, or peak memory.",
+    "asyncSettledMs is event start to answered save request, no pending fetch and idle save indicator; it includes the sync queue debounce and local server time.",
+    "Load family: start is navigation start; asyncSettledMs is the last state/people response; handlerMs is render commit after that response; nextFrameMs is the first frame after commit. Static files are fulfilled from exact build artifacts, so this is not network download timing.",
+    "The in-page fetch ledger and a Playwright route are identical for both backends."
+  ],
+  "comparisons": [],
+  "summary": [
+    {
+      "family": "edit",
+      "count": 30,
+      "stage": "keystroke",
+      "backend": "baseline",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 7,
+      "handlerMedianMs": 1.5,
+      "handlerP95Ms": 2.7999999821186066,
+      "nextFrameMedianMs": 10.300000011920929,
+      "nextFrameP95Ms": 15.800000011920929,
+      "asyncSettledMedianMs": null,
+      "asyncSettledP95Ms": null
+    },
+    {
+      "family": "edit",
+      "count": 30,
+      "stage": "commit",
+      "backend": "baseline",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 13.300000011920929,
+      "handlerP95Ms": 13.300000011920929,
+      "nextFrameMedianMs": 15,
+      "nextFrameP95Ms": 15,
+      "asyncSettledMedianMs": 569.8000000119209,
+      "asyncSettledP95Ms": 569.8000000119209
+    },
+    {
+      "family": "edit",
+      "count": 30,
+      "stage": "keystroke",
+      "backend": "state-lib",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 7,
+      "handlerMedianMs": 1.7000000178813934,
+      "handlerP95Ms": 2.7000000178813934,
+      "nextFrameMedianMs": 9.5,
+      "nextFrameP95Ms": 11.200000017881393,
+      "asyncSettledMedianMs": null,
+      "asyncSettledP95Ms": null
+    },
+    {
+      "family": "edit",
+      "count": 30,
+      "stage": "commit",
+      "backend": "state-lib",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 18.5,
+      "handlerP95Ms": 18.5,
+      "nextFrameMedianMs": 20.700000017881393,
+      "nextFrameP95Ms": 20.700000017881393,
+      "asyncSettledMedianMs": 570.2000000178814,
+      "asyncSettledP95Ms": 570.2000000178814
+    }
+  ],
+  "raw": [
+    {
+      "family": "edit",
+      "backend": "baseline",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "commit: wrong row: acted on measured-1, expected measured-0",
+        "commit: result not committed when the handler returned",
+        "commit: operation did not complete with the expected visible result",
+        "save payload matches no expected document",
+        "last save payload is not the final expected document",
+        "stored document differs from the expected final document",
+        "stored document after commit differs from the expected document"
+      ],
+      "samples": [
+        {
+          "stage": "keystroke",
+          "start": 982.4000000059605,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 2.7999999821186066,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 8.900000005960464,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1008.5999999940395,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 2.0999999940395355,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 15.800000011920929,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1030.199999988079,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.300000011920929,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 10.700000017881393,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1046.9000000059605,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.5,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 11,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1065.199999988079,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.800000011920929,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 9.100000023841858,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1080.5,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.199999988079071,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 10.300000011920929,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1097.800000011921,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.0999999940395355,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 9.799999982118607,
+          "correct": false
+        },
+        {
+          "stage": "commit",
+          "start": 1116.0999999940395,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 13.300000011920929,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 15,
+          "correct": false,
+          "asyncSettledMs": 569.8000000119209
+        }
+      ],
+      "load": [
+        7.36,
+        5.91,
+        6.35
+      ],
+      "saves": [
+        {
+          "version": 0,
+          "digest": "7753a0dfc0d627214806acb022175c445230c621a2f0865c3d54acf386cc7b59",
+          "status": 200,
+          "startMs": 1669.800000011921,
+          "endMs": 1681.5
+        }
+      ],
+      "fetches": [
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 1669.800000011921,
+          "endMs": 1681.5,
+          "status": 200
+        }
+      ],
+      "finalDigest": "7753a0dfc0d627214806acb022175c445230c621a2f0865c3d54acf386cc7b59",
+      "stageDigests": {
+        "commit": "7753a0dfc0d627214806acb022175c445230c621a2f0865c3d54acf386cc7b59"
+      },
+      "domOrder": [
+        "measured-0",
+        "measured-1",
+        "measured-2",
+        "measured-3",
+        "measured-4",
+        "measured-5",
+        "measured-6",
+        "measured-7",
+        "measured-8",
+        "measured-9",
+        "measured-10",
+        "measured-11",
+        "measured-12",
+        "measured-13",
+        "measured-14",
+        "measured-15",
+        "measured-16",
+        "measured-17",
+        "measured-18",
+        "measured-19",
+        "measured-20",
+        "measured-21",
+        "measured-22",
+        "measured-23",
+        "measured-24",
+        "measured-25",
+        "measured-26",
+        "measured-27",
+        "measured-28",
+        "measured-29"
+      ],
+      "selectedIds": [],
+      "plan": {
+        "family": "edit",
+        "boardId": "roadmap",
+        "rowId": "measured-0",
+        "fromColumnId": "measured-0-0",
+        "originalText": "Synthetic task 0",
+        "typed": "-edited",
+        "expectedText": "Synthetic task 0-edited",
+        "actRowId": "measured-1"
+      },
+      "stageExpected": [
+        {
+          "name": "commit",
+          "digest": "ab11610ccfc62b40ac5ae0ab46676c6dd0b937e68fb385fece5070d72c6efba1"
+        }
+      ]
+    },
+    {
+      "family": "edit",
+      "backend": "state-lib",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "keystroke: wrong row: acted on measured-1, expected measured-0",
+        "keystroke: result not committed when the handler returned",
+        "keystroke: operation did not complete with the expected visible result",
+        "commit: wrong row: acted on measured-1, expected measured-0",
+        "commit: result not committed when the handler returned",
+        "commit: operation did not complete with the expected visible result",
+        "save payload matches no expected document",
+        "last save payload is not the final expected document",
+        "stored document differs from the expected final document",
+        "stored document after commit differs from the expected document"
+      ],
+      "samples": [
+        {
+          "stage": "keystroke",
+          "start": 989,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 2.7000000178813934,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 11.200000017881393,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1007.0999999940395,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.4000000059604645,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 9.5,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1022.8000000119209,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.0999999940395355,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 10.5,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1041.5,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 2,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 8.900000005960464,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1059.300000011921,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.7999999821186066,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 7.4000000059604645,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1076,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.7000000178813934,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 7.5,
+          "correct": false
+        },
+        {
+          "stage": "keystroke",
+          "start": 1089.4000000059605,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": false,
+          "done": true,
+          "handlerMs": 1.699999988079071,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 11,
+          "correct": false
+        },
+        {
+          "stage": "commit",
+          "start": 1109,
+          "trusted": true,
+          "id": "measured-1",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 18.5,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 20.700000017881393,
+          "correct": false,
+          "asyncSettledMs": 570.2000000178814
+        }
+      ],
+      "load": [
+        7.36,
+        5.91,
+        6.35
+      ],
+      "saves": [
+        {
+          "version": 0,
+          "digest": "7753a0dfc0d627214806acb022175c445230c621a2f0865c3d54acf386cc7b59",
+          "status": 200,
+          "startMs": 1666.9000000059605,
+          "endMs": 1678.2000000178814
+        }
+      ],
+      "fetches": [
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 1666.9000000059605,
+          "endMs": 1678.2000000178814,
+          "status": 200
+        }
+      ],
+      "finalDigest": "7753a0dfc0d627214806acb022175c445230c621a2f0865c3d54acf386cc7b59",
+      "stageDigests": {
+        "commit": "7753a0dfc0d627214806acb022175c445230c621a2f0865c3d54acf386cc7b59"
+      },
+      "domOrder": [
+        "measured-0",
+        "measured-1",
+        "measured-2",
+        "measured-3",
+        "measured-4",
+        "measured-5",
+        "measured-6",
+        "measured-7",
+        "measured-8",
+        "measured-9",
+        "measured-10",
+        "measured-11",
+        "measured-12",
+        "measured-13",
+        "measured-14",
+        "measured-15",
+        "measured-16",
+        "measured-17",
+        "measured-18",
+        "measured-19",
+        "measured-20",
+        "measured-21",
+        "measured-22",
+        "measured-23",
+        "measured-24",
+        "measured-25",
+        "measured-26",
+        "measured-27",
+        "measured-28",
+        "measured-29"
+      ],
+      "selectedIds": [],
+      "plan": {
+        "family": "edit",
+        "boardId": "roadmap",
+        "rowId": "measured-0",
+        "fromColumnId": "measured-0-0",
+        "originalText": "Synthetic task 0",
+        "typed": "-edited",
+        "expectedText": "Synthetic task 0-edited",
+        "actRowId": "measured-1"
+      },
+      "stageExpected": [
+        {
+          "name": "commit",
+          "digest": "ab11610ccfc62b40ac5ae0ab46676c6dd0b937e68fb385fece5070d72c6efba1"
+        }
+      ]
+    }
+  ]
+}

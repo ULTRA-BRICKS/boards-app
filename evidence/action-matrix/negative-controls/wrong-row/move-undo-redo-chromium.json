@@ -1,0 +1,440 @@
+{
+  "date": "2026-10-21T14:58:17.413Z",
+  "node": "v26.0.0",
+  "engine": "chromium",
+  "browser": "153.0.8010.12",
+  "logicalCPUs": 16,
+  "startLoad": [
+    7.57,
+    5.92,
+    6.36
+  ],
+  "endLoad": [
+    7.66,
+    6.04,
+    6.39
+  ],
+  "variants": [
+    {
+      "name": "baseline",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline",
+      "sha256": "b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17"
+    },
+    {
+      "name": "state-lib",
+      "root": "/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib",
+      "sha256": "f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990"
+    }
+  ],
+  "sourceHashes": {
+    "scripts/benchmark-compiled-board-actions.mjs": "03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162",
+    "scripts/benchmark-compiled-board-actions-lib.mjs": "8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb"
+  },
+  "counts": [
+    30
+  ],
+  "measuredPagesPerBackend": 1,
+  "warmupPagesPerBackend": 0,
+  "family": "history",
+  "description": "After a structural move, Undo then Redo from the notebook margins dialog.",
+  "settings": {
+    "events": "click [data-nav=more]; click #undo; click [data-nav=more]; click #redo",
+    "rowsPerColumn": 199
+  },
+  "settingsSha256": "2e80641edbc8aac2d2b5013262232e9f7874c16dba57406509a02f6d3d5c76ac",
+  "limits": [
+    "Product limits unchanged: 200 rows per column and 1200 rows per board. The fixture uses at most 199 rows per column so one moved row never exceeds the limit; sizes above 1200 spill into extra boards in the same document.",
+    "Fresh page per sample: the recorded action is the first interaction of that action after load (JIT-cold for the action path), not a warmed steady state.",
+    "Events are trusted Playwright input; nextFrameMs is the first animation frame after the handler, not painted-frame completion, field INP, or peak memory.",
+    "asyncSettledMs is event start to answered save request, no pending fetch and idle save indicator; it includes the sync queue debounce and local server time.",
+    "Load family: start is navigation start; asyncSettledMs is the last state/people response; handlerMs is render commit after that response; nextFrameMs is the first frame after commit. Static files are fulfilled from exact build artifacts, so this is not network download timing.",
+    "The in-page fetch ledger and a Playwright route are identical for both backends."
+  ],
+  "comparisons": [],
+  "summary": [
+    {
+      "family": "history",
+      "count": 30,
+      "stage": "undo",
+      "backend": "baseline",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 7,
+      "handlerP95Ms": 7,
+      "nextFrameMedianMs": 17.19999998807907,
+      "nextFrameP95Ms": 17.19999998807907,
+      "asyncSettledMedianMs": 563.9000000059605,
+      "asyncSettledP95Ms": 563.9000000059605
+    },
+    {
+      "family": "history",
+      "count": 30,
+      "stage": "redo",
+      "backend": "baseline",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 6.4000000059604645,
+      "handlerP95Ms": 6.4000000059604645,
+      "nextFrameMedianMs": 93.69999998807907,
+      "nextFrameP95Ms": 93.69999998807907,
+      "asyncSettledMedianMs": 570.5999999940395,
+      "asyncSettledP95Ms": 570.5999999940395
+    },
+    {
+      "family": "history",
+      "count": 30,
+      "stage": "undo",
+      "backend": "state-lib",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 6.199999988079071,
+      "handlerP95Ms": 6.199999988079071,
+      "nextFrameMedianMs": 16.599999994039536,
+      "nextFrameP95Ms": 16.599999994039536,
+      "asyncSettledMedianMs": 564,
+      "asyncSettledP95Ms": 564
+    },
+    {
+      "family": "history",
+      "count": 30,
+      "stage": "redo",
+      "backend": "state-lib",
+      "pages": 1,
+      "failedPages": 1,
+      "events": 1,
+      "handlerMedianMs": 5.800000011920929,
+      "handlerP95Ms": 5.800000011920929,
+      "nextFrameMedianMs": 81.59999999403954,
+      "nextFrameP95Ms": 81.59999999403954,
+      "asyncSettledMedianMs": 567.3000000119209,
+      "asyncSettledP95Ms": 567.3000000119209
+    }
+  ],
+  "raw": [
+    {
+      "family": "history",
+      "backend": "baseline",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "redo: result not committed when the handler returned",
+        "redo: operation did not complete with the expected visible result",
+        "save payload matches no expected document",
+        "save payload matches no expected document",
+        "last save payload is not the final expected document",
+        "stored document differs from the expected final document",
+        "stored document after move differs from the expected document",
+        "stored document after redo differs from the expected document"
+      ],
+      "samples": [
+        {
+          "stage": "undo",
+          "start": 2094.5999999940395,
+          "trusted": true,
+          "id": "measured-0",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 7,
+          "committedAtHandlerEnd": true,
+          "nextFrameMs": 17.19999998807907,
+          "correct": true,
+          "asyncSettledMs": 563.9000000059605
+        },
+        {
+          "stage": "redo",
+          "start": 2935.0999999940395,
+          "trusted": true,
+          "id": "measured-0",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 6.4000000059604645,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 93.69999998807907,
+          "correct": false,
+          "asyncSettledMs": 570.5999999940395
+        }
+      ],
+      "load": [
+        7.55,
+        5.99,
+        6.37
+      ],
+      "saves": [
+        {
+          "version": 0,
+          "digest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+          "status": 200,
+          "startMs": 1903.4000000059605,
+          "endMs": 1914.7999999821186
+        },
+        {
+          "version": 1,
+          "digest": "4f94e20a152516ba6c0be542eb15da69b0e8ff99dd03844c1aedb838108bc713",
+          "status": 200,
+          "startMs": 2646.4000000059605,
+          "endMs": 2656.5
+        },
+        {
+          "version": 2,
+          "digest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+          "status": 200,
+          "startMs": 3488.699999988079,
+          "endMs": 3502.5999999940395
+        }
+      ],
+      "fetches": [
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 1903.4000000059605,
+          "endMs": 1914.7999999821186,
+          "status": 200
+        },
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 2646.4000000059605,
+          "endMs": 2656.5,
+          "status": 200
+        },
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 3488.699999988079,
+          "endMs": 3502.5999999940395,
+          "status": 200
+        }
+      ],
+      "finalDigest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+      "stageDigests": {
+        "move": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+        "undo": "4f94e20a152516ba6c0be542eb15da69b0e8ff99dd03844c1aedb838108bc713",
+        "redo": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1"
+      },
+      "domOrder": [
+        "measured-0",
+        "measured-2",
+        "measured-3",
+        "measured-4",
+        "measured-5",
+        "measured-6",
+        "measured-7",
+        "measured-8",
+        "measured-9",
+        "measured-10",
+        "measured-11",
+        "measured-12",
+        "measured-13",
+        "measured-14",
+        "measured-15",
+        "measured-16",
+        "measured-17",
+        "measured-18",
+        "measured-19",
+        "measured-20",
+        "measured-21",
+        "measured-22",
+        "measured-23",
+        "measured-24",
+        "measured-25",
+        "measured-26",
+        "measured-27",
+        "measured-28",
+        "measured-29",
+        "measured-1"
+      ],
+      "selectedIds": [
+        "measured-1"
+      ],
+      "plan": {
+        "family": "history",
+        "boardId": "roadmap",
+        "rowId": "measured-0",
+        "fromColumnId": "measured-0-0",
+        "originalText": "Synthetic task 0",
+        "toColumnId": "measured-0-1",
+        "actRowId": "measured-1"
+      },
+      "stageExpected": [
+        {
+          "name": "move",
+          "digest": "d7ba97f2c55d4e5bf9e464e11cc5d445b9279a74550da036fd2a05462161c66e"
+        },
+        {
+          "name": "undo",
+          "digest": "4f94e20a152516ba6c0be542eb15da69b0e8ff99dd03844c1aedb838108bc713"
+        },
+        {
+          "name": "redo",
+          "digest": "d7ba97f2c55d4e5bf9e464e11cc5d445b9279a74550da036fd2a05462161c66e"
+        }
+      ]
+    },
+    {
+      "family": "history",
+      "backend": "state-lib",
+      "count": 30,
+      "trial": 0,
+      "problems": [
+        "redo: result not committed when the handler returned",
+        "redo: operation did not complete with the expected visible result",
+        "save payload matches no expected document",
+        "save payload matches no expected document",
+        "last save payload is not the final expected document",
+        "stored document differs from the expected final document",
+        "stored document after move differs from the expected document",
+        "stored document after redo differs from the expected document"
+      ],
+      "samples": [
+        {
+          "stage": "undo",
+          "start": 1924.0999999940395,
+          "trusted": true,
+          "id": "measured-0",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 6.199999988079071,
+          "committedAtHandlerEnd": true,
+          "nextFrameMs": 16.599999994039536,
+          "correct": true,
+          "asyncSettledMs": 564
+        },
+        {
+          "stage": "redo",
+          "start": 2735.0999999940395,
+          "trusted": true,
+          "id": "measured-0",
+          "expectedId": "measured-0",
+          "expectAsync": true,
+          "done": true,
+          "handlerMs": 5.800000011920929,
+          "committedAtHandlerEnd": false,
+          "nextFrameMs": 81.59999999403954,
+          "correct": false,
+          "asyncSettledMs": 567.3000000119209
+        }
+      ],
+      "load": [
+        7.66,
+        6.04,
+        6.39
+      ],
+      "saves": [
+        {
+          "version": 0,
+          "digest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+          "status": 200,
+          "startMs": 1745.5,
+          "endMs": 1757.4000000059605
+        },
+        {
+          "version": 1,
+          "digest": "4f94e20a152516ba6c0be542eb15da69b0e8ff99dd03844c1aedb838108bc713",
+          "status": 200,
+          "startMs": 2476.0999999940395,
+          "endMs": 2486.9000000059605
+        },
+        {
+          "version": 2,
+          "digest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+          "status": 200,
+          "startMs": 3289.0999999940395,
+          "endMs": 3299.5
+        }
+      ],
+      "fetches": [
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 1745.5,
+          "endMs": 1757.4000000059605,
+          "status": 200
+        },
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 2476.0999999940395,
+          "endMs": 2486.9000000059605,
+          "status": 200
+        },
+        {
+          "url": "/api/state",
+          "method": "PUT",
+          "startMs": 3289.0999999940395,
+          "endMs": 3299.5,
+          "status": 200
+        }
+      ],
+      "finalDigest": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+      "stageDigests": {
+        "move": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1",
+        "undo": "4f94e20a152516ba6c0be542eb15da69b0e8ff99dd03844c1aedb838108bc713",
+        "redo": "e60dd7ba23caeefaface528bf079f69d07574f56f67bc700337afe0e264f35e1"
+      },
+      "domOrder": [
+        "measured-0",
+        "measured-2",
+        "measured-3",
+        "measured-4",
+        "measured-5",
+        "measured-6",
+        "measured-7",
+        "measured-8",
+        "measured-9",
+        "measured-10",
+        "measured-11",
+        "measured-12",
+        "measured-13",
+        "measured-14",
+        "measured-15",
+        "measured-16",
+        "measured-17",
+        "measured-18",
+        "measured-19",
+        "measured-20",
+        "measured-21",
+        "measured-22",
+        "measured-23",
+        "measured-24",
+        "measured-25",
+        "measured-26",
+        "measured-27",
+        "measured-28",
+        "measured-29",
+        "measured-1"
+      ],
+      "selectedIds": [
+        "measured-1"
+      ],
+      "plan": {
+        "family": "history",
+        "boardId": "roadmap",
+        "rowId": "measured-0",
+        "fromColumnId": "measured-0-0",
+        "originalText": "Synthetic task 0",
+        "toColumnId": "measured-0-1",
+        "actRowId": "measured-1"
+      },
+      "stageExpected": [
+        {
+          "name": "move",
+          "digest": "d7ba97f2c55d4e5bf9e464e11cc5d445b9279a74550da036fd2a05462161c66e"
+        },
+        {
+          "name": "undo",
+          "digest": "4f94e20a152516ba6c0be542eb15da69b0e8ff99dd03844c1aedb838108bc713"
+        },
+        {
+          "name": "redo",
+          "digest": "d7ba97f2c55d4e5bf9e464e11cc5d445b9279a74550da036fd2a05462161c66e"
+        }
+      ]
+    }
+  ]
+}
