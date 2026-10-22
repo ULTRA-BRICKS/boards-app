@@ -1,0 +1,128 @@
+✔ a complete synthetic directory passes and prints no timing value (551.542219ms)
+✔ usage: every expected dimension is required (3119.760715ms)
+✔ no accepted data: empty directory or only files without raw/family (1616.247255ms)
+✔ omitted expected condition: family, engine, size or page cannot silently pass (3712.96032ms)
+✔ truncated or missing backend in a pair (1560.494452ms)
+✔ malformed or missing expected stages, samples and saves (5170.937113ms)
+✔ nonfinite, missing, untrusted or wrong-boundary samples (3658.338073ms)
+✔ artifact identities, harness source and run metadata (4966.012009ms)
+✔ negative-control and pairwise-difference output is never acceptance data (1898.214615ms)
+✔ a raw observation is never rewritten to make the receipt pass (414.955058ms)
+✔ every family has a passing synthetic shape and its own fail-closed stage checks (2066.462198ms)
+✖ review round 1: expected documents are recomputed from the recorded fixture, not trusted (328.273168ms)
+✖ review round 1: the fixture server sources are pinned to this checkout (306.054983ms)
+✖ review round 1: malformed input is a FAIL line, never a crash (331.442533ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 11
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30286.946312
+
+✖ failing tests:
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:353:1
+✖ review round 1: expected documents are recomputed from the recorded fixture, not trusted (328.273168ms)
+  AssertionError [ERR_ASSERTION]: rejected for the wrong reason:
+  harness source: scripts/benchmark-compiled-board-actions.mjs f4c12389c2c5, scripts/benchmark-compiled-board-actions-lib.mjs 7ee661671188, scripts/benchmark-compiled-board-actions-probe.mjs 59d1e020ef82, scripts/benchmark-artifact-tree.mjs 545153d57563
+  expected: families completion,edit,move,field-history; engines chromium; counts 2; 1 measured pages per backend
+  # completion-control-chromium.json: completion, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown
+    artifact baseline /tmp/bench-receipt-gQZv2Y/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-gQZv2Y/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    PASS 2 rows: 2/2 pages, 0 failed; samples toggle@window-bubble; save versions [0]
+  # text-edit-commit-chromium.json: edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown
+    artifact baseline /tmp/bench-receipt-gQZv2Y/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-gQZv2Y/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    PASS 2 rows: 2/2 pages, 0 failed; samples keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble commit@editor-target; save versions [0]
+  # column-move-chromium.json: move, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown
+    artifact baseline /tmp/bench-receipt-gQZv2Y/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-gQZv2Y/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    PASS 2 rows: 2/2 pages, 0 failed; samples move@window-bubble; save versions [0]
+  # field-edit-undo-redo-chromium.json: field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown
+    artifact baseline /tmp/bench-receipt-gQZv2Y/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-gQZv2Y/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    PASS 2 rows: 2/2 pages, 0 failed; samples commit@editor-target undo@window-bubble redo@window-bubble; save versions [0,1,2]
+  problem: completion-control-chromium.json 2 rows trial 0: recomputed pairwise comparison differs: final document differs; save request payloads differ; per-stage documents differ
+  problem: completion-control-chromium.json 2 rows: expected stage documents differ between pages of the same fixture
+  RECEIPT: FAIL (2)
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:200:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:365:56)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'problem: completion-control-chromium.json 2 rows trial 0: recomputed pairwise comparison differs: final document differs; save request payloads differ; per-stage documents differ\nproblem: completion-control-chromium.json 2 rows: expected stage documents differ between pages of the same fixture\n',
+    expected: /oracle/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:383:1
+✖ review round 1: the fixture server sources are pinned to this checkout (306.054983ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  harness source: scripts/benchmark-compiled-board-actions.mjs f4c12389c2c5, scripts/benchmark-compiled-board-actions-lib.mjs 7ee661671188, scripts/benchmark-compiled-board-actions-probe.mjs 59d1e020ef82, scripts/benchmark-artifact-tree.mjs 545153d57563
+  expected: families field-history,edit; engines chromium,webkit; counts 1,30; 2 measured pages per backend
+  # field-edit-undo-redo-chromium.json: field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown
+    artifact baseline /tmp/bench-receipt-ZsED8v/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-ZsED8v/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    PASS 1 rows: 4/4 pages, 0 failed; samples commit@editor-target undo@window-bubble redo@window-bubble; save versions [0,1,2]
+    PASS 30 rows: 4/4 pages, 0 failed; samples commit@editor-target undo@window-bubble redo@window-bubble; save versions [0,1,2]
+  # field-edit-undo-redo-webkit.json: field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown
+    artifact baseline /tmp/bench-receipt-ZsED8v/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-ZsED8v/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    PASS 1 rows: 4/4 pages, 0 failed; samples commit@editor-target undo@window-bubble redo@window-bubble; save versions [0,1,2]
+    PASS 30 rows: 4/4 pages, 0 failed; samples commit@editor-target undo@window-bubble redo@window-bubble; save versions [0,1,2]
+  # text-edit-commit-chromium.json: edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown
+    artifact baseline /tmp/bench-receipt-ZsED8v/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-ZsED8v/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    PASS 1 rows: 4/4 pages, 0 failed; samples keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble commit@editor-target; save versions [0]
+    PASS 30 rows: 4/4 pages, 0 failed; samples keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble commit@editor-target; save versions [0]
+  # text-edit-commit-webkit.json: edit, webkit 26.6, probe action-probe-v2-editor-target-keydown
+    artifact baseline /tmp/bench-receipt-ZsED8v/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-ZsED8v/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    PASS 1 rows: 4/4 pages, 0 failed; samples keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble commit@editor-target; save versions [0]
+    PASS 30 rows: 4/4 pages, 0 failed; samples keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble commit@editor-target; save versions [0]
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:198:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:384:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:388:1
+✖ review round 1: malformed input is a FAIL line, never a crash (331.442533ms)
+  AssertionError [ERR_ASSERTION]: prints a verdict instead of a stack trace
+      at crashFree (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:391:12)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:394:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: "file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/scripts/benchmark-compiled-board-actions-lib.mjs:311\n    if (save.digest !== stage.digest) problems.push(`save ${i + 1} is not the expected ${stage.name} document`);\n             ^\n\nTypeError: Cannot read properties of null (reading 'digest')\n    at file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/scripts/benchmark-compiled-board-actions-lib.mjs:311:14\n    at Array.forEach (<anonymous>)\n    at judgeStageSaves (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/scripts/benchmark-compiled-board-actions-lib.mjs:309:12)\n    at checkRecord (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/scripts/benchmark-action-correctness-receipt.mjs:159:29)\n    at checkEvidence (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/scripts/benchmark-action-correctness-receipt.mjs:245:24)\n    at file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/scripts/benchmark-action-correctness-receipt.mjs:281:31\n    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:642:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v26.0.0\n",
+    expected: /RECEIPT: FAIL/,
+    operator: 'match',
+    diff: 'simple'
+  }
+exit 1

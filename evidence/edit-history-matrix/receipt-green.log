@@ -1,0 +1,42 @@
+✔ a complete synthetic directory passes and prints no timing value (466.812369ms)
+✔ usage: every expected dimension is required (2456.051815ms)
+✔ no accepted data: empty directory or only files without raw/family (1384.199369ms)
+✔ omitted expected condition: family, engine, size or page cannot silently pass (3816.851626ms)
+✔ truncated or missing backend in a pair (1388.614167ms)
+✔ malformed or missing expected stages, samples and saves (4423.637796ms)
+✔ nonfinite, missing, untrusted or wrong-boundary samples (3318.193092ms)
+✔ artifact identities, harness source and run metadata (4983.123827ms)
+✔ negative-control and pairwise-difference output is never acceptance data (1432.136132ms)
+✔ a raw observation is never rewritten to make the receipt pass (383.287348ms)
+✔ every family has a passing synthetic shape and its own fail-closed stage checks (1981.974413ms)
+✔ fixture respects unchanged product limits and always has a move target (43.699863ms)
+✔ every family is declared with its own artifact and settings identity (5.373326ms)
+✔ plan targets the first row and the next column deterministically (1.474508ms)
+✔ expected stages are computed independently of the application (10.532648ms)
+✔ stale initial state is rejected before any timing is trusted (13.287389ms)
+✔ a sample on the wrong row, untrusted, failed, or unmeasured is a problem (1.182157ms)
+✔ missed async completion and mismatching save payloads are problems (2.601914ms)
+✔ baseline and state output must match document, order, selection and saves (1.275309ms)
+✔ summary keeps keystroke/commit, async wait and next frame separate and keeps failures (1.743269ms)
+✔ load rows carry a distinct metric kind and never expose event-handler or save fields (1.210344ms)
+✔ a load sample is judged on its own fields, not on event-handler fields (0.574975ms)
+✔ field history is a distinct family; the structural history family is unchanged (5.458965ms)
+✔ field-history plan edits the first row and selects it through the real menu (2.332853ms)
+✔ field-history expected documents: commit, Undo to the original, Redo to the commit (10.241321ms)
+✔ selection oracle is independent of the app and only declared for field history (0.975546ms)
+✔ event-end boundary: Enter commit ends on the editor target, clicks and input on window bubble (3.659811ms)
+✔ a versioned sample must end at its declared boundary after a registered app handler (0.957902ms)
+✔ field-history saves: exactly one answered save per stage, in order, with consecutive versions (3.380169ms)
+✔ summary rows name the probe version and end boundary of their samples (2.339155ms)
+✔ negative modes cover wrong row, stale fixture, early observer, capture microtask and unsettled save (0.591012ms)
+✔ artifact roots are explicit absolute read-only inputs or the old default build roots (2.509268ms)
+✔ artifact tree hash covers every file and detects any change, addition or removal (13.904713ms)
+✔ receipt oracle: stage names and timed sample specs agree with the expected stages and family settings (8.090057ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 26506.534205

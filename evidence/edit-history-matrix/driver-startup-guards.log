@@ -1,0 +1,7 @@
+AssertionError [ERR_ASSERTION]: Unknown browser engine
+AssertionError [ERR_ASSERTION]: not a built Boards entry: /home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/dist/specialized-test-baseline
+## BENCH_NEGATIVE=no-save with load (synthetic artifact roots, nothing launched)
+AssertionError [ERR_ASSERTION]: not a built Boards entry: /tmp/hyp1740-guard/a2
+AssertionError [ERR_ASSERTION]: negative control no-save cannot fail the load family; leave load out
+## artifact root with a symlinked file
+AssertionError [ERR_ASSERTION]: artifact root /tmp/hyp1740-guard/b has symlinks or special files: linked.js

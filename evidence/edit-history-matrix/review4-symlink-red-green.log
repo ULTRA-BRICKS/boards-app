@@ -1,0 +1,6 @@
+## previously staged receipt invoked through a symlinked directory on an EMPTY evidence dir
+exit 0 (stdout above is empty: no checks ran)
+## fixed receipt, same symlinked-invocation shape
+problem: text-edit-commit-chromium.json: missing (family edit, engine chromium)
+RECEIPT: FAIL (1)
+exit 1

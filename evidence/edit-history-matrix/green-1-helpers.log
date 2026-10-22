@@ -1,0 +1,30 @@
+✔ fixture respects unchanged product limits and always has a move target (25.059473ms)
+✔ every family is declared with its own artifact and settings identity (2.903423ms)
+✔ plan targets the first row and the next column deterministically (0.915665ms)
+✔ expected stages are computed independently of the application (5.223512ms)
+✔ stale initial state is rejected before any timing is trusted (8.225003ms)
+✔ a sample on the wrong row, untrusted, failed, or unmeasured is a problem (1.119559ms)
+✔ missed async completion and mismatching save payloads are problems (2.04024ms)
+✔ baseline and state output must match document, order, selection and saves (0.9752ms)
+✔ summary keeps keystroke/commit, async wait and next frame separate and keeps failures (2.045959ms)
+✔ load rows carry a distinct metric kind and never expose event-handler or save fields (1.180836ms)
+✔ a load sample is judged on its own fields, not on event-handler fields (0.575462ms)
+✔ field history is a distinct family; the structural history family is unchanged (3.705537ms)
+✔ field-history plan edits the first row and selects it through the real menu (1.404958ms)
+✔ field-history expected documents: commit, Undo to the original, Redo to the commit (6.632829ms)
+✔ selection oracle is independent of the app and only declared for field history (0.659309ms)
+✔ event-end boundary: Enter commit ends on the editor target, clicks and input on window bubble (2.310666ms)
+✔ a versioned sample must end at its declared boundary after a registered app handler (0.61791ms)
+✔ field-history saves: exactly one answered save per stage, in order, with consecutive versions (2.599763ms)
+✔ summary rows name the probe version and end boundary of their samples (1.534558ms)
+✔ negative modes cover wrong row, stale fixture, early observer, capture microtask and unsettled save (0.354391ms)
+✔ artifact roots are explicit absolute read-only inputs or the old default build roots (1.24358ms)
+✔ artifact tree hash covers every file and detects any change, addition or removal (7.557256ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 378.631591

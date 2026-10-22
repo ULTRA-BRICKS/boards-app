@@ -1,0 +1,495 @@
+ae457965ea1481f26dfd83e615490c36b07a99383f190cca0024b0caf00082fb  scripts/benchmark-action-correctness-receipt.mjs
+✔ a complete synthetic directory passes and prints no timing value (309.197537ms)
+✖ usage: every expected dimension is required (322.129438ms)
+✖ no accepted data: empty directory or only files without raw/family (270.675563ms)
+✖ omitted expected condition: family, engine, size or page cannot silently pass (284.961456ms)
+✖ truncated or missing backend in a pair (279.661663ms)
+✖ malformed or missing expected stages, samples and saves (293.238625ms)
+✖ nonfinite, missing, untrusted or wrong-boundary samples (335.237094ms)
+✖ artifact identities, harness source and run metadata (311.818148ms)
+✖ negative-control and pairwise-difference output is never acceptance data (336.779647ms)
+✖ a raw observation is never rewritten to make the receipt pass (343.380104ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 1
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3546.425317
+
+✖ failing tests:
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:205:1
+✖ usage: every expected dimension is required (322.129438ms)
+  AssertionError [ERR_ASSERTION]: # field-edit-undo-redo-chromium.json: family field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-YVuNAI/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-YVuNAI/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # field-edit-undo-redo-webkit.json: family field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-YVuNAI/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-YVuNAI/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-chromium.json: family edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-YVuNAI/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-YVuNAI/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-webkit.json: family edit, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-YVuNAI/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-YVuNAI/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  RECEIPT: PASS
+  
+  
+  0 !== 2
+  
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:207:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:219:1
+✖ no accepted data: empty directory or only files without raw/family (270.675563ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:191:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:220:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:226:1
+✖ omitted expected condition: family, engine, size or page cannot silently pass (284.961456ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  # field-edit-undo-redo-chromium.json: family field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-6KnoOL/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-6KnoOL/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # field-edit-undo-redo-webkit.json: family field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-6KnoOL/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-6KnoOL/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-chromium.json: family edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-6KnoOL/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-6KnoOL/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:191:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:227:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:239:1
+✖ truncated or missing backend in a pair (279.661663ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  # field-edit-undo-redo-chromium.json: family field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-cRPTgr/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-cRPTgr/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 1 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # field-edit-undo-redo-webkit.json: family field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-cRPTgr/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-cRPTgr/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-chromium.json: family edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-cRPTgr/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-cRPTgr/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-webkit.json: family edit, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-cRPTgr/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-cRPTgr/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:191:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:240:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:246:1
+✖ malformed or missing expected stages, samples and saves (293.238625ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  # field-edit-undo-redo-chromium.json: family field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-ScMRnH/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-ScMRnH/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # field-edit-undo-redo-webkit.json: family field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-ScMRnH/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-ScMRnH/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-chromium.json: family edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-ScMRnH/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-ScMRnH/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-webkit.json: family edit, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-ScMRnH/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-ScMRnH/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:191:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:247:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:273:1
+✖ nonfinite, missing, untrusted or wrong-boundary samples (335.237094ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  # field-edit-undo-redo-chromium.json: family field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-TkDSBh/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-TkDSBh/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # field-edit-undo-redo-webkit.json: family field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-TkDSBh/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-TkDSBh/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-chromium.json: family edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-TkDSBh/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-TkDSBh/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-webkit.json: family edit, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-TkDSBh/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-TkDSBh/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:191:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:274:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:286:1
+✖ artifact identities, harness source and run metadata (311.818148ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  # field-edit-undo-redo-chromium.json: family field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-mz592y/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # field-edit-undo-redo-webkit.json: family field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-mz592y/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-chromium.json: family edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-mz592y/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-webkit.json: family edit, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-mz592y/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:191:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:287:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:309:1
+✖ negative-control and pairwise-difference output is never acceptance data (336.779647ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  # field-edit-undo-redo-chromium.json: family field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative "no-save"
+    artifact baseline /tmp/bench-receipt-UKeXtb/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-UKeXtb/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # field-edit-undo-redo-webkit.json: family field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative "no-save"
+    artifact baseline /tmp/bench-receipt-UKeXtb/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-UKeXtb/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-chromium.json: family edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative "no-save"
+    artifact baseline /tmp/bench-receipt-UKeXtb/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-UKeXtb/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-webkit.json: family edit, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative "no-save"
+    artifact baseline /tmp/bench-receipt-UKeXtb/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-UKeXtb/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:191:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:310:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-action-correctness-receipt.test.mjs:316:1
+✖ a raw observation is never rewritten to make the receipt pass (343.380104ms)
+  AssertionError [ERR_ASSERTION]: receipt must exit non-zero:
+  # field-edit-undo-redo-chromium.json: family field-history, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-Tn60on/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-Tn60on/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # field-edit-undo-redo-webkit.json: family field-history, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-Tn60on/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-Tn60on/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends commit:editor-target undo:window-bubble redo:window-bubble; keydown window commit:stopped; save versions [0,1,2]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-chromium.json: family edit, chromium 153.0.8010.12, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-Tn60on/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-Tn60on/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  # text-edit-commit-webkit.json: family edit, webkit 26.6, probe action-probe-v2-editor-target-keydown, negative ""
+    artifact baseline /tmp/bench-receipt-Tn60on/artifacts/baseline app.js 2429e5714675cfae364ee7dd54e6b84222794cabf633bf8da2d12d8eb783f24f tree 9e81d745ed3618e75821bf818d67a0ab6a2da8ae475d6622abd49f627992474c (2 files)
+    artifact state-lib /tmp/bench-receipt-Tn60on/artifacts/state-lib app.js f2e0da393b89cd7cafb4af5dd0c4924a592ce99aba00ac6e197d8830805818a3 tree 87cf7dac1e9fdb2110c0d51419bafb88494955a6e877f15a4a0a7f285f73a567 (2 files)
+    fixture server: SYNTHETIC LOCAL FIXTURE SERVER: receipt unit test
+    PASS 1 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 1 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows baseline: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS 30 rows state-lib: 2 pages, 0 failed; ends keystroke:window-bubble commit:editor-target; keydown window commit:stopped; save versions [0]
+    PASS pairwise: 4 comparisons, 0 with differences
+  RECEIPT: PASS
+  
+      at rejects (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:191:10)
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-action-correctness-receipt.test.mjs:318:3)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+## old receipt on an EMPTY directory
+
+RECEIPT: PASS
+exit 0
+## old receipt on a directory with one file lacking raw/family
+
+RECEIPT: PASS
+exit 0

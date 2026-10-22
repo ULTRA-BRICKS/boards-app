@@ -1,0 +1,29 @@
+# chromium 153.0.8010.12 probe action-probe-v2-editor-target-keydown
+FAIL chromium: stopPropagation, editor detached by full render :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+FAIL chromium: stopPropagation, editor kept (row-local patch) :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+FAIL chromium: no stopPropagation, editor detached (old baseline) :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+FAIL chromium: onkeydown reassigned after the probe attached :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+FAIL chromium: handler throws after commit: error still reported :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+PASS chromium: NEGATIVE re-entry reopens the kept editor
+PASS chromium: NEGATIVE app listener registered after the probe
+PASS chromium: NEGATIVE early observer (document capture)
+PASS chromium: NEGATIVE microtask queued from capture
+PASS chromium: NEGATIVE wrong row
+FAIL chromium: NEGATIVE stopImmediatePropagation hides the end: no sample :: a sample was recorded although the end listener must not run
+PASS chromium: NEGATIVE v1 window-bubble end with stopPropagation: no sample
+PASS chromium: delegated click ends at window bubble
+# webkit 26.6 probe action-probe-v2-editor-target-keydown
+FAIL webkit: stopPropagation, editor detached by full render :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+FAIL webkit: stopPropagation, editor kept (row-local patch) :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+FAIL webkit: no stopPropagation, editor detached (old baseline) :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+FAIL webkit: onkeydown reassigned after the probe attached :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+FAIL webkit: handler throws after commit: error still reported :: judge: result not committed when the handler returned | probe end precedes the end of the app handler
+PASS webkit: NEGATIVE re-entry reopens the kept editor
+PASS webkit: NEGATIVE app listener registered after the probe
+PASS webkit: NEGATIVE early observer (document capture)
+PASS webkit: NEGATIVE microtask queued from capture
+PASS webkit: NEGATIVE wrong row
+FAIL webkit: NEGATIVE stopImmediatePropagation hides the end: no sample :: a sample was recorded although the end listener must not run
+PASS webkit: NEGATIVE v1 window-bubble end with stopPropagation: no sample
+PASS webkit: delegated click ends at window bubble
+12 case(s) failed

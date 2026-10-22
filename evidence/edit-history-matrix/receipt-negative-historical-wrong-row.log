@@ -1,0 +1,338 @@
+harness source: scripts/benchmark-compiled-board-actions.mjs 8402f0ecd5f8, scripts/benchmark-compiled-board-actions-lib.mjs 7ee661671188, scripts/benchmark-compiled-board-actions-probe.mjs 59d1e020ef82, scripts/benchmark-artifact-tree.mjs 545153d57563
+expected: families completion,edit,move,history; engines chromium; counts 30; 1 measured pages per backend
+# completion-control-chromium.json: completion, chromium 153.0.8010.12, probe undefined
+  artifact baseline /home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline app.js b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17 tree undefined (? files)
+  artifact state-lib /home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib app.js f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990 tree undefined (? files)
+  FAIL 30 rows: 2/2 pages, 2 failed; samples toggle@window-bubble; save versions [0]
+# text-edit-commit-chromium.json: edit, chromium 153.0.8010.12, probe undefined
+  artifact baseline /home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline app.js b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17 tree undefined (? files)
+  artifact state-lib /home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib app.js f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990 tree undefined (? files)
+  FAIL 30 rows: 2/2 pages, 2 failed; samples keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble keystroke@window-bubble commit@editor-target; save versions [0]
+# column-move-chromium.json: move, chromium 153.0.8010.12, probe undefined
+  artifact baseline /home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline app.js b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17 tree undefined (? files)
+  artifact state-lib /home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib app.js f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990 tree undefined (? files)
+  FAIL 30 rows: 2/2 pages, 2 failed; samples move@window-bubble; save versions [0]
+# move-undo-redo-chromium.json: history, chromium 153.0.8010.12, probe undefined
+  artifact baseline /home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline app.js b83af585eb0d2b7d2f131333938281a53da47be21e2835c96ad8c91a199ffc17 tree undefined (? files)
+  artifact state-lib /home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib app.js f19621d5a0de615d580a0c6d7366ae9517f4580a6f8de1d27ea720e0c2361990 tree undefined (? files)
+  FAIL 30 rows: 2/2 pages, 2 failed; samples undo@window-bubble redo@window-bubble; save versions [0,1,2]
+problem: completion-control-chromium.json: negative control undefined output is not acceptance data
+problem: completion-control-chromium.json: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: completion-control-chromium.json: harness source scripts/benchmark-compiled-board-actions.mjs differs from this checkout (recorded 03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162)
+problem: completion-control-chromium.json: harness source scripts/benchmark-compiled-board-actions-lib.mjs differs from this checkout (recorded 8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb)
+problem: completion-control-chromium.json: harness source scripts/benchmark-compiled-board-actions-probe.mjs differs from this checkout (recorded nothing)
+problem: completion-control-chromium.json: harness source scripts/benchmark-artifact-tree.mjs differs from this checkout (recorded nothing)
+problem: completion-control-chromium.json: fixture server label is missing
+problem: completion-control-chromium.json: artifact roots were not explicit (BENCH_ARTIFACT_BASELINE/BENCH_ARTIFACT_STATE)
+problem: completion-control-chromium.json: baseline: artifact tree digest is missing or malformed
+problem: completion-control-chromium.json: baseline: artifact file manifest is missing or malformed
+problem: completion-control-chromium.json: baseline: artifact tree on disk changed since the run (/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline)
+problem: completion-control-chromium.json: state-lib: artifact tree digest is missing or malformed
+problem: completion-control-chromium.json: state-lib: artifact file manifest is missing or malformed
+problem: completion-control-chromium.json: state-lib: artifact tree on disk changed since the run (/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib)
+problem: completion-control-chromium.json: baseline and state-lib artifacts are not distinct (same root, tree or app.js)
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle: wrong row: acted on measured-1, expected measured-0
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle: result not committed when the handler returned
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle: operation did not complete with the expected visible result
+problem: completion-control-chromium.json 30 rows baseline trial 0: save payload matches no expected document
+problem: completion-control-chromium.json 30 rows baseline trial 0: last save payload is not the final expected document
+problem: completion-control-chromium.json 30 rows baseline trial 0: stored document differs from the expected final document
+problem: completion-control-chromium.json 30 rows baseline trial 0: stored document after toggle differs from the expected document
+problem: completion-control-chromium.json 30 rows baseline trial 0: stored document after toggle is missing or differs from the expected document
+problem: completion-control-chromium.json 30 rows baseline trial 0: final stored document differs from the last expected stage
+problem: completion-control-chromium.json 30 rows baseline trial 0: save 1 is not the expected toggle document
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle sample 1: wrong row: acted on measured-1, expected measured-0
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle sample 1: result not committed when the handler returned
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle sample 1: operation did not complete with the expected visible result
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle sample 1: row measured-1/measured-0, planned measured-0
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle sample 1: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: completion-control-chromium.json 30 rows baseline trial 0: toggle sample 1: end boundary undefined/undefined, expected window-bubble
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle: wrong row: acted on measured-1, expected measured-0
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle: result not committed when the handler returned
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle: operation did not complete with the expected visible result
+problem: completion-control-chromium.json 30 rows state-lib trial 0: save payload matches no expected document
+problem: completion-control-chromium.json 30 rows state-lib trial 0: last save payload is not the final expected document
+problem: completion-control-chromium.json 30 rows state-lib trial 0: stored document differs from the expected final document
+problem: completion-control-chromium.json 30 rows state-lib trial 0: stored document after toggle differs from the expected document
+problem: completion-control-chromium.json 30 rows state-lib trial 0: stored document after toggle is missing or differs from the expected document
+problem: completion-control-chromium.json 30 rows state-lib trial 0: final stored document differs from the last expected stage
+problem: completion-control-chromium.json 30 rows state-lib trial 0: save 1 is not the expected toggle document
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle sample 1: wrong row: acted on measured-1, expected measured-0
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle sample 1: result not committed when the handler returned
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle sample 1: operation did not complete with the expected visible result
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle sample 1: row measured-1/measured-0, planned measured-0
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle sample 1: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: completion-control-chromium.json 30 rows state-lib trial 0: toggle sample 1: end boundary undefined/undefined, expected window-bubble
+problem: completion-control-chromium.json 30 rows trial 0: expected one pairwise comparison, found 0
+problem: text-edit-commit-chromium.json: negative control undefined output is not acceptance data
+problem: text-edit-commit-chromium.json: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json: harness source scripts/benchmark-compiled-board-actions.mjs differs from this checkout (recorded 03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162)
+problem: text-edit-commit-chromium.json: harness source scripts/benchmark-compiled-board-actions-lib.mjs differs from this checkout (recorded 8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb)
+problem: text-edit-commit-chromium.json: harness source scripts/benchmark-compiled-board-actions-probe.mjs differs from this checkout (recorded nothing)
+problem: text-edit-commit-chromium.json: harness source scripts/benchmark-artifact-tree.mjs differs from this checkout (recorded nothing)
+problem: text-edit-commit-chromium.json: fixture server label is missing
+problem: text-edit-commit-chromium.json: artifact roots were not explicit (BENCH_ARTIFACT_BASELINE/BENCH_ARTIFACT_STATE)
+problem: text-edit-commit-chromium.json: baseline: artifact tree digest is missing or malformed
+problem: text-edit-commit-chromium.json: baseline: artifact file manifest is missing or malformed
+problem: text-edit-commit-chromium.json: baseline: artifact tree on disk changed since the run (/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline)
+problem: text-edit-commit-chromium.json: state-lib: artifact tree digest is missing or malformed
+problem: text-edit-commit-chromium.json: state-lib: artifact file manifest is missing or malformed
+problem: text-edit-commit-chromium.json: state-lib: artifact tree on disk changed since the run (/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib)
+problem: text-edit-commit-chromium.json: baseline and state-lib artifacts are not distinct (same root, tree or app.js)
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: save payload matches no expected document
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: last save payload is not the final expected document
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: stored document differs from the expected final document
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: stored document after commit differs from the expected document
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: stored document after commit is missing or differs from the expected document
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: final stored document differs from the last expected stage
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: save 1 is not the expected commit document
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 1: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 1: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 1: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 1: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 1: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 1: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 2: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 2: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 2: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 2: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 2: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 2: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 3: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 3: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 3: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 3: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 3: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 3: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 4: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 4: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 4: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 4: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 4: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 4: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 5: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 5: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 5: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 5: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 5: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 5: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 6: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 6: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 6: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 6: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 6: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 6: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 7: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 7: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 7: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 7: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 7: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: keystroke sample 7: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit sample 8: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit sample 8: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit sample 8: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit sample 8: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit sample 8: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows baseline trial 0: commit sample 8: end boundary undefined/undefined, expected editor-target
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: save payload matches no expected document
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: last save payload is not the final expected document
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: stored document differs from the expected final document
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: stored document after commit differs from the expected document
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: stored document after commit is missing or differs from the expected document
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: final stored document differs from the last expected stage
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: save 1 is not the expected commit document
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 1: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 1: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 1: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 1: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 1: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 1: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 2: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 2: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 2: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 2: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 2: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 2: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 3: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 3: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 3: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 3: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 3: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 3: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 4: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 4: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 4: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 4: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 4: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 4: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 5: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 5: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 5: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 5: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 5: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 5: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 6: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 6: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 6: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 6: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 6: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 6: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 7: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 7: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 7: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 7: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 7: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: keystroke sample 7: end boundary undefined/undefined, expected window-bubble
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit sample 8: wrong row: acted on measured-1, expected measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit sample 8: result not committed when the handler returned
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit sample 8: operation did not complete with the expected visible result
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit sample 8: row measured-1/measured-0, planned measured-0
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit sample 8: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: text-edit-commit-chromium.json 30 rows state-lib trial 0: commit sample 8: end boundary undefined/undefined, expected editor-target
+problem: text-edit-commit-chromium.json 30 rows trial 0: expected one pairwise comparison, found 0
+problem: column-move-chromium.json: negative control undefined output is not acceptance data
+problem: column-move-chromium.json: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: column-move-chromium.json: harness source scripts/benchmark-compiled-board-actions.mjs differs from this checkout (recorded 03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162)
+problem: column-move-chromium.json: harness source scripts/benchmark-compiled-board-actions-lib.mjs differs from this checkout (recorded 8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb)
+problem: column-move-chromium.json: harness source scripts/benchmark-compiled-board-actions-probe.mjs differs from this checkout (recorded nothing)
+problem: column-move-chromium.json: harness source scripts/benchmark-artifact-tree.mjs differs from this checkout (recorded nothing)
+problem: column-move-chromium.json: fixture server label is missing
+problem: column-move-chromium.json: artifact roots were not explicit (BENCH_ARTIFACT_BASELINE/BENCH_ARTIFACT_STATE)
+problem: column-move-chromium.json: baseline: artifact tree digest is missing or malformed
+problem: column-move-chromium.json: baseline: artifact file manifest is missing or malformed
+problem: column-move-chromium.json: baseline: artifact tree on disk changed since the run (/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline)
+problem: column-move-chromium.json: state-lib: artifact tree digest is missing or malformed
+problem: column-move-chromium.json: state-lib: artifact file manifest is missing or malformed
+problem: column-move-chromium.json: state-lib: artifact tree on disk changed since the run (/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib)
+problem: column-move-chromium.json: baseline and state-lib artifacts are not distinct (same root, tree or app.js)
+problem: column-move-chromium.json 30 rows baseline trial 0: move: result not committed when the handler returned
+problem: column-move-chromium.json 30 rows baseline trial 0: move: operation did not complete with the expected visible result
+problem: column-move-chromium.json 30 rows baseline trial 0: save payload matches no expected document
+problem: column-move-chromium.json 30 rows baseline trial 0: last save payload is not the final expected document
+problem: column-move-chromium.json 30 rows baseline trial 0: stored document differs from the expected final document
+problem: column-move-chromium.json 30 rows baseline trial 0: stored document after move differs from the expected document
+problem: column-move-chromium.json 30 rows baseline trial 0: stored document after move is missing or differs from the expected document
+problem: column-move-chromium.json 30 rows baseline trial 0: final stored document differs from the last expected stage
+problem: column-move-chromium.json 30 rows baseline trial 0: save 1 is not the expected move document
+problem: column-move-chromium.json 30 rows baseline trial 0: move sample 1: result not committed when the handler returned
+problem: column-move-chromium.json 30 rows baseline trial 0: move sample 1: operation did not complete with the expected visible result
+problem: column-move-chromium.json 30 rows baseline trial 0: move sample 1: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: column-move-chromium.json 30 rows baseline trial 0: move sample 1: end boundary undefined/undefined, expected window-bubble
+problem: column-move-chromium.json 30 rows state-lib trial 0: move: result not committed when the handler returned
+problem: column-move-chromium.json 30 rows state-lib trial 0: move: operation did not complete with the expected visible result
+problem: column-move-chromium.json 30 rows state-lib trial 0: save payload matches no expected document
+problem: column-move-chromium.json 30 rows state-lib trial 0: last save payload is not the final expected document
+problem: column-move-chromium.json 30 rows state-lib trial 0: stored document differs from the expected final document
+problem: column-move-chromium.json 30 rows state-lib trial 0: stored document after move differs from the expected document
+problem: column-move-chromium.json 30 rows state-lib trial 0: stored document after move is missing or differs from the expected document
+problem: column-move-chromium.json 30 rows state-lib trial 0: final stored document differs from the last expected stage
+problem: column-move-chromium.json 30 rows state-lib trial 0: save 1 is not the expected move document
+problem: column-move-chromium.json 30 rows state-lib trial 0: move sample 1: result not committed when the handler returned
+problem: column-move-chromium.json 30 rows state-lib trial 0: move sample 1: operation did not complete with the expected visible result
+problem: column-move-chromium.json 30 rows state-lib trial 0: move sample 1: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: column-move-chromium.json 30 rows state-lib trial 0: move sample 1: end boundary undefined/undefined, expected window-bubble
+problem: column-move-chromium.json 30 rows trial 0: expected one pairwise comparison, found 0
+problem: move-undo-redo-chromium.json: negative control undefined output is not acceptance data
+problem: move-undo-redo-chromium.json: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: move-undo-redo-chromium.json: harness source scripts/benchmark-compiled-board-actions.mjs differs from this checkout (recorded 03a10a2f47335895100ac3413d1f6e7d800511418d8d93c776de5f5b120a3162)
+problem: move-undo-redo-chromium.json: harness source scripts/benchmark-compiled-board-actions-lib.mjs differs from this checkout (recorded 8258f082433244b591d39e50e311ed542f539a1a640eca9556c9bcb2204250eb)
+problem: move-undo-redo-chromium.json: harness source scripts/benchmark-compiled-board-actions-probe.mjs differs from this checkout (recorded nothing)
+problem: move-undo-redo-chromium.json: harness source scripts/benchmark-artifact-tree.mjs differs from this checkout (recorded nothing)
+problem: move-undo-redo-chromium.json: fixture server label is missing
+problem: move-undo-redo-chromium.json: artifact roots were not explicit (BENCH_ARTIFACT_BASELINE/BENCH_ARTIFACT_STATE)
+problem: move-undo-redo-chromium.json: baseline: artifact tree digest is missing or malformed
+problem: move-undo-redo-chromium.json: baseline: artifact file manifest is missing or malformed
+problem: move-undo-redo-chromium.json: baseline: artifact tree on disk changed since the run (/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-baseline)
+problem: move-undo-redo-chromium.json: state-lib: artifact tree digest is missing or malformed
+problem: move-undo-redo-chromium.json: state-lib: artifact file manifest is missing or malformed
+problem: move-undo-redo-chromium.json: state-lib: artifact tree on disk changed since the run (/home/ultra/work/boards-state-specialization-20261016/.worktrees/action-matrix-20261021/dist/specialized-test-state-lib)
+problem: move-undo-redo-chromium.json: baseline and state-lib artifacts are not distinct (same root, tree or app.js)
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: redo: result not committed when the handler returned
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: redo: operation did not complete with the expected visible result
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: save payload matches no expected document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: save payload matches no expected document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: last save payload is not the final expected document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: stored document differs from the expected final document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: stored document after move differs from the expected document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: stored document after redo differs from the expected document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: stored document after move is missing or differs from the expected document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: stored document after redo is missing or differs from the expected document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: final stored document differs from the last expected stage
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: save 1 is not the expected move document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: save 3 is not the expected redo document
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: undo sample 1: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: undo sample 1: end boundary undefined/undefined, expected window-bubble
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: redo sample 2: result not committed when the handler returned
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: redo sample 2: operation did not complete with the expected visible result
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: redo sample 2: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: move-undo-redo-chromium.json 30 rows baseline trial 0: redo sample 2: end boundary undefined/undefined, expected window-bubble
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: redo: result not committed when the handler returned
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: redo: operation did not complete with the expected visible result
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: save payload matches no expected document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: save payload matches no expected document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: last save payload is not the final expected document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: stored document differs from the expected final document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: stored document after move differs from the expected document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: stored document after redo differs from the expected document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: stored document after move is missing or differs from the expected document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: stored document after redo is missing or differs from the expected document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: final stored document differs from the last expected stage
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: save 1 is not the expected move document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: save 3 is not the expected redo document
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: undo sample 1: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: undo sample 1: end boundary undefined/undefined, expected window-bubble
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: redo sample 2: result not committed when the handler returned
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: redo sample 2: operation did not complete with the expected visible result
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: redo sample 2: probe version undefined, expected action-probe-v2-editor-target-keydown
+problem: move-undo-redo-chromium.json 30 rows state-lib trial 0: redo sample 2: end boundary undefined/undefined, expected window-bubble
+problem: move-undo-redo-chromium.json 30 rows trial 0: expected one pairwise comparison, found 0
+RECEIPT: FAIL (318)
+exit 1

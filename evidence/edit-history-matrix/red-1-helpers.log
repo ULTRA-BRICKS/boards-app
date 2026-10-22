@@ -1,0 +1,75 @@
+✔ fixture respects unchanged product limits and always has a move target (40.076487ms)
+✖ every family is declared with its own artifact and settings identity (11.138011ms)
+✔ plan targets the first row and the next column deterministically (1.976673ms)
+✔ expected stages are computed independently of the application (8.725955ms)
+✔ stale initial state is rejected before any timing is trusted (6.031092ms)
+✔ a sample on the wrong row, untrusted, failed, or unmeasured is a problem (1.08181ms)
+✔ missed async completion and mismatching save payloads are problems (2.459106ms)
+✔ baseline and state output must match document, order, selection and saves (1.141221ms)
+✔ summary keeps keystroke/commit, async wait and next frame separate and keeps failures (2.125337ms)
+✔ load rows carry a distinct metric kind and never expose event-handler or save fields (1.343358ms)
+✔ a load sample is judged on its own fields, not on event-handler fields (0.606833ms)
+node:internal/modules/esm/resolve:271
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/scripts/benchmark-artifact-tree.mjs' imported from /home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-edit-history-matrix.test.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:271:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:988:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:700:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:717:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:749:52)
+    at #resolve (node:internal/modules/esm/loader:682:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:602:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:252:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/scripts/benchmark-artifact-tree.mjs'
+}
+
+Node.js v26.0.0
+✖ tests/benchmark-edit-history-matrix.test.mjs (309.449014ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 10
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 464.324968
+
+✖ failing tests:
+
+test at tests/benchmark-compiled-board-actions.test.mjs:50:1
+✖ every family is declared with its own artifact and settings identity (11.138011ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'completion',
+      'edit',
+  -   'field-history',
+      'history',
+      'load',
+      'move'
+    ]
+  
+      at TestContext.<anonymous> (file:///home/ultra/work/boards-state-specialization-20261016/.worktrees/HYP-1740-edit-history-matrix/tests/benchmark-compiled-board-actions.test.mjs:51:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'completion', 'edit', 'history', 'load', 'move' ],
+    expected: [ 'completion', 'edit', 'field-history', 'history', 'load', 'move' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/benchmark-edit-history-matrix.test.mjs:1:1
+✖ tests/benchmark-edit-history-matrix.test.mjs (309.449014ms)
+  'test failed'

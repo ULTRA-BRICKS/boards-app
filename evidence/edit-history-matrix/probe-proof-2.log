@@ -1,0 +1,29 @@
+# chromium 153.0.8010.12 probe action-probe-v2-editor-target-keydown
+PASS chromium: stopPropagation, editor detached by full render
+PASS chromium: stopPropagation, editor kept (row-local patch)
+PASS chromium: no stopPropagation, editor detached (old baseline)
+PASS chromium: onkeydown reassigned after the probe attached
+PASS chromium: handler throws after commit: error still reported
+PASS chromium: NEGATIVE re-entry reopens the kept editor
+PASS chromium: NEGATIVE app listener registered after the probe
+PASS chromium: NEGATIVE early observer (document capture)
+PASS chromium: NEGATIVE microtask queued from capture
+PASS chromium: NEGATIVE wrong row
+PASS chromium: NEGATIVE stopImmediatePropagation hides the end: no sample
+PASS chromium: NEGATIVE v1 window-bubble end with stopPropagation: no sample
+PASS chromium: delegated click ends at window bubble
+# webkit 26.6 probe action-probe-v2-editor-target-keydown
+PASS webkit: stopPropagation, editor detached by full render
+PASS webkit: stopPropagation, editor kept (row-local patch)
+PASS webkit: no stopPropagation, editor detached (old baseline)
+PASS webkit: onkeydown reassigned after the probe attached
+PASS webkit: handler throws after commit: error still reported
+PASS webkit: NEGATIVE re-entry reopens the kept editor
+PASS webkit: NEGATIVE app listener registered after the probe
+PASS webkit: NEGATIVE early observer (document capture)
+PASS webkit: NEGATIVE microtask queued from capture
+PASS webkit: NEGATIVE wrong row
+PASS webkit: NEGATIVE stopImmediatePropagation hides the end: no sample
+PASS webkit: NEGATIVE v1 window-bubble end with stopPropagation: no sample
+PASS webkit: delegated click ends at window bubble
+all cases passed
