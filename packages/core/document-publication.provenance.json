@@ -1,8 +1,8 @@
 {
   "sourceRepository": "hyperide/hyper-saas",
   "sourcePath": "packages/state-lib/experiments/2026-09-19-cow/document-publication.mjs",
-  "sourceBranch": "research/state-build-20260918",
-  "sourceStatus": "published experimental command/ownership helper; global timing admission remains pending",
-  "sha256": "6a9046ec5d5a64e5c99f8656865bf6f95f7d4d966fa0f3991ac7624ea94fa4a3",
-  "sourceCommit": "dbdfc07d0b25fa12f6f395305a25d88b6b838052"
+  "sourceBranch": "feat/HYP-1737-cold-import-20261021",
+  "sourceStatus": "published experimental command/ownership helper with imported-root adoption; global timing admission remains pending",
+  "sha256": "f40f79f28cd6c74c387d9130f632823aad31a95896c137bfaa4abb8a2aadc824",
+  "sourceCommit": "fb9e5ecad34eba2769d97664f1c342bee881ed07"
 }

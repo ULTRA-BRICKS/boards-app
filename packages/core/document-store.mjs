@@ -1,6 +1,6 @@
 import { Runtime } from "../state-lib/dist/index.js";
 import { createBaselineDocumentStore } from "./document-store-baseline.mjs";
-import { beginJsonDraft, beginCopiedJson } from "./json-draft.mjs";
+import { beginJsonDraft, beginCopiedJson, importJsonField } from "./json-draft.mjs";
 import { createDocumentPublication } from "./document-publication.mjs";
 
 /**
@@ -63,4 +63,27 @@ export function createDocumentStore({ backend = "state-lib", initial = null, lim
     } finally { tx.abort(); }
   });
   return publication;
+}
+
+const INVALID_RESPONSE = "The server did not return a valid response.";
+
+/** State-lib reader for the authenticated /api/state response: `value` is certified once at the text boundary
+ * (no mutable graph, no second clone in replace) for replaceImported. Messages match app.mjs api(); a valid JSON
+ * body holding a non-JSON document keeps the store's own TypeError. Lives here so the baseline entry links no
+ * extra module. */
+export async function readStateResponse(response) {
+  let text;
+  try { text = await response.text(); }
+  catch { throw Error(INVALID_RESPONSE); }
+  if (!response.ok) {
+    let value;
+    try { value = JSON.parse(text); }
+    catch { throw Error(INVALID_RESPONSE); }
+    throw Object.assign(Error(value.error || "Request failed."), { status: response.status });
+  }
+  try { return importJsonField(text, "value"); }
+  catch (error) {
+    if (error instanceof SyntaxError) throw Error(INVALID_RESPONSE);
+    throw error;
+  }
 }

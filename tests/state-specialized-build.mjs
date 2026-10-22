@@ -37,6 +37,14 @@ for (const backend of ['baseline', 'state-lib'])
       !readFileSync(resolve(root, out, 'app.js'), 'utf8').includes('"stateBackend"'),
       'Fixed entry no longer parses a runtime backend selector',
     );
+    // Cold import: only the state-lib entry reads /api/state as text and adopts the certified root by identity.
+    const app = readFileSync(resolve(root, out, 'app.js'), 'utf8');
+    assert.equal(app.includes('replaceImported'), backend === 'state-lib', 'adoption is pruned from the baseline entry');
+    assert.equal(
+      app.includes('JSON import requires text'),
+      backend === 'state-lib',
+      'the text importer is pruned from the baseline entry',
+    );
   });
 test('compilation requires an explicit frozen backend', () => {
   const result = build(['--compile', '--out=dist/specialized-no-backend']);

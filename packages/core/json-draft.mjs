@@ -63,6 +63,21 @@ export function ownJson(value) {
   }
   return certify(copy);
 }
+const imported = new WeakSet();
+/** Parse JSON text (no reviver) and certify envelope[field] before any caller can see it. Parse output holds only
+ * plain objects/arrays with own data properties: no accessors, proxies, class instances or shared references can
+ * come from text, so the certify walk replaces the defensive clone here.
+ * Only an object or array field root becomes adoptable; the envelope and its other fields stay plain caller data. */
+export function importJsonField(text, field) {
+  if (typeof text !== 'string') throw new TypeError('JSON import requires text');
+  const envelope = JSON.parse(text);
+  if (!object(envelope) || Array.isArray(envelope) || !Object.hasOwn(envelope, field)) throw new TypeError(message);
+  const value = certify(envelope[field]);
+  if (object(value) && tree.get(value) === true) imported.add(value);
+  return envelope;
+}
+/** True only for a tree root recorded by importJsonField; owned subtrees and other certified roots are not. */
+export const isImportedJsonRoot = (value) => imported.has(value);
 /** Full-copy oracle and conservative fallback for shared-reference input graphs. */
 export function beginCopiedJson(base) {
   const draft = structuredClone(base);

@@ -1,4 +1,4 @@
-import { ownJson, isOwnedJsonSnapshot } from './json-draft.mjs';
+import { ownJson, isOwnedJsonSnapshot, isImportedJsonRoot } from './json-draft.mjs';
 
 /** One supplied Runtime, one atomic cell, one cached public snapshot.
  * Draft construction is separate so command-only programs need not ship Proxy COW.
@@ -79,6 +79,12 @@ export function createDocumentPublication(runtime, { initial = null, limit = 40 
     replace(value) {
       idle();
       publish(ownJson(value), { past: [], future: [] });
+    },
+    // Adopts by identity: every other holder of the imported root now sees the frozen published document.
+    replaceImported(value) {
+      idle();
+      if (!isImportedJsonRoot(value)) throw TypeError('Only a root returned by importJsonField can be adopted');
+      publish(value, { past: [], future: [] });
     },
     undo() {
       idle();
