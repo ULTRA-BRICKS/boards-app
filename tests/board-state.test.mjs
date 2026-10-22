@@ -90,8 +90,10 @@ for (const backend of ALL) {
     S.selected.replace(["a"]);
     S.tickets.set("ref", 1);
     S.artAttempts.add("k");
+    S.rendered.set(Object.freeze({ boards: [] }));
     const before = S.workspaceEpoch.get();
     S.resetPrivate();
+    assert.equal(S.rendered.get(), null, "row-view-witness: the shown root never outlives sign-out");
     assert.equal(S.boardId.get(), "");
     assert.equal(S.columnId.get(), "");
     assert.equal(S.user.get(), null);
@@ -368,6 +370,7 @@ test("[state-lib] private reset clears document and owners atomically despite di
   S.user.set({ id: "old-user" });
   S.tickets.set("private", {});
   S.artAttempts.add("private");
+  S.rendered.set(S.documentStore.read());
   const released = [];
   S.popover.set({}, () => {
     released.push("popover");
@@ -385,6 +388,7 @@ test("[state-lib] private reset clears document and owners atomically despite di
   assert.equal(S.boardId.get(), "");
   assert.equal(S.tickets.size, 0);
   assert.equal(S.artAttempts.size, 0);
+  assert.equal(S.rendered.get(), null);
   assert.deepEqual(released, ["popover", "sync"]);
   assert.deepEqual(observed, [["", null, null]]);
 });

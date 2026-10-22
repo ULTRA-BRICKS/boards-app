@@ -721,6 +721,47 @@
       "completionNote": "The edited element is an opaque editor resource and its session an editMeta owner; caret, selection and composition stay browser-owned and are never rewritten. Real IME composition is browser-tested through CDP Input.imeSetComposition + Input.insertText on both builds (compositionstart/update/end fire, the in-progress text is in the field, committed text is kept, Escape still reverts)."
     },
     {
+      "id": "row-view-witness",
+      "owner": "private.rendered owner",
+      "kind": "editor",
+      "category": "application-state",
+      "actions": [
+        "commit text on Enter/blur",
+        "cancel/no-change edit",
+        "toggle done",
+        "undo/redo of text and completion"
+      ],
+      "oldSource": {
+        "file": "apps/board/app.mjs",
+        "symbols": [
+          "function renderBoard()"
+        ]
+      },
+      "replacement": {
+        "file": "apps/board/board-state.mjs",
+        "symbols": [
+          "rendered: scope.owner(\"rendered\", null)"
+        ]
+      },
+      "completion": "complete",
+      "baselineRevision": "9ebf080",
+      "tests": [
+        "tests/board-state.test.mjs",
+        "tests/board-row-view.test.mjs",
+        "tests/keyed-text-browser.mjs"
+      ],
+      "spec": [
+        "/spec#s4-4",
+        "/spec#s4-9"
+      ],
+      "appUse": [
+        "S.rendered.set({root:ws(),boardId:b.id})",
+        "S.rendered.set(null)",
+        "S.rendered.get()"
+      ],
+      "completionNote": "The {root, boardId} the DOM last showed: set by the full renderer and by a successful row patch, cleared when an inline editor closes, when a row write throws and on sign-out (private scope reset). The original app had no equivalent because it always rendered in full. Row-local updates are planned only against this witness and only for the board still displayed; anything else renders in full. The baseline backend never sets or reads it."
+    },
+    {
       "id": "toast-timer",
       "owner": "session.toastTimer resource",
       "kind": "resource",

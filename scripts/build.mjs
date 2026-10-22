@@ -16,6 +16,7 @@ const FONT_FILES=['font.mjs','glyphs.mjs'];
 const CORE_FILES=['model.mjs','workspace.mjs','sync.mjs','art.mjs','references.mjs','assignees.mjs','workspace-loader.mjs','document-store.mjs','document-store-baseline.mjs','json-draft.mjs','document-publication.mjs'];
 const STATE_LIB_DIST=['index.js','core.js','latest-task.js','external-store.js'];
 // Scoped state mechanisms (packages/state-lib/scoped) shipped next to the state-lib dist files.
+const STATE_LIB_DOM=['immutable-row-delta.mjs','keyed-row-patch.mjs'];
 const STATE_LIB_SCOPED=['scope.mjs','scope-core.mjs','scope-baseline.mjs','debounced-latest.mjs'];
 
 function fail(message){console.error(message);process.exit(2)}
@@ -47,7 +48,7 @@ async function copyBoard(out,backend){
   if(backend)await writeFile(`${out}/state-config.mjs`,renderStateConfig(backend));
   for(const file of STATE_LIB_SCOPED)await copyInto(out,`packages/state-lib/scoped/${file}`,`packages/state-lib/scoped/${file}`);
   for(const file of STATE_LIB_DIST)await copyInto(out,`packages/state-lib/dist/${file}`,`packages/state-lib/dist/${file}`);
-  await copyInto(out,'packages/state-lib/dom/immutable-row-delta.mjs','packages/state-lib/dom/immutable-row-delta.mjs');
+  for(const file of STATE_LIB_DOM)await copyInto(out,`packages/state-lib/dom/${file}`,`packages/state-lib/dom/${file}`);
   await writeFile(out+'/placeholder.svg',PLACEHOLDER);
 }
 

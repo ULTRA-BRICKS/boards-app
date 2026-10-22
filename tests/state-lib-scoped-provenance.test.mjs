@@ -37,3 +37,18 @@ test("core: existing pins match their vendored files", () => {
     assert.equal(pin.sha256, sha256(file), `${pinFile} does not match ${file}`);
   }
 });
+
+test("dom: every vendored canonical adapter has a pin to a canonical commit and matches it byte for byte", () => {
+  const dir = "packages/state-lib/dom";
+  const sources = readdirSync(join(root, dir)).filter((f) => f.endsWith(".mjs"));
+  assert.deepEqual(sources.sort(), ["immutable-row-delta.mjs", "keyed-row-patch.mjs"]);
+  for (const source of sources) {
+    const pinPath = join(root, dir, source.replace(".mjs", ".provenance.json"));
+    assert.ok(existsSync(pinPath), `${source} has no provenance pin`);
+    const pin = JSON.parse(readFileSync(pinPath, "utf8"));
+    assert.equal(pin.sourceRepository, "hyperide/hyper-saas");
+    assert.equal(pin.sourcePath, `packages/state-lib/adapters/dom/${source}`);
+    assert.match(pin.sourceCommit, /^[0-9a-f]{40}$/);
+    assert.equal(pin.sha256, sha256(join(root, dir, source)), `${source} differs from its pinned canonical bytes`);
+  }
+});

@@ -1,0 +1,8 @@
+{
+  "sourceRepository": "hyperide/hyper-saas",
+  "sourcePath": "packages/state-lib/adapters/dom/keyed-row-patch.mjs",
+  "sourceBranch": "feat/HYP-1740-keyed-field-edits-20261021",
+  "sourceStatus": "optional checked view boundary (HYP-1740), branch-published, not merged",
+  "sha256": "3b0bdeb6115cc7688018f8794a2ab3543213bb897cd425615cda94e2a328a85b",
+  "sourceCommit": "baeb2a763495ed447c3d5638dbf8dc68d073ae29"
+}

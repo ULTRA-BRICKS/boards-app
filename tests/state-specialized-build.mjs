@@ -31,6 +31,12 @@ for (const backend of ['baseline', 'state-lib'])
       .map(([name]) => name);
     const excluded = backend === 'state-lib' ? 'scope-baseline.mjs' : 'state-lib/dist/core.js';
     assert(!active.some((name) => name.endsWith(excluded)), excluded + ' must contribute no code');
+    // Row-local views need immutable snapshots: the baseline entry links neither shared adapter, the state-lib entry both.
+    for (const adapter of ['state-lib/dom/keyed-row-patch.mjs', 'state-lib/dom/immutable-row-delta.mjs'])
+      assert.equal(active.some((name) => name.endsWith(adapter)), backend === 'state-lib', adapter + ' linked only into state-lib');
+    const app = readFileSync(resolve(root, out, 'app.js'), 'utf8');
+    for (const marker of ['beforeApply', 'outerHTML'])
+      assert.equal(app.includes(marker), backend === 'state-lib', `row patch code "${marker}" is linked only into state-lib`);
     assert.equal(manifest.buildConstants.__STATE_BUILD_BASELINE__, backend === 'baseline');
     assert.equal(manifest.emitted.runtimeDispatcher, false);
     assert(

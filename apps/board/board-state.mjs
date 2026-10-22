@@ -111,6 +111,7 @@ function defineData(scope) {
     boardId: scope.owner("boardId", ""),
     columnId: scope.owner("columnId", ""),
     selected: scope.ids("selected"),
+    rendered: scope.owner("rendered", null),
     editMeta: scope.owner("editMeta", null),
     saveStatus: scope.owner("saveStatus", ""),
     suggestions: scope.owner("suggestions", null),

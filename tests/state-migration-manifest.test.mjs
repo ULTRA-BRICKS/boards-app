@@ -116,7 +116,7 @@ test('the migrated app keeps no module-level mutable state or hand-rolled epoch 
 
 test('app.mjs only reaches state through the board-state owners', () => {
   const app = readFileSync(root + 'apps/board/app.mjs', 'utf8');
-  for (const owner of ['boardId', 'columnId', 'selected', 'popover', 'hoverCard', 'editor', 'editMeta', 'sync', 'dialog', 'modalReturn', 'errorOpen', 'shared', 'config', 'people', 'user']) {
+  for (const owner of ['boardId', 'columnId', 'selected', 'popover', 'hoverCard', 'editor', 'editMeta', 'rendered', 'sync', 'dialog', 'modalReturn', 'errorOpen', 'shared', 'config', 'people', 'user']) {
     assert.match(app, new RegExp(`\\bS\\.${owner}\\.(?:get|set|peek|clear|take|toggle|only|has|bump|guard)\\b|\\bS\\.${owner}\\.size\\b`), `S.${owner} is never used by a handler`);
   }
 });
