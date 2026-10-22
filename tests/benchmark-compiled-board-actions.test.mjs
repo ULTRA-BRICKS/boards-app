@@ -48,9 +48,9 @@ test('fixture respects unchanged product limits and always has a move target', (
 });
 
 test('every family is declared with its own artifact and settings identity', () => {
-  assert.deepEqual(Object.keys(FAMILIES).sort(), ['completion', 'edit', 'history', 'load', 'move']);
+  assert.deepEqual(Object.keys(FAMILIES).sort(), ['completion', 'edit', 'field-history', 'history', 'load', 'move']);
   const names = new Set(Object.values(FAMILIES).map((f) => f.artifact));
-  assert.equal(names.size, 5, 'one artifact file per family');
+  assert.equal(names.size, 6, 'one artifact file per family');
   for (const f of Object.values(FAMILIES)) assert(f.settings && f.description);
 });
 

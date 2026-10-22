@@ -4,27 +4,46 @@
 // structural move, and cold load. Every action is driven by real (trusted) Playwright input on the
 // real DOM; nothing calls a test-only setter.
 //
-// Timing boundaries (all in-page performance.now):
+// Timing boundaries (all in-page performance.now; probe action-probe-v2, see
+// benchmark-compiled-board-actions-probe.mjs and PROBE_VERSION/END_BOUNDARIES in the lib):
 //  - start: capture-phase listener on the real event (click/keydown) or navigation start for load
-//  - handlerMs: a window bubble listener after the app handlers, with a committed-output assertion
+//  - handlerMs: keydown ends on the focused editor after its onkeydown (survives stopPropagation);
+//    click/input end at a window bubble listener after the app handlers; both assert committed output
 //  - nextFrameMs: first requestAnimationFrame after that point (not painted-frame/INP)
 //  - load family reports lastResponseMs/postResponseRenderMs instead (metricKind navigation-load)
 //  - asyncSettledMs: from start until the save request answered, no pending fetch, idle save state
+// HYP-1740 adds field-history (commit text, Undo it, Redo it); history stays the structural
+// move+Undo/Redo family. The API is the synthetic local fixture server (scripts/dev.mjs with
+// LOCAL_TEST_MODE and an in-memory store); static files are served from an in-memory snapshot of
+// the read-only artifact roots, the same bytes that were hashed.
 // Environment: BENCH_ENGINE, BENCH_PORT, BENCH_EVIDENCE, BENCH_FAMILIES, BENCH_COUNTS,
-// BENCH_TRIALS (measured pages per backend/cell), BENCH_WARMUP (discarded pages, default 0).
+// BENCH_TRIALS (measured pages per backend/cell), BENCH_WARMUP (discarded pages, default 0),
+// BENCH_ARTIFACT_BASELINE + BENCH_ARTIFACT_STATE (absolute build roots; default dist/specialized-test-*),
+// BENCH_NEGATIVE (negative control, see NEGATIVE_MODES).
+// Acceptance of an output directory is scripts/benchmark-action-correctness-receipt.mjs with the
+// same families/engines/counts/BENCH_TRIALS named explicitly; it fails closed on anything omitted.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { openSync, closeSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { resolve, extname, sep } from 'node:path';
+import { resolve, extname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { loadavg, cpus } from 'node:os';
 import { chromium, webkit, firefox } from 'playwright';
 import {
   FAMILIES,
+  PROBE_VERSION,
+  END_BOUNDARIES,
+  NEGATIVE_MODES,
+  endBoundaryFor,
+  expectedSelection,
+  judgeStageSaves,
+  parseArtifactRoots,
   buildActionDocument,
   planAction,
   expectedStages,
+  expectedSampleSpecs,
+  fixtureTemplate,
   documentDigest,
   verifyInitialState,
   judgeSample,
@@ -32,6 +51,12 @@ import {
   compareRuns,
   summarizeRuns,
 } from './benchmark-compiled-board-actions-lib.mjs';
+import { installProbe } from './benchmark-compiled-board-actions-probe.mjs';
+import { hashTree, snapshotTree, compareTrees } from './benchmark-artifact-tree.mjs';
+import { HARNESS_ROOT, HARNESS_FILES, fixtureServerFiles, artifactFile } from './benchmark-action-correctness-receipt.mjs';
+
+// Relative paths below (scripts/dev.mjs, hashed sources, default dist roots) must be this checkout's.
+assert.equal(process.cwd(), HARNESS_ROOT, 'run from the harness checkout root ' + HARNESS_ROOT);
 
 const engineName = process.env.BENCH_ENGINE ?? 'chromium';
 const engine = { chromium, webkit, firefox }[engineName];
@@ -41,7 +66,7 @@ const port = Number(process.env.BENCH_PORT ?? 6983),
 const output = resolve(process.env.BENCH_EVIDENCE ?? 'test-results/compiled-board-actions');
 mkdirSync(output, { recursive: true });
 const families = (process.env.BENCH_FAMILIES ?? Object.keys(FAMILIES).join(',')).split(',');
-assert(families.every((f) => f in FAMILIES), 'Unknown family in BENCH_FAMILIES');
+assert(families.every((f) => Object.hasOwn(FAMILIES, f)), 'Unknown family in BENCH_FAMILIES');
 const counts = (process.env.BENCH_COUNTS ?? '30').split(',').map(Number);
 assert(counts.every((n) => Number.isSafeInteger(n) && n >= 1 && n <= 10000));
 const trials = Number(process.env.BENCH_TRIALS ?? 1);
@@ -49,126 +74,42 @@ assert(Number.isSafeInteger(trials) && trials >= 1 && trials <= 17);
 const warmups = Number(process.env.BENCH_WARMUP ?? 0);
 assert(Number.isSafeInteger(warmups) && warmups >= 0 && warmups <= 3);
 const hash = (value) => createHash('sha256').update(value).digest('hex');
-const artifactRoot = resolve('dist/specialized-test');
-const variants = ['baseline', 'state-lib'].map((name) => ({
-  name,
-  root: artifactRoot + '-' + name,
-  sha256: hash(readFileSync(artifactRoot + '-' + name + '/app.js')),
-}));
-const sourceHashes = Object.fromEntries(
-  ['scripts/benchmark-compiled-board-actions.mjs', 'scripts/benchmark-compiled-board-actions-lib.mjs'].map((f) => [
-    f,
-    hash(readFileSync(resolve(f))),
-  ]),
-);
-// Negative controls: BENCH_NEGATIVE=wrong-row makes the UI act on the second row while the
-// expectations name the first; BENCH_NEGATIVE=stale expects a different seeded fixture. A correct
-// harness must report problems and exit non-zero for both.
+const artifactRoots = parseArtifactRoots(process.env, process.cwd());
+const variants = ['baseline', 'state-lib'].map((name) => {
+  const root = artifactRoots[name];
+  assert(existsSync(root + '/app.js') && existsSync(root + '/index.html'), 'not a built Boards entry: ' + root);
+  const { bodies, ...tree } = snapshotTree(root);
+  assert(bodies.has('app.js') && bodies.has('index.html'), 'app.js and index.html must be regular files: ' + root);
+  // Only regular files can be served from the snapshot; a symlinked or special entry would 404.
+  const unserved = tree.files.filter((f) => !bodies.has(f.path)).map((f) => f.path);
+  assert.deepEqual(unserved, [], `artifact root ${root} has symlinks or special files: ${unserved.join(', ')}`);
+  return { name, root, sha256: hash(bodies.get('app.js')), tree, bodies };
+});
+// Re-hashes every artifact file; any change, addition or removal invalidates the whole run.
+const assertArtifactsFrozen = (when) => {
+  for (const variant of variants) {
+    const changes = compareTrees(variant.tree, hashTree(variant.root));
+    assert.deepEqual(changes, [], `${variant.name} artifact tree changed ${when}: ${changes.join(', ')}`);
+  }
+};
+const sourceHashes = Object.fromEntries(HARNESS_FILES.map((f) => [f, hash(readFileSync(resolve(f)))]));
+const fixtureServer = {
+  label: 'SYNTHETIC LOCAL FIXTURE SERVER: scripts/dev.mjs from this harness checkout, LOCAL_TEST_MODE=1, in-memory store, 127.0.0.1 only; serves /api/* only, never the measured static files; not a product deployment',
+  sourceHashes: Object.fromEntries(fixtureServerFiles(HARNESS_ROOT).map((f) => [f, hash(readFileSync(resolve(f)))])),
+  // scripts/dev.mjs seeds people from BOARDS_SEED_PEOPLE or .seed-people.json; the spawn env below
+  // omits the variable and the file must not exist, so the fixture has no unrecorded data input.
+  seedPeople: 'absent',
+};
+assert(!existsSync(resolve('.seed-people.json')), '.seed-people.json would seed the fixture server; move it away for the run');
+// Negative controls (NEGATIVE_MODES): every non-empty mode must make the run report problems and
+// exit non-zero. wrong-row acts on the second row while the expectations name the first.
 const negative = process.env.BENCH_NEGATIVE ?? '';
-assert(['', 'wrong-row', 'stale'].includes(negative), 'Unknown BENCH_NEGATIVE');
+assert(NEGATIVE_MODES.has(negative), 'Unknown BENCH_NEGATIVE');
 assert(negative !== 'wrong-row' || counts.every((n) => n >= 2), 'wrong-row control needs a second row; use counts of at least 2');
+// Load arms no event and saves nothing, so only the stale control can fail it.
+assert(!negative || negative === 'stale' || !families.includes('load'), `negative control ${negative} cannot fail the load family; leave load out`);
 const STEP_TIMEOUT = 15000;
 const settle = { timeout: STEP_TIMEOUT };
-
-// Runs in every page before app code. Installs the fetch ledger and the armed-sample recorder. Measures; never mutates app state.
-function installProbe() {
-  const win = window;
-  win.__fetchLog = [];
-  win.__pending = 0;
-  win.__samples = [];
-  const realFetch = win.fetch.bind(win);
-  win.fetch = (input, init) => {
-    const url = typeof input === 'string' ? input : input.url;
-    const entry = { url, method: init?.method ?? 'GET', startMs: performance.now(), endMs: null, status: null };
-    if (entry.method === 'PUT' && url.includes('/api/state') && typeof init?.body === 'string') entry.body = init.body;
-    win.__fetchLog.push(entry);
-    win.__pending++;
-    return realFetch(input, init).then(
-      (response) => {
-        entry.endMs = performance.now();
-        entry.status = response.status;
-        win.__pending--;
-        return response;
-      },
-      (error) => {
-        entry.endMs = performance.now();
-        entry.error = String(error);
-        win.__pending--;
-        throw error;
-      },
-    );
-  };
-  const rowOf = (id) => document.getElementById('item-' + id);
-  const checks = {
-    pressed: ({ id, value }) => rowOf(id)?.querySelector('.task-check')?.getAttribute('aria-pressed') === String(value),
-    text: ({ id, text, editing }) => {
-      const el = rowOf(id)?.querySelector('.task-text');
-      return Boolean(el) && el.textContent === text && el.isContentEditable === editing;
-    },
-    placed: ({ id, column, index }) => {
-      const li = rowOf(id);
-      if (!li || li.dataset.col !== column) return false;
-      const list = [...document.querySelectorAll('#column-' + CSS.escape(column) + ' .task')];
-      return (index === -1 ? list.at(-1) : list[index]) === li;
-    },
-  };
-  let armed = null,
-    current = null;
-  win.__arm = (spec) => {
-    armed = spec;
-    current = null;
-  };
-  const begin = (event) => {
-    if (!armed || current || event.type !== armed.event) return;
-    if (armed.key && event.key !== armed.key) return;
-    if (armed.selector && !event.target.closest?.(armed.selector)) return;
-    const row = event.target.closest?.('[data-item]') ?? document.activeElement?.closest?.('[data-item]');
-    current = {
-      stage: armed.stage,
-      start: performance.now(),
-      trusted: event.isTrusted,
-      id: row?.dataset.item ?? armed.rowId,
-      expectedId: armed.rowId,
-      expectAsync: Boolean(armed.awaitSave),
-      done: false,
-    };
-  };
-  const finish = (event) => {
-    if (!armed || !current || current.done || event.type !== armed.endEvent) return;
-    const sample = current,
-      spec = armed;
-    sample.done = true;
-    sample.handlerMs = performance.now() - sample.start;
-    sample.committedAtHandlerEnd = checks[spec.check.kind](spec.check);
-    requestAnimationFrame(() => {
-      sample.nextFrameMs = performance.now() - sample.start;
-      sample.correct = checks[spec.check.kind](spec.check);
-      if (!spec.awaitSave) return void win.__samples.push(sample);
-      const deadline = performance.now() + 15000;
-      const poll = () => {
-        const saves = win.__fetchLog.filter(
-          (f) => f.method === 'PUT' && f.startMs >= sample.start && Number.isFinite(f.endMs),
-        );
-        if (saves.length && win.__pending === 0 && document.querySelector('.save-state')?.textContent === '') {
-          sample.asyncSettledMs = performance.now() - sample.start;
-          return void win.__samples.push(sample);
-        }
-        if (performance.now() > deadline) {
-          sample.asyncSettledMs = null;
-          return void win.__samples.push(sample);
-        }
-        setTimeout(poll, 1);
-      };
-      poll();
-    });
-  };
-  document.addEventListener('click', begin, true);
-  document.addEventListener('keydown', begin, true);
-  win.addEventListener('click', finish);
-  win.addEventListener('keydown', finish);
-  win.addEventListener('input', finish);
-
-}
 
 // Load family only: tracks navigation start to first full board render in the freshly loaded page.
 function installLoadTracker(options) {
@@ -216,15 +157,22 @@ const server = spawn(process.execPath, ['scripts/dev.mjs'], {
 
 const stageFetches = (page) => page.evaluate(() => window.__fetchLog.filter((f) => f.method === 'PUT'));
 const saveSettled = (page, since) =>
-  page.waitForFunction(
-    (from) =>
-      window.__pending === 0 &&
-      document.querySelector('.save-state')?.textContent === '' &&
-      window.__fetchLog.filter((f) => f.method === 'PUT' && f.startMs >= from).every((f) => Number.isFinite(f.endMs)),
-    since,
-    settle,
-  );
-const sampleCount = (page, n) => page.waitForFunction((count) => window.__samples.length >= count, n, settle);
+  page
+    .waitForFunction(
+      (from) =>
+        window.__pending === 0 &&
+        document.querySelector('.save-state')?.textContent === '' &&
+        window.__fetchLog.filter((f) => f.method === 'PUT' && f.startMs >= from).every((f) => Number.isFinite(f.endMs)),
+      since,
+      settle,
+    )
+    .catch((error) => {
+      throw Error(`save never settled within ${STEP_TIMEOUT} ms (unanswered save request, pending fetch or busy save indicator): ${error.message}`);
+    });
+const sampleCount = (page, n) =>
+  page.waitForFunction((count) => window.__samples.length >= count, n, settle).catch((error) => {
+    throw Error(`sample ${n} was not recorded within ${STEP_TIMEOUT} ms (end listener never ran or its save never settled): ${error.message}`);
+  });
 const storedDocument = async (page) => (await (await page.request.get(base + '/api/state')).json()).value;
 
 /** Performs the family's real UI sequence. Returns the stages with their observed stored digests. */
@@ -232,7 +180,8 @@ async function perform(page, family, plan, stages, count, seededRows) {
   const observed = [];
   const actId = negative === 'wrong-row' ? plan.actRowId : plan.rowId;
   const row = () => page.locator('#item-' + actId);
-  const arm = (spec) => page.evaluate((s) => window.__arm(s), { rowId: plan.rowId, ...spec });
+  const arm = (spec) =>
+    page.evaluate((s) => window.__arm(s), { rowId: plan.rowId, boundary: endBoundaryFor(spec.endEvent), ...spec });
   const expectStored = async (stage, since) => {
     await saveSettled(page, since);
     const digest = documentDigest(await storedDocument(page));
@@ -303,11 +252,44 @@ async function perform(page, family, plan, stages, count, seededRows) {
         key: 'Enter',
         endEvent: 'keydown',
         awaitSave: true,
-        check: { kind: 'text', id: plan.rowId, text: plan.expectedText, editing: false },
+        check: { kind: 'text', id: plan.rowId, text: plan.expectedText, editing: false, noOpenEditor: true },
       });
       await page.keyboard.press('Enter');
       await sampleCount(page, before + 1);
       await expectStored(stages[0], since);
+      break;
+    }
+    case 'field-history': {
+      await select();
+      await row().locator('.task-text').click(settle);
+      assert(await row().locator('.task-text').evaluate((el) => el.isContentEditable), 'editor did not open');
+      const shown = await row().locator('.task-text').textContent();
+      await page.keyboard.type(plan.typed);
+      await page.waitForFunction(
+        ({ id, text }) => document.getElementById('item-' + id)?.querySelector('.task-text')?.textContent === text,
+        { id: actId, text: shown + plan.typed },
+        settle,
+      );
+      const textCheck = (text) => ({ kind: 'text', id: plan.rowId, text, editing: false, selected: true, noOpenEditor: true });
+      let since = await now();
+      await arm({ stage: 'commit', event: 'keydown', key: 'Enter', endEvent: 'keydown', awaitSave: true, check: textCheck(plan.expectedText) });
+      await page.keyboard.press('Enter');
+      await sampleCount(page, 1);
+      await expectStored(stages[0], since);
+      for (const [index, kind, text] of [
+        [1, 'undo', plan.originalText],
+        [2, 'redo', plan.expectedText],
+      ]) {
+        await page.locator('.edge-tab[data-nav="more"]').click(settle);
+        const button = page.locator('#' + kind);
+        await button.waitFor(settle);
+        assert(await button.isEnabled(), kind + ' is disabled after the text commit');
+        since = await now();
+        await arm({ stage: kind, event: 'click', endEvent: 'click', selector: '#' + kind, awaitSave: true, check: textCheck(text) });
+        await button.click(settle);
+        await sampleCount(page, index + 1);
+        await expectStored(stages[index], since);
+      }
       break;
     }
     case 'move': {
@@ -399,22 +381,29 @@ try {
             await page.route(base + '/**', (route) => {
               const path = new URL(route.request().url()).pathname;
               if (path.startsWith('/api/')) return route.continue();
-              const file = resolve(variant.root, '.' + (path === '/' ? '/index.html' : decodeURIComponent(path)));
-              if (!file.startsWith(variant.root + sep) || !existsSync(file))
-                return route.fulfill({ status: 404, body: 'Not a compiled asset' });
+              // Served from the in-memory snapshot whose bytes were hashed; only manifest paths exist.
+              let file;
+              try {
+                file = path === '/' ? 'index.html' : decodeURIComponent(path).slice(1);
+              } catch {
+                file = null;
+              }
+              const body = file === null ? undefined : variant.bodies.get(file);
+              if (!body) return route.fulfill({ status: 404, body: 'Not a compiled asset' });
               const types = { '.js': 'text/javascript', '.html': 'text/html', '.css': 'text/css', '.svg': 'image/svg+xml' };
               return route.fulfill({
                 status: 200,
                 contentType: types[extname(file)] ?? 'application/octet-stream',
-                body: readFileSync(file),
+                body,
               });
             });
-            await page.addInitScript(installProbe);
+            await page.addInitScript(installProbe, { negative, probeVersion: PROBE_VERSION });
             await page.goto(base);
             await page.getByRole('button', { name: 'Open local test workspace', exact: true }).click();
             await page.locator('.paper').waitFor();
             const old = await (await page.request.get(base + '/api/state')).json();
-            const seeded = buildActionDocument(old.value, count);
+            const template = fixtureTemplate(old.value);
+            const seeded = buildActionDocument(template, count);
             const plan = planAction(family, seeded);
             plan.actRowId = seeded.boards[0].columns[0].items[1]?.id ?? plan.rowId;
             const stages = expectedStages(family, seeded, plan);
@@ -436,7 +425,7 @@ try {
               backend: await page.locator('html').getAttribute('data-document-backend'),
               expectedBackend: variant.name,
               storedDigest: documentDigest(await storedDocument(page)),
-              expectedDigest: negative === 'stale' ? documentDigest(buildActionDocument(old.value, count + 1)) : documentDigest(seeded),
+              expectedDigest: negative === 'stale' ? documentDigest(buildActionDocument(template, count + 1)) : documentDigest(seeded),
               domRowIds: await page.locator('.task').evaluateAll((els) => els.map((e) => e.dataset.item)),
               expectedRowIds: firstBoardIds,
             });
@@ -444,6 +433,15 @@ try {
               window.__fetchLog.length = 0;
               window.__samples.length = 0;
             });
+            // Holds every app save unanswered from here on (the seed above went through page.request).
+            if (negative === 'no-save')
+              await page.route(
+                (url) => url.pathname === '/api/state',
+                (route) => {
+                  if (route.request().method() !== 'PUT') return route.fallback();
+                  // Deliberately neither fulfilled nor continued: the save stays unanswered.
+                },
+              );
             const observed = await perform(page, family, plan, stages, count, visible);
             const samples = await page.evaluate(() => window.__samples);
             const fetchLog = await page.evaluate(() => window.__fetchLog);
@@ -476,11 +474,17 @@ try {
             record.plan = plan;
             record.topology = seeded.boards.map((b) => ({ id: b.id, columnRows: b.columns.map((c) => c.items.length) }));
             record.stageExpected = stages.map(({ name, digest }) => ({ name, digest }));
-            const expectedSamples = { completion: 1, edit: plan.typed?.length + 1, move: 1, history: 2, load: 1 }[family];
+            record.fixtureTemplate = template;
+            const expectedSamples = expectedSampleSpecs(family).length;
             if (samples.length !== expectedSamples)
               record.problems.push(`expected ${expectedSamples} samples, recorded ${samples.length}`);
             for (const sample of samples) record.problems.push(...judgeSample(sample).map((p) => `${sample.stage}: ${p}`));
             record.problems.push(...judgeAsync(asyncState, stages));
+            // One answered save per mutating stage for every family, the same rule the receipt applies.
+            record.problems.push(...judgeStageSaves(saves, stages));
+            const selection = expectedSelection(family, plan);
+            if (selection && JSON.stringify(record.selectedIds) !== JSON.stringify(selection))
+              record.problems.push(`selected rows ${JSON.stringify(record.selectedIds)}, expected ${JSON.stringify(selection)}`);
             for (const stage of stages)
               if (stage.mutates && record.stageDigests[stage.name] !== stage.digest)
                 record.problems.push(`stored document after ${stage.name} differs from the expected document`);
@@ -504,9 +508,11 @@ try {
         }
       }
       console.log('Finished', family, count, 'rows');
+      assertArtifactsFrozen(`after ${family} ${count}`);
     }
   for (const variant of variants)
     assert.equal(hash(readFileSync(variant.root + '/app.js')), variant.sha256, 'Build changed during measurement');
+  assertArtifactsFrozen('at the end');
   const common = {
     date: new Date().toISOString(),
     node: process.version,
@@ -515,7 +521,11 @@ try {
     logicalCPUs: cpus().length,
     startLoad,
     endLoad: loadavg(),
-    variants,
+    variants: variants.map(({ tree, bodies, ...v }) => ({ ...v, treeDigest: tree.digest, files: tree.files })),
+    artifactRootsExplicit: artifactRoots.explicit,
+    fixtureServer,
+    probe: { version: PROBE_VERSION, boundaries: END_BOUNDARIES },
+    negative,
     sourceHashes,
     counts,
     measuredPagesPerBackend: trials,
@@ -530,11 +540,14 @@ try {
     'asyncSettledMs is event start to answered save request, no pending fetch and idle save indicator; it includes the sync queue debounce and local server time.',
     'Load family (metricKind navigation-load, no event handler): start is navigation start; lastResponseMs is the last state/people response; postResponseRenderMs is render commit after that response (not an event-handler duration); nextFrameMs is the first frame after commit. Static files are fulfilled from exact build artifacts, so this is not network download timing.',
     'The in-page fetch ledger and a Playwright route are identical for both backends.',
+    `Probe ${PROBE_VERSION}: keydown handlerMs ends on the focused editor after its onkeydown handler (it survives stopPropagation); click/input end at a window bubble listener. Phase-2 records from eb53692 used the v1 window-bubble end for every event and are historical, not mixed with v2 rows.`,
+    'field-history: commit is the Enter keydown on the edited row; undo/redo are the margins dialog buttons; each stage must produce exactly one answered save with consecutive request versions, the stored document of that stage, and the row selected beforehand still selected.',
+    'Artifact roots are read and hashed file by file once before the run and served from that in-memory snapshot; the directories are re-hashed after every family and at the end, and any change aborts the run.',
   ];
   for (const family of families) {
     const records = raw.filter((r) => r.family === family);
     writeFileSync(
-      output + '/' + FAMILIES[family].artifact.replace(/\.json$/, '') + '-' + engineName + '.json',
+      output + '/' + artifactFile(family, engineName),
       JSON.stringify(
         {
           ...common,
